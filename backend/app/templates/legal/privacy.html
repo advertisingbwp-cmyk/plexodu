@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — Plexudo{% endblock %}
+{% block description %}Plexudo Privacy Policy: Closed-App security architecture, Google OAuth token encryption, and strict data protection practices.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-8">
+    <div class="space-y-2">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Privacy Policy</h1>
+        <p class="text-xs text-slate-500">Last updated: August 2026</p>
+    </div>
+
+    <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-card text-xs text-slate-600 leading-relaxed space-y-6">
+        <section class="space-y-2">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">1. Closed-App Security Architecture</h2>
+            <p>
+                Plexudo operates under a strict Closed-App privacy model. Private user data, YouTube API responses, Groq AI generations, and OAuth credentials are never rendered on public crawlable pages or indexed by search engines.
+            </p>
+        </section>
+
+        <section class="space-y-2">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">2. Google OAuth & YouTube Data</h2>
+            <p>
+                When you connect your YouTube channel, Plexudo requests read-only permissions to audit your channel metadata and statistics. We encrypt all access tokens and refresh tokens at rest using AES-128 Fernet cryptography. Tokens are never exposed to client-side code, cookies, or public APIs.
+            </p>
+        </section>
+
+        <section class="space-y-2">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">3. Information We Collect</h2>
+            <p>
+                We collect your email address, username, and Argon2id-hashed passwords for authentication purposes. We never store plain-text passwords.
+            </p>
+        </section>
+
+        <section class="space-y-2">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">4. Third-Party Disclosures</h2>
+            <p>
+                We do not sell, rent, or trade your personal information or YouTube channel analytics with any third-party advertisers or data brokers.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}
