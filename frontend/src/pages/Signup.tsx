@@ -50,15 +50,15 @@ export const Signup: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center pt-6 sm:pt-12 pb-10 px-4 sm:px-6 selection:bg-indigo-600 selection:text-white">
       <div className="w-full max-w-[420px] space-y-4">
         <div className="text-center space-y-1.5">
-          <a href="http://127.0.0.1:8000/" className="inline-flex items-center gap-2 group">
+          <Link to="/" className="inline-flex items-center gap-2 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center font-black text-white text-lg shadow-sm group-hover:scale-105 transition-transform">
               P
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
               Plexudo
             </span>
-          </a>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Create your creator account</h1>
+          </Link>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Create your Plexudo account</h1>
           <p className="text-xs text-slate-500">
             Already have an account?{' '}
             <Link to="/login" className="font-semibold text-indigo-600 hover:text-indigo-700">
