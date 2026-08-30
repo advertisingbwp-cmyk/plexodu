@@ -20,8 +20,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # ---- Database ----
-    DATABASE_URL: str = "postgresql+asyncpg://plexudo:plexudo@localhost:5432/plexudo"
-    TEST_DATABASE_URL: str = "postgresql+asyncpg://plexudo:plexudo@localhost:5432/plexudo_test"
+    DATABASE_URL: str = "sqlite+aiosqlite:////tmp/plexudo_dev.db" if os.environ.get("VERCEL") else "sqlite+aiosqlite:///plexudo_dev.db"
+    TEST_DATABASE_URL: str = "sqlite+aiosqlite:///plexudo_test.db"
+
 
     # ---- Session ----
     SECRET_KEY: str = "change-me-secret-key-32-chars-long"
@@ -93,7 +94,12 @@ class Settings(BaseSettings):
     def resolve_ai_model(self) -> Settings:
         if self.AI_MODEL:
             self.GROQ_MODEL = self.AI_MODEL
+        if self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif self.DATABASE_URL.startswith("postgresql://") and not self.DATABASE_URL.startswith("postgresql+asyncpg://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
         return self
+
 
     @property
     def EFFECTIVE_AI_MODEL(self) -> str:
