@@ -1,133 +1,66 @@
 """
-Application Settings
-====================
-All configuration is loaded from environment variables (or .env / .env.test).
-No secret values are ever hardcoded here.
-
-The TOOL_CREDIT_COSTS property is the single source of truth for per-tool
-credit costs. Tool endpoints must look up their cost here — never hardcode it.
+SMTAS & Plexudo - Application Core Configuration
+Centralized configuration manager loading environment credentials securely.
 """
 
-from __future__ import annotations
-
 import os
-from functools import lru_cache
+from pathlib import Path
 from typing import Optional
-
-from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Determine root .env file path
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+ENV_FILE = BASE_DIR / ".env"
+if not ENV_FILE.exists():
+    # Fallback to current working directory or parent directory
+    ENV_FILE = Path(".env").resolve()
 
 
 class Settings(BaseSettings):
-    # ---- Database ----
-    DATABASE_URL: str = "sqlite+aiosqlite:////tmp/plexudo_dev.db" if os.environ.get("VERCEL") else "sqlite+aiosqlite:///plexudo_dev.db"
-    TEST_DATABASE_URL: str = "sqlite+aiosqlite:///plexudo_test.db"
+    """
+    Centralized Settings Model for SMTAS / Plexudo.
+    Loads secrets securely from server-side environment (.env).
+    """
+    # Core API Credentials
+    GROQ_API_KEY: str = ""
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    YOUTUBE_API_KEY: str = ""
 
-
-    # ---- Session ----
-    SECRET_KEY: str = "change-me-secret-key-32-chars-long"
-    SESSION_COOKIE_NAME: str = "plexudo_session"
-    SESSION_MAX_AGE_DAYS: int = 30
-
-    # ---- CSRF ----
-    CSRF_SECRET: str = "change-me-csrf-secret-32-chars-long"
-
-    # ---- CORS (local dev only — production is same-origin via Vercel rewrite) ----
-    CORS_ALLOWED_ORIGINS: str = "http://localhost:5173"
-
-    # ---- Encryption (YouTube OAuth tokens at rest) ----
-    TOKEN_ENCRYPTION_KEY: str = "change-me-32-bytes-aaaaaaaaaaaaa"  # must be 32 or 44 bytes
-
-    # ---- Google OAuth — Connect-YouTube ONLY, never for account login ----
-    GOOGLE_CLIENT_ID: str = "your-google-client-id.apps.googleusercontent.com"
-    GOOGLE_CLIENT_SECRET: str = "your-google-client-secret"
-    YOUTUBE_CONNECT_REDIRECT_URI: str = "http://localhost:8000/api/v1/youtube/callback"
-    GOOGLE_OAUTH_SCOPES: list[str] = [
-        "https://www.googleapis.com/auth/youtube.readonly",
-        "https://www.googleapis.com/auth/userinfo.email",
-    ]
-
-    # ---- YouTube Data API v3 ----
-    YOUTUBE_API_KEY: str = "your-youtube-api-key"
-
-    # ---- AI (Groq) ----
-    GROQ_API_KEY: str = "your-groq-api-key"
+    # Model & AI Strategy Configurations
     GROQ_MODEL: str = "llama-3.3-70b-versatile"
-    AI_MODEL: Optional[str] = None
-    AI_TIMEOUT_SECONDS: float = 20.0
 
-    # ---- Email Delivery ----
-    EMAIL_PROVIDER: str = "console"  # 'smtp', 'sendgrid', 'resend', 'console'
-    SMTP_HOST: str = "localhost"
-    SMTP_PORT: int = 587
-    SMTP_USERNAME: str = "test@example.com"
-    SMTP_PASSWORD: str = "test-password"
-    SMTP_USE_TLS: bool = True
-    SENDGRID_API_KEY: Optional[str] = None
-    RESEND_API_KEY: Optional[str] = None
-    EMAIL_FROM_ADDRESS: str = "noreply@plexudo.com"
-    EMAIL_FROM_NAME: str = "Plexudo"
+    # Google OAuth / YouTube API Redirect URIs
+    GOOGLE_REDIRECT_URI: str = "http://127.0.0.1:5000/api/channel-seo/auth/callback"
+    YOUTUBE_CALLBACK_URL: str = "http://127.0.0.1:8000/api/v1/youtube/callback"
 
-    # ---- URLs ----
-    FRONTEND_URL: str = "http://localhost:5173"
-    PUBLIC_APP_URL: str = "https://plexudo.vercel.app"
-
-    # ---- Environment ----
-    ENVIRONMENT: str = "development"
-
-    # ---- Redis (rate limiting) ----
-    REDIS_URL: str = "redis://localhost:6379/0"
-
-    # ---- Per-tool credit costs (overridable via env vars without code changes) ----
-    TOOL_CREDIT_COST_VIDEO_ANALYZER: int = 1
-    TOOL_CREDIT_COST_KEYWORD_TOOL: int = 1
-    TOOL_CREDIT_COST_TREND_ANALYZER: int = 1
-    TOOL_CREDIT_COST_COMPETITOR_ANALYSIS: int = 1
-    TOOL_CREDIT_COST_AI_ASSISTANT: int = 1
-    TOOL_CREDIT_COST_SEO_SCORE: int = 1
-
-    # ---- Credit constants ----
-    WELCOME_CREDITS: int = 3
-    AD_REWARD_CREDITS: int = 1
-
-    @model_validator(mode="after")
-    def resolve_ai_model(self) -> Settings:
-        if self.AI_MODEL:
-            self.GROQ_MODEL = self.AI_MODEL
-        if self.DATABASE_URL.startswith("postgres://"):
-            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif self.DATABASE_URL.startswith("postgresql://") and not self.DATABASE_URL.startswith("postgresql+asyncpg://"):
-            self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-        return self
-
-
-    @property
-    def EFFECTIVE_AI_MODEL(self) -> str:
-        return self.AI_MODEL or self.GROQ_MODEL
-
-    @property
-    def TOOL_CREDIT_COSTS(self) -> dict[str, int]:
-        """
-        Central mapping of tool name → credit cost.
-        Tool endpoints MUST look up their cost here rather than hardcoding a number.
-        Costs can be changed per-environment via TOOL_CREDIT_COST_* env vars.
-        """
-        return {
-            "VIDEO_ANALYZER": self.TOOL_CREDIT_COST_VIDEO_ANALYZER,
-            "KEYWORD_TOOL": self.TOOL_CREDIT_COST_KEYWORD_TOOL,
-            "TREND_ANALYZER": self.TOOL_CREDIT_COST_TREND_ANALYZER,
-            "COMPETITOR_ANALYSIS": self.TOOL_CREDIT_COST_COMPETITOR_ANALYSIS,
-            "AI_ASSISTANT": self.TOOL_CREDIT_COST_AI_ASSISTANT,
-            "SEO_SCORE": self.TOOL_CREDIT_COST_SEO_SCORE,
-        }
+    # Application & Server Defaults
+    FLASK_ENV: str = "development"
+    SECRET_KEY: str = "smtas-secure-prod-key-2026"
+    PORT: int = 5000
+    HOST: str = "127.0.0.1"
 
     model_config = SettingsConfigDict(
-        env_file=os.environ.get("ENV_FILE", ".env"),
+        env_file=str(ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
+        case_sensitive=True,
     )
 
+    def is_groq_configured(self) -> bool:
+        return bool(self.GROQ_API_KEY and len(self.GROQ_API_KEY.strip()) > 0)
 
-@lru_cache()
-def get_settings() -> Settings:
-    return Settings()
+    def is_youtube_configured(self) -> bool:
+        return bool(self.YOUTUBE_API_KEY and len(self.YOUTUBE_API_KEY.strip()) > 0)
+
+    def is_google_oauth_configured(self) -> bool:
+        return bool(
+            self.GOOGLE_CLIENT_ID
+            and len(self.GOOGLE_CLIENT_ID.strip()) > 0
+            and self.GOOGLE_CLIENT_SECRET
+            and len(self.GOOGLE_CLIENT_SECRET.strip()) > 0
+        )
+
+
+# Instantiate singleton settings object
+settings = Settings()

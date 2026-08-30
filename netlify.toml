@@ -1,0 +1,22 @@
+# Netlify Configuration for SMTAS
+[build]
+  publish = "frontend"
+
+[[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+# Proxy backend API requests to live backend (e.g. Render / Railway)
+# Replace https://smtas-backend.onrender.com with your actual backend URL after deploying backend
+[[redirects]]
+  from = "/api/*"
+  to = "https://smtas-backend.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"

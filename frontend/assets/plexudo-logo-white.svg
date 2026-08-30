@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" width="280" height="64" fill="none">
+  <!-- PLEXUDO ICON (WHITE) -->
+  <g transform="translate(4, 4)">
+    <rect x="0" y="38" width="14" height="14" rx="2.5" fill="#FFFFFF"/>
+    <rect x="14" y="24" width="14" height="14" rx="2.5" fill="#FFFFFF"/>
+    <path d="M28 10 H38 C42 10 44 12 44 16 V52 H34 V24 H28 V10 Z" fill="#FFFFFF"/>
+    <path d="M24 10 C24 4.5 28.5 0 34 0 H44 C53.941 0 62 8.059 62 18 C62 27.941 53.941 36 44 36 H38 C32.477 36 28 40.477 28 46 V52" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M38 12 H44 C47.314 12 50 14.686 50 18 C50 21.314 47.314 24 44 24 H38" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- PLEXUDO WORDMARK (WHITE) -->
+  <text x="82" y="44" font-family="'Plus Jakarta Sans', -apple-system, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF" letter-spacing="1.5">PLEXUDO</text>
+</svg>

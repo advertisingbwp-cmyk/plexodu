@@ -1,35 +1,6 @@
-# Environment & secrets
 .env
-.env.*
-!.env.example
-
-# Python
+backend/smtas.db
+backend/exports/*.pdf
 __pycache__/
-*.py[cod]
-*.class
-*.so
-.Python
-env/
-venv/
-.venv/
-*.egg-info/
-.pytest_cache/
-.coverage
-htmlcov/
-*.db
-*.sqlite
-*.sqlite3
-
-# Node & Frontend
-node_modules/
-dist/
-.vite/
-.vercel/
-
-# IDE & OS
-.vscode/
-.idea/
-*.swp
+*.pyc
 .DS_Store
-Thumbs.db
-.vercel

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plexudo Dashboard — YouTube Creator SEO, Analytics &amp; Growth</title>
+<meta name="description" content="Plexudo Dashboard — Live YouTube Data API v3 integration, NLP sentiment scoring, 50/50 SEO Score, 1-click YouTube tags generator, and AI Content Strategist.">
+<meta name="keywords" content="Plexudo, YouTube SEO Score, Virality Index, Sentiment Analysis, YouTube Tag Generator, Content Strategy, Creator Studio">
+<meta name="author" content="Plexudo Team">
+<meta property="og:title" content="Plexudo Dashboard — YouTube Creator SEO &amp; Growth Studio">
+<meta property="og:description" content="Live YouTube Data API v3 analytics, NLP audience comment sentiment, 50/50 SEO Scoring, and AI content strategy.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://plexudo.vercel.app/dashboard.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plexudo Dashboard — YouTube Creator SEO &amp; Analytics">
+<meta name="twitter:description" content="Live YouTube Data API v3 analytics, NLP audience comment sentiment, 50/50 SEO Scoring, and AI content strategy.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="stylesheet" href="css/style.css?v=6.0">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- Ambient background -->
+<div class="bg-animated"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="app-layout">
+
+  <!-- ======== SIDEBAR ======== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand" style="display:flex; align-items:center; gap:12px; padding:4px 8px 24px;">
+      <div class="logo-icon-wrap" style="width:36px; height:36px; background:transparent; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="42" width="14" height="14" rx="2.5" fill="#38BDF8"/>
+          <rect x="16" y="28" width="14" height="14" rx="2.5" fill="#38BDF8"/>
+          <path d="M30 14 H40 C44 14 46 16 46 20 V56 H36 V28 H30 V14 Z" fill="#38BDF8"/>
+          <path d="M26 14 C26 7.5 30.5 3 36 3 H46 C55.941 3 64 11.059 64 21 C64 30.941 55.941 39 46 39 H40 C34.477 39 30 43.477 30 49 V56" stroke="#38BDF8" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div style="display:flex; flex-direction:column; overflow:hidden;">
+        <div style="font-size:20px; font-weight:800; color:#ffffff; letter-spacing:0.02em; line-height:1;">PLEXUDO</div>
+        <div style="font-size:9.5px; font-weight:700; color:#94a3b8; letter-spacing:0.08em; margin-top:4px; text-transform:uppercase;">CREATOR STUDIO</div>
+      </div>
+    </div>
+
+    <div class="nav-section-label">Analysis</div>
+
+    <div class="nav-item active" data-section="dashboard" id="navDashboard">
+      <span class="nav-icon">⚡</span> Dashboard
+    </div>
+    <div class="nav-item" data-section="comparison" id="navComparison">
+      <span class="nav-icon">📊</span> Keyword Comparison
+    </div>
+
+    <div class="nav-section-label" style="margin-top:16px;">Tools</div>
+
+    <div class="nav-item" data-section="chat" id="navChat">
+      <span class="nav-icon" style="display:inline-flex; align-items:center; justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
+      </span> AI Assistant
+    </div>
+    <div class="nav-item" data-section="auditUrl" id="navAuditUrl">
+      <span class="nav-icon">🔗</span> Competitor Analysis
+    </div>
+    <div class="nav-item" data-section="videoAnalysis" id="navVideoAnalysis">
+      <span class="nav-icon">🎬</span> Video Analysis
+    </div>
+    <div class="nav-item" data-section="channelSeo" id="navChannelSeo">
+      <span class="nav-icon">🎬</span> YouTube SEO Studio
+    </div>
+    <div class="nav-item" data-section="history" id="navHistory">
+      <span class="nav-icon">🕑</span> Search History
+    </div>
+    <div class="nav-item" data-section="audit" id="navAudit">
+      <span class="nav-icon">🔍</span> Audit Log
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-info-card" id="userInfoCard">
+        <div class="user-avatar" id="userAvatar">F</div>
+        <div>
+          <div class="user-name" id="userName">Fahad Saleem</div>
+          <div class="user-role" id="userRole">Digital Marketer</div>
+        </div>
+      </div>
+      <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener"
+        style="margin-top:10px; display:block; text-align:center; padding:8px 10px; font-size:11px; font-weight:700; background:rgba(16,185,129,0.12); color:#34d399; border:1px dashed rgba(16,185,129,0.35); border-radius:10px; text-decoration:none;">
+        🎁 Sponsor Partner ↗
+      </a>
+      <button class="btn-primary" id="logoutBtn"
+        style="margin-top:10px; padding:10px; font-size:13px; font-weight:700; background:#ffffff; color:#1e222d; border:1px solid #ffffff;">
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ======== MAIN CONTENT ======== -->
+  <div class="main-content">
+
+    <!-- Hero Topbar Header -->
+    <header class="topbar-hero">
+      <div class="topbar-container">
+        <!-- Big Prominent Search Bar -->
+        <div class="search-wrapper">
+          <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="keywordInput"
+              placeholder="Search YouTube hashtag or keyword… e.g. tutorial, AI, tech, gaming"
+              autocomplete="off">
+          </div>
+          <!-- Suggestions dropdown -->
+          <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
+        </div>
+
+        <!-- Right Corner Action Buttons -->
+        <div class="topbar-actions-right" style="display:flex; align-items:center; gap:10px;">
+          <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener"
+            style="display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, rgba(16,185,129,0.15), rgba(5,150,105,0.2)); border:1px solid rgba(16,185,129,0.4); color:#10b981; padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap; transition:all 0.2s;">
+            <span>🎁</span> Sponsor Partner ↗
+          </a>
+          <button class="btn-analyze" id="analyzeBtn">Analyze Trend</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ======== SECTION: DASHBOARD ======== -->
+    <section class="page-section active" id="sectionDashboard">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:24px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px; font-weight:800; color:#0f172a; margin-bottom:4px;">Welcome back, Creator 👋</h1>
+          <p class="page-sub" style="color:#64748b; font-size:14px; margin:0;">
+            Track real-time YouTube trends, optimize your metadata with the 50/50 SEO Studio, and grow with Groq AI.
+          </p>
+        </div>
+        <!-- Banner 320x50 -->
+        <div class="ad-unit-320x50" style="display:flex; justify-content:center; align-items:center; min-height:50px;">
+          <script type="text/javascript">
+            atOptions = {
+              'key' : '26c327f23cb8296c95d1bdfcc1e749be',
+              'format' : 'iframe',
+              'height' : 50,
+              'width' : 320,
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="https://www.highperformanceformat.com/26c327f23cb8296c95d1bdfcc1e749be/invoke.js"></script>
+        </div>
+      </div>
+
+      <!-- Creator KPI Quick Metric Cards -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px; margin-bottom:24px;">
+        <!-- Card 1: 50/50 SEO Studio -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; box-shadow:0 4px 14px rgba(15,23,42,0.03); cursor:pointer; transition:transform 0.2s;" onclick="switchSection('channelSeo')">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">SEO Studio</span>
+            <span style="background:#eef2ff; color:#4f46e5; font-size:16px; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">⚡</span>
+          </div>
+          <div style="font-size:22px; font-weight:800; color:#0f172a; margin-bottom:4px;">50 / 50 Rating</div>
+          <div style="font-size:12px; color:#4f46e5; font-weight:700;">Open SEO Optimizer ➔</div>
+        </div>
+
+        <!-- Card 2: Connected Channel -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; box-shadow:0 4px 14px rgba(15,23,42,0.03); cursor:pointer;" onclick="switchSection('channelSeo')">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">YouTube Channel</span>
+            <span style="background:#fee2e2; color:#dc2626; font-size:16px; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">▶</span>
+          </div>
+          <div id="kpiChannelTitle" style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Not Connected</div>
+          <div id="kpiChannelSub" style="font-size:12px; color:#64748b; font-weight:600;">Click to Connect Channel</div>
+        </div>
+
+        <!-- Card 3: Real Server Credits -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; box-shadow:0 4px 14px rgba(15,23,42,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">Available Credits</span>
+            <span style="background:#ecfdf5; color:#059669; font-size:16px; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">🪙</span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:6px; margin-bottom:4px;">
+            <span id="kpiCreditsCount" style="font-size:24px; font-weight:800; color:#059669;">3</span>
+            <span style="font-size:13px; font-weight:700; color:#64748b;">Credits</span>
+          </div>
+          <button onclick="openAdModal()" style="padding:4px 10px; background:#ecfdf5; border:1px solid #a7f3d0; color:#059669; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+            + Earn Free Credit
+          </button>
+        </div>
+
+        <!-- Card 4: AI Content Strategist -->
+        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; box-shadow:0 4px 14px rgba(15,23,42,0.03); cursor:pointer;" onclick="switchSection('chat')">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em;">AI Strategist</span>
+            <span style="background:#fef3c7; color:#d97706; font-size:16px; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">💡</span>
+          </div>
+          <div style="font-size:22px; font-weight:800; color:#0f172a; margin-bottom:4px;">Groq AI 24/7</div>
+          <div style="font-size:12px; color:#d97706; font-weight:700;">Ask Content Advisor ➔</div>
+        </div>
+      </div>
+
+      <div class="status-bar hidden" id="statusLine"></div>
+
+      <div id="emptyState" class="empty-state">
+        <span class="empty-icon">🚀</span>
+        <h2>No trend analyzed yet</h2>
+        <p>Type a keyword or hashtag above and click <strong>Analyze Trend</strong> to query YouTube Data API v3, run NLP sentiment analysis, and calculate the Virality Index.</p>
+      </div>
+
+      <div id="resultsArea" style="display:none;">
+        <div id="platformCards"></div>
+      </div>
+
+      <!-- Native Banner Unit -->
+      <div class="ad-native-unit" style="margin:24px 0 10px; padding:16px; background:#ffffff; border:1px solid var(--border); border-radius:var(--radius-sm); text-align:center; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+        <div style="font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:8px;">SPONSORED RECOMMENDATION</div>
+        <script async="async" data-cfasync="false" src="https://bibleearthquake.com/731e98cea50f9b0991741cae4bd4a724/invoke.js"></script>
+        <div id="container-731e98cea50f9b0991741cae4bd4a724"></div>
+      </div>
+    </section>
+
+    <!-- ======== SECTION: KEYWORD COMPARISON ======== -->
+    <section class="page-section" id="sectionComparison">
+      <h1 class="page-title">Keyword Trend Comparison</h1>
+      <p class="page-sub">Compare performance metrics of your previously searched YouTube keywords</p>
+
+      <div id="comparisonEmpty" class="empty-state">
+        <span class="empty-icon">📊</span>
+        <h2>No search history to compare yet</h2>
+        <p>Perform 2 or more keyword searches on the Dashboard to compare their view velocity and virality scores side-by-side.</p>
+      </div>
+
+      <div id="comparisonChartArea" style="display:none;">
+        <div class="panel" style="margin-bottom:20px;">
+          <div class="panel-header">
+            <h3>Virality Index Comparison</h3>
+            <span class="panel-badge youtube">YouTube Benchmarks</span>
+          </div>
+          <div style="position:relative; height:240px; width:100%;">
+            <canvas id="viralityCompareChart"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Keyword Growth &amp; View Summary</h3>
+          </div>
+          <div class="history-table-wrap">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Keyword</th>
+                  <th>Total Views</th>
+                  <th>Growth Rate</th>
+                  <th>Virality Score</th>
+                  <th>Trend Stage</th>
+                  <th>Dominant Sentiment</th>
+                </tr>
+              </thead>
+              <tbody id="comparisonTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== SECTION: AI CHAT ======== -->
+    <section class="page-section" id="sectionChat">
+      <!-- AI CHAT VIEW (100% FREE) -->
+      <div id="aiChatProStudio" style="display:block;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <div>
+            <h1 class="page-title" style="margin:0 0 4px;">AI Trend Strategist</h1>
+            <p class="page-sub" style="margin:0;">Real-time context-aware YouTube trend strategist &amp; analytics advisor</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener"
+              style="display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; text-decoration:none;">
+              <span>🎁</span> Sponsor Partner ↗
+            </a>
+          </div>
+        </div>
+
+        <div class="panel" style="padding:0; overflow:hidden;">
+          <!-- Context badge -->
+          <div class="chat-context-badge" id="chatContextBadge" style="display:none;">
+            <span>🔗</span>
+            <span id="chatContextLabel">Trend context loaded</span>
+            <button onclick="clearChatContext()"
+              style="margin-left:auto; background:none; border:none; color:inherit; cursor:pointer; font-size:14px;">✕</button>
+          </div>
+
+          <!-- Messages -->
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-message ai">
+              <div class="chat-avatar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
+              </div>
+              <div>
+                <div class="chat-bubble">
+                  👋 Hello! I am <strong>SMTAS AI Strategist</strong> — your personal YouTube analytics advisor.<br><br>
+                  Feel free to ask me anything about YouTube content strategy, virality index predictions, view growth velocity, or audience sentiment analysis! 🚀
+                </div>
+                <div class="chat-timestamp">Just now</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input -->
+          <div class="chat-input-area">
+            <textarea id="chatInput" placeholder="Ask anything about YouTube trends… e.g. 'How can I increase virality for FreeFire videos?'"
+              rows="1"></textarea>
+            <button class="chat-send-btn" id="chatSendBtn" title="Send message">➤</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== SECTION: VIDEO ANALYSIS ======== -->
+    <section class="page-section" id="sectionVideoAnalysis">
+      <h1 class="page-title">🎬 YouTube Video Analysis</h1>
+      <p class="page-sub">Paste any YouTube video URL to get deep stats — views, likes, sentiment, virality score, tags &amp; top comments</p>
+
+      <!-- Input Panel -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <h3>🔗 Video URL Input</h3>
+          <span class="panel-badge youtube">▶ LIVE YOUTUBE DATA</span>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
+          <input type="text" id="videoAnalysisInput"
+            placeholder="e.g. https://youtube.com/watch?v=dQw4w9WgXcQ or https://youtu.be/dQw4w9WgXcQ"
+            style="flex:1; min-width:260px; padding:13px 18px; border:1px solid var(--border); border-radius:14px; font-size:14px; font-family:inherit; outline:none; background:#f8fafc; color:var(--text); transition:border-color 0.2s ease, box-shadow 0.2s ease;"
+            onfocus="this.style.borderColor='#0284c7'; this.style.boxShadow='0 0 0 3px rgba(2,132,199,0.1)'"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
+          <button id="videoAnalysisBtn" onclick="runVideoAnalysis()"
+            style="padding:13px 28px; background:#7c3aed; color:#ffffff; border:none; border-radius:14px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s ease, transform 0.2s ease; white-space:nowrap;"
+            onmouseover="this.style.background='#6d28d9'; this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.background='#7c3aed'; this.style.transform='translateY(0)'">
+            🎬 Analyze Video
+          </button>
+        </div>
+        <div style="margin-top:8px; font-size:12px; color:var(--text-muted);">
+          Supports: <code>youtube.com/watch?v=</code> · <code>youtu.be/</code> · <code>youtube.com/shorts/</code>
+        </div>
+      </div>
+
+      <div id="videoAnalysisStatus" class="status-bar hidden"></div>
+
+      <!-- Empty State -->
+      <div id="videoAnalysisEmpty" class="empty-state">
+        <span class="empty-icon">🎬</span>
+        <h2>No video analyzed yet</h2>
+        <p>Paste a YouTube video link above and click <strong>Analyze Video</strong> to get deep analytics — views, likes, sentiment analysis, virality score, tags &amp; top comments.</p>
+      </div>
+
+      <!-- Results -->
+      <div id="videoAnalysisResults" style="display:none;"></div>
+    </section>
+
+    <!-- ======== SECTION: COMPETITOR ANALYSIS ======== -->
+    <section class="page-section" id="sectionAuditUrl">
+      <h1 class="page-title">Competitor Analysis</h1>
+      <p class="page-sub">Enter any YouTube channel URL or @handle to get a full deep audit</p>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-header">
+          <h3>🔗 Channel Audit Input</h3>
+          <span class="panel-badge youtube">▶ LIVE YOUTUBE DATA</span>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
+          <input type="text" id="auditUrlInput"
+            placeholder="e.g. @marvel, @mrbeast, https://youtube.com/@techlinked"
+            style="flex:1; min-width:260px; padding:13px 18px; border:1px solid var(--border); border-radius:14px; font-size:14px; font-family:inherit; outline:none; background:#f8fafc; color:var(--text); transition:border-color 0.2s ease, box-shadow 0.2s ease;"
+            onfocus="this.style.borderColor='#0284c7'; this.style.boxShadow='0 0 0 3px rgba(2,132,199,0.1)'"
+            onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'">
+          <button id="auditUrlBtn" onclick="runChannelAudit()"
+            style="padding:13px 28px; background:#0284c7; color:#ffffff; border:none; border-radius:14px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s ease, transform 0.2s ease; white-space:nowrap;"
+            onmouseover="this.style.background='#0369a1'; this.style.transform='translateY(-2px)'"
+            onmouseout="this.style.background='#0284c7'; this.style.transform='translateY(0)'">
+            🔍 Audit Channel
+          </button>
+        </div>
+        <div style="margin-top:8px; font-size:12px; color:var(--text-muted);">
+          Examples: <code>@marvel</code> · <code>@mrbeast</code> · <code>https://youtube.com/channel/UCxxxx</code>
+        </div>
+      </div>
+
+      <div id="auditUrlStatus" class="status-bar hidden"></div>
+
+      <div id="auditUrlEmpty" class="empty-state">
+        <span class="empty-icon">🔗</span>
+        <h2>No channel audited yet</h2>
+        <p>Enter a YouTube channel handle or URL above and click <strong>Audit Channel</strong> to see real subscriber stats, earnings estimate, video breakdown, and 28-day growth trend.</p>
+      </div>
+
+      <div id="auditUrlResults" style="display:none;"></div>
+    </section>
+
+    <!-- ======== SECTION: HISTORY ======== -->
+    <section class="page-section" id="sectionHistory">
+      <h1 class="page-title">Search History</h1>
+      <p class="page-sub">All your previous YouTube trend analyses — export reports as PDF or CSV</p>
+
+      <div class="panel">
+        <div class="history-table-wrap">
+          <table class="history-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>Keyword</th>
+                <th>Platform</th>
+                <th>Total Views</th>
+                <th>Growth Rate</th>
+                <th>Virality Index</th>
+                <th>Sentiment</th>
+                <th>Date</th>
+                <th>Export</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== SECTION: AUDIT LOG ======== -->
+    <section class="page-section" id="sectionAudit">
+      <h1 class="page-title">Audit Trail</h1>
+      <p class="page-sub">System activity logs — authentication, keyword searches, PDF/CSV exports, and AI queries</p>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>Activity Log</h3>
+          <button class="export-btn default" onclick="refreshAuditLog()">↻ Refresh</button>
+        </div>
+        <div class="audit-timeline" id="auditTimeline">
+          <div class="text-muted" style="padding:20px 0; text-align:center;">Loading activity…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== SECTION: MY CHANNEL SEO (VIDIQ-STYLE SUITE) ======== -->
+    <section class="page-section" id="sectionChannelSeo">
+      <!-- 100% FREE UNLOCKED STUDIO VIEW -->
+      <div id="seoProStudio" style="display:block;">
+        
+        <!-- Header Bar (Light SaaS Style) -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px; background:#ffffff; padding:22px 26px; border-radius:18px; border:1px solid #e2e8f0; box-shadow:0 4px 14px rgba(15,23,42,0.04);">
+          <div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:24px;">🎬</span>
+              <h1 class="page-title" style="margin:0; font-size:22px; color:#0f172a; font-weight:800;">Plexudo YouTube SEO Studio</h1>
+            </div>
+            <p class="page-sub" style="margin:4px 0 0; font-size:13px; color:#64748b;">
+              Proprietary 50/50 SEO Scoring, Groq AI Viral Title Generator, Keyword Tag Synchronization &amp; Live YouTube Sync
+            </p>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener"
+              style="padding:10px 14px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:12px; font-size:12px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+              <span>🎁</span> Sponsor Partner ↗
+            </a>
+            <button id="btnConnectYouTubeChannel" onclick="connectYouTubeChannel()"
+              style="padding:11px 18px; background:#dc2626; color:#ffffff; border:none; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(220,38,38,0.25);">
+              <span>▶</span> Connect YouTube Channel
+            </button>
+          </div>
+        </div>
+
+        <!-- Video Selector & URL Input Bar -->
+        <div id="seoVideoSelectorPanel" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:16px 20px; margin-bottom:20px; box-shadow:0 4px 14px rgba(0,0,0,0.03); display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+          <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width:280px;">
+            <label style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Select Video to Optimize</label>
+            <select id="channelVideoSelect" onchange="loadSelectedVideoSeo(this.value)"
+              style="padding:11px 14px; border:1px solid #cbd5e1; border-radius:12px; font-size:13.5px; font-weight:600; color:#0f172a; outline:none; background:#f8fafc; cursor:pointer;">
+              <option value="">-- Choose a video to analyze --</option>
+            </select>
+          </div>
+          
+          <div style="display:flex; flex-direction:column; gap:4px; flex:1; min-width:280px;">
+            <label style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em;">Or Paste Any YouTube Video URL / ID</label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="customSeoVideoInput" placeholder="e.g. https://www.youtube.com/watch?v=..."
+                style="flex:1; padding:11px 14px; border:1px solid #cbd5e1; border-radius:12px; font-size:13.5px; outline:none; background:#f8fafc;">
+              <button onclick="loadCustomSeoVideo()" class="btn-primary"
+                style="padding:11px 18px; border-radius:12px; font-weight:700; font-size:13px; white-space:nowrap; border:none; cursor:pointer;">
+                Analyze ➔
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Cards Grid View -->
+        <div id="seoVideoCardsContainer" style="display:none; background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:20px; margin-bottom:24px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:14px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+              <span>🎬</span> Connected Channel Videos (<span id="seoVideoCount">0</span>)
+            </div>
+            <span style="font-size:12px; color:#64748b; font-weight:600;">Click any video card below to load into SEO Studio</span>
+          </div>
+          <div id="seoVideoCardsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:16px; max-height:360px; overflow-y:auto; padding:4px;"></div>
+        </div>
+
+        <!-- Studio Workspace (2-Column Layout) -->
+        <div id="seoStudioArea" style="display:block;">
+          <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:24px; align-items:start;">
+            
+            <!-- LEFT COLUMN: VIDEO METADATA & AI GENERATORS -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+              
+              <!-- 1. Video Title -->
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:20px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <label style="font-size:13px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.04em;">Video Title</label>
+                  <button id="btnGenerateAiTitles" onclick="generateAiTitles()"
+                    style="padding:6px 14px; background:#4f46e5; color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ✨ Generate 3 AI Titles
+                  </button>
+                </div>
+                <input type="text" id="inputVideoTitle" oninput="recalculateSeoLive()" placeholder="Enter video title..."
+                  style="width:100%; padding:12px 16px; border:1px solid #cbd5e1; border-radius:12px; font-size:14px; font-weight:600; color:#0f172a; outline:none; background:#f8fafc; box-sizing:border-box;">
+                
+                <!-- Optional Topic Context Input -->
+                <div style="margin-top:10px;">
+                  <input type="text" id="inputVideoTopic" placeholder="Optional: What is your video about? (e.g. Match analysis, channel tutorial, gear review)"
+                    style="width:100%; padding:10px 14px; border:1px solid #e2e8f0; border-radius:10px; font-size:12.5px; color:#334155; outline:none; background:#ffffff; box-sizing:border-box;">
+                  <div style="font-size:11.5px; color:#64748b; margin-top:4px; font-weight:500;">
+                    💡 <em>Give Plexudo a little context so your titles match your actual video.</em>
+                  </div>
+                </div>
+                
+                <!-- AI Title Suggestions Box -->
+                <div id="aiTitleSuggestionsBox" style="display:none; margin-top:14px; background:#f8fafc; padding:16px; border-radius:14px; border:1px solid #e2e8f0;">
+                  <div style="font-size:12px; font-weight:800; color:#4f46e5; text-transform:uppercase; margin-bottom:10px;">✨ Context-Aware Title Recommendations:</div>
+                  <div id="aiTitlesList" style="display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+              </div>
+
+              <!-- 2. Video Description -->
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:20px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <label style="font-size:13px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.04em;">Video Description</label>
+                  <button id="btnGenerateAiDesc" onclick="generateAiDescription()"
+                    style="padding:6px 14px; background:#0f172a; color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ✨ AI Generate
+                  </button>
+                </div>
+                <textarea id="inputVideoDescription" oninput="recalculateSeoLive()" rows="5" placeholder="Enter video description..."
+                  style="width:100%; padding:12px 16px; border:1px solid #cbd5e1; border-radius:12px; font-size:13.5px; color:#0f172a; outline:none; background:#f8fafc; resize:vertical; font-family:inherit;"></textarea>
+              </div>
+
+              <!-- 3. Video Tags Management -->
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:20px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                  <div style="font-size:13px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.04em;">
+                    Current Video Tags (<span id="currentTagCount" style="color:#0284c7;">0</span>/25)
+                  </div>
+                  <button onclick="promptAddCustomTag()"
+                    style="padding:6px 12px; background:#e0f2fe; color:#0284c7; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                    + Add Tag
+                  </button>
+                </div>
+                
+                <div id="currentTagsWrap" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; min-height:48px; padding:12px; background:#0f172a; border-radius:12px;">
+                  <span style="color:#64748b; font-size:12px;">No tags added yet. Use AI generators below or click + Add Tag.</span>
+                </div>
+
+                <!-- AI Suggested Tags Generator -->
+                <div style="padding-top:14px; border-top:1px solid #f1f5f9; margin-bottom:16px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-size:12px; font-weight:800; color:#475569; text-transform:uppercase;">✨ AI Suggested Keywords</span>
+                    <button id="btnGenerateAiTags" onclick="generateAiTags()"
+                      style="padding:5px 12px; background:#f1f5f9; color:#0f172a; border:1px solid #e2e8f0; border-radius:6px; font-size:11.5px; font-weight:700; cursor:pointer;">
+                      ✨ Generate
+                    </button>
+                  </div>
+                  <div id="recommendedTagsWrap" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                </div>
+
+                <!-- Find Tags by Search -->
+                <div style="padding-top:14px; border-top:1px solid #f1f5f9;">
+                  <div style="font-size:12px; font-weight:800; color:#475569; text-transform:uppercase; margin-bottom:8px;">🔍 Search Keyword Tags</div>
+                  <div style="display:flex; gap:8px;">
+                    <input type="text" id="findTagsInput" placeholder="e.g. gameplay, freefire, shorts..."
+                      style="flex:1; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; outline:none; background:#f8fafc;">
+                    <button onclick="runFindTags()"
+                      style="padding:9px 16px; background:#0f172a; color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                      Find Tags
+                    </button>
+                  </div>
+                  <div id="findTagsResults" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+                </div>
+
+              </div>
+
+              <!-- 4. Save to YouTube Action Button -->
+              <button id="btnSaveToYouTube" onclick="saveChangesToYouTube()" class="btn-primary"
+                style="padding:15px; border-radius:14px; font-weight:800; font-size:15px; border:none; cursor:pointer; box-shadow:0 4px 16px rgba(15,23,42,0.25);">
+                💾 Save &amp; Sync Changes to YouTube
+              </button>
+
+            </div>
+
+            <!-- RIGHT COLUMN: 50/50 SEO SCORE & LIVE PREVIEW -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+              
+              <!-- 50-Point SEO Audit Card -->
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:24px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                  <span style="font-size:13px; font-weight:800; color:#0f172a; text-transform:uppercase; letter-spacing:0.04em;">Plexudo 50-Point SEO Audit</span>
+                  <span style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; font-size:11px; font-weight:800; padding:2px 8px; border-radius:6px;">LIVE AUDIT</span>
+                </div>
+
+                <div style="text-align:center; padding:16px 0; background:#f8fafc; border-radius:14px; margin-bottom:20px; border:1px solid #e2e8f0;">
+                  <div id="overallSeoScoreText" style="font-size:42px; font-weight:900; color:#10b981; line-height:1;">0/50</div>
+                  <div style="font-size:12px; color:#64748b; font-weight:700; margin-top:4px;">Plexudo Optimization Rating</div>
+                </div>
+
+                <!-- 5 Sub-Scores -->
+                <div style="display:flex; flex-direction:column; gap:14px;">
+                  
+                  <!-- Score 1: Title Optimization -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px; color:#334155;">
+                      <span>Title Optimization (40–70 chars)</span>
+                      <span id="scoreTagCount" style="color:#0284c7; font-weight:800;">0/10</span>
+                    </div>
+                    <div style="height:6px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                      <div id="barTagCount" style="height:100%; width:0%; background:#0284c7; border-radius:4px; transition:width 0.3s ease;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Score 2: Description Depth -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px; color:#334155;">
+                      <span>Description Depth (>80 words)</span>
+                      <span id="scoreTagVolume" style="color:#0284c7; font-weight:800;">0/10</span>
+                    </div>
+                    <div style="height:6px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                      <div id="barTagVolume" style="height:100%; width:0%; background:#0284c7; border-radius:4px; transition:width 0.3s ease;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Score 3: Tag Quality & Quantity -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px; color:#334155;">
+                      <span>Tag Coverage (8–15 tags)</span>
+                      <span id="scoreKwTitle" style="color:#10b981; font-weight:800;">0/10</span>
+                    </div>
+                    <div style="height:6px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                      <div id="barKwTitle" style="height:100%; width:0%; background:#10b981; border-radius:4px; transition:width 0.3s ease;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Score 4: Keyword Consistency -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px; color:#334155;">
+                      <span>Keyword Consistency</span>
+                      <span id="scoreKwDesc" style="color:#10b981; font-weight:800;">0/10</span>
+                    </div>
+                    <div style="height:6px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                      <div id="barKwDesc" style="height:100%; width:0%; background:#10b981; border-radius:4px; transition:width 0.3s ease;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Score 5: Triple Metadata Overlap -->
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:4px; color:#334155;">
+                      <span>Triple Metadata Overlap</span>
+                      <span id="scoreOverlap" style="color:#7c3aed; font-weight:800;">0/10</span>
+                    </div>
+                    <div style="height:6px; background:#e2e8f0; border-radius:4px; overflow:hidden;">
+                      <div id="barOverlap" style="height:100%; width:0%; background:#7c3aed; border-radius:4px; transition:width 0.3s ease;"></div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Live YouTube Search Preview Card -->
+              <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:20px; box-shadow:0 4px 14px rgba(0,0,0,0.03);">
+                <div style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:12px;">
+                  Live YouTube Search Preview
+                </div>
+                <img id="previewThumb" src="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" alt="Video Thumbnail"
+                  style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:12px; border:1px solid #e2e8f0;">
+                <h4 id="previewTitle" style="font-size:14.5px; font-weight:700; color:#0f172a; margin-bottom:6px; line-height:1.35;">
+                  Video Title Preview
+                </h4>
+                <p id="previewDesc" style="font-size:12px; color:#64748b; line-height:1.5; max-height:60px; overflow:hidden; text-overflow:ellipsis;">
+                  Video description snippet preview…
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- ======== AD REWARD & SPONSOR UNLOCK MODAL (LIGHT UI) ======== -->
+<div id="adRewardModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; width:100%; max-width:460px; border-radius:24px; box-shadow:0 25px 60px rgba(15,23,42,0.18); overflow:hidden; animation:modalPop 0.25s ease-out; text-align:center;">
+    <!-- Header -->
+    <div style="background:#f8fafc; padding:18px 22px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+      <div style="text-align:left;">
+        <div style="font-size:11px; font-weight:800; color:#4f46e5; text-transform:uppercase; letter-spacing:0.05em;">🎬 SPONSORED REWARD</div>
+        <h3 style="font-size:16px; font-weight:800; color:#0f172a; margin:2px 0 0;" id="adRewardFeatureName">Earn 1 Free Credit</h3>
+      </div>
+      <button onclick="completeRewardAd()" title="Close" style="background:#e2e8f0; border:none; color:#0f172a; width:30px; height:30px; border-radius:50%; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:22px;">
+      <p style="font-size:13.5px; color:#64748b; margin:0 0 16px; line-height:1.5;">
+        Plexudo is <strong>100% Free</strong>. Support our platform via our verified sponsor to add <strong>+1 Credit</strong> immediately.
+      </p>
+
+      <!-- 300x250 Banner Ad Unit Inside Modal -->
+      <div style="display:flex; justify-content:center; align-items:center; margin:10px auto; min-height:250px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden;">
+        <script type="text/javascript">
+          atOptions = {
+            'key' : '47b32669973058294b7997e2f9c6da49',
+            'format' : 'iframe',
+            'height' : 250,
+            'width' : 300,
+            'params' : {}
+          };
+        </script>
+        <script type="text/javascript" src="https://www.highperformanceformat.com/47b32669973058294b7997e2f9c6da49/invoke.js"></script>
+      </div>
+
+      <!-- Smartlink Instant Unlock CTA Button -->
+      <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener" onclick="instantUnlockViaSponsor()"
+        style="display:block; width:100%; text-align:center; padding:13px; background:#4f46e5; color:#ffffff; font-weight:800; font-size:14px; border-radius:12px; text-decoration:none; margin:16px 0 12px; box-shadow:0 4px 14px rgba(79,70,229,0.3); cursor:pointer;">
+        ⚡ Click Sponsor to Instant Unlock ↗
+      </a>
+
+      <!-- Countdown & Progress Bar -->
+      <div style="margin-top:10px; background:#f8fafc; padding:12px 16px; border-radius:12px; border:1px solid #e2e8f0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:700; color:#475569; margin-bottom:6px;">
+          <span id="adTimerText">⏳ Unlocking in 4s...</span>
+          <span style="font-size:11px; color:#059669; font-weight:800;">Free Creator Pass</span>
+        </div>
+        <div style="width:100%; height:6px; background:#e2e8f0; border-radius:6px; overflow:hidden;">
+          <div id="adTimerBar" style="width:0%; height:100%; background:linear-gradient(90deg, #4f46e5, #059669); transition:width 0.1s linear;"></div>
+        </div>
+      </div>
+
+      <div style="font-size:11.5px; color:#94a3b8; margin-top:12px;">
+        🔒 Verified Sponsor Rewards • Server-Authoritative Credits
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ACCOUNT & PROFILE SETTINGS MODAL ======== -->
+<div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#ffffff; border:1px solid #e2e8f0; width:100%; max-width:520px; border-radius:24px; box-shadow:0 25px 60px rgba(15,23,42,0.18); overflow:hidden; animation:modalPop 0.25s ease-out; display:flex; flex-direction:column; max-height:90vh;">
+    <div style="background:#f8fafc; padding:18px 22px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:20px;">⚙️</span>
+        <h3 style="font-size:17px; font-weight:800; color:#0f172a; margin:0;">Account Settings</h3>
+      </div>
+      <button onclick="closeProfileModal()" style="background:#e2e8f0; border:none; color:#0f172a; width:32px; height:32px; border-radius:50%; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s;">✕</button>
+    </div>
+
+    <div style="padding:22px; display:flex; flex-direction:column; gap:22px; overflow-y:auto; flex:1;">
+      <!-- 1. Profile Info -->
+      <div>
+        <div style="font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Profile Information</div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div id="modalUserAvatar" style="width:48px; height:48px; border-radius:14px; background:#4f46e5; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;">U</div>
+            <div style="flex:1; min-width:0;">
+              <div id="modalUserName" style="font-size:16px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Creator</div>
+              <div id="modalUserEmail" style="font-size:13px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">user@example.com</div>
+            </div>
+            <div id="modalVerifyBadge">
+              <span style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap;">✓ Verified</span>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0; padding-top:10px; font-size:12.5px;">
+            <span style="color:#64748b; font-weight:600;">Plan: <strong style="color:#0f172a;">100% Free Creator</strong></span>
+            <span style="color:#64748b; font-weight:600;">Credits: <strong id="modalCreditBalance" style="color:#4f46e5;">3 / 3 Free</strong></span>
+          </div>
+
+          <div id="modalUnverifiedBox" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px 12px; font-size:12px; color:#92400e; justify-content:space-between; align-items:center;">
+            <span>⚠️ Your email is unverified.</span>
+            <button onclick="resendAccountVerification()" style="background:#f59e0b; color:#ffffff; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:4px 10px; cursor:pointer;">Resend Link</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Security & Password -->
+      <div>
+        <div style="font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Change Password</div>
+        <form onsubmit="handlePasswordChange(event)" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px;">
+          <div style="position:relative;">
+            <input type="password" id="modalOldPassword" placeholder="Current Password" required
+              style="width:100%; padding:10px 38px 10px 14px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; background:#ffffff; box-sizing:border-box;">
+            <button type="button" onclick="togglePasswordVisibility('modalOldPassword', this)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:14px; padding:4px; opacity:0.6;">👁️</button>
+          </div>
+          <div style="position:relative;">
+            <input type="password" id="modalNewPassword" placeholder="New Password (min 8 chars)" required minlength="8"
+              style="width:100%; padding:10px 38px 10px 14px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; background:#ffffff; box-sizing:border-box;">
+            <button type="button" onclick="togglePasswordVisibility('modalNewPassword', this)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:14px; padding:4px; opacity:0.6;">👁️</button>
+          </div>
+          <div style="position:relative;">
+            <input type="password" id="modalConfirmPassword" placeholder="Confirm New Password" required minlength="8"
+              style="width:100%; padding:10px 38px 10px 14px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; background:#ffffff; box-sizing:border-box;">
+            <button type="button" onclick="togglePasswordVisibility('modalConfirmPassword', this)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:14px; padding:4px; opacity:0.6;">👁️</button>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <button type="submit" style="padding:10px 18px; background:#0f172a; color:#ffffff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; transition:background 0.15s;">
+              Update Password
+            </button>
+          </div>
+          <div id="passwordFeedback" style="font-size:12px; display:none; padding:8px 12px; border-radius:8px;"></div>
+        </form>
+      </div>
+
+      <!-- 3. Connected YouTube Channel -->
+      <div>
+        <div style="font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Connected YouTube Channel</div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+            <div id="modalChannelAvatar" style="width:40px; height:40px; border-radius:10px; background:#fee2e2; color:#dc2626; font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;">▶</div>
+            <div style="min-width:0;">
+              <div id="modalChannelTitle" style="font-size:14px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">YouTube Data API v3</div>
+              <div id="modalChannelStatus" style="font-size:12px; color:#64748b;">Read-only metadata synchronization</div>
+            </div>
+          </div>
+          <div id="modalChannelAction">
+            <button onclick="handleDisconnectYouTube()" style="padding:7px 14px; background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.15s;">
+              Disconnect
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Danger Zone -->
+      <div style="border-top:1px solid #fee2e2; padding-top:18px;">
+        <div style="font-size:11px; font-weight:800; color:#dc2626; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Danger Zone</div>
+        <div style="background:#fff5f5; border:1px solid #fed7d7; border-radius:16px; padding:16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+          <div>
+            <div style="font-size:13.5px; font-weight:700; color:#991b1b;">Delete Account</div>
+            <div style="font-size:12px; color:#7f1d1d;">Permanently remove your account, credits, and trends.</div>
+          </div>
+          <button onclick="promptDeleteAccount()" style="padding:8px 14px; background:#dc2626; color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:background 0.15s;">
+            Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/dashboard.js?v=6.1"></script>
+
+<!-- Social Bar Ad Unit (Right above closing body tag) -->
+<script src="https://bibleearthquake.com/0e/89/57/0e89577e43e820c87b40cc837855b0fd.js"></script>
+</body>
+</html>

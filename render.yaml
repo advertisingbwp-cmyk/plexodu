@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: smtas
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "cd backend && gunicorn app:app --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATA_DIR
+        value: /var/data
+      - key: FLASK_DEBUG
+        value: "false"
+    disk:
+      name: smtas-data
+      mountPath: /var/data
+      sizeGB: 1

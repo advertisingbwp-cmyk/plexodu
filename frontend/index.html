@@ -1,17 +1,2103 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Plexudo — YouTube Creator Studio & SEO Engine</title>
-    <meta name="robots" content="noindex, nofollow" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-slate-50 text-slate-900 min-h-screen antialiased selection:bg-indigo-600 selection:text-white font-sans">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plexudo — YouTube Creator SEO, Keyword &amp; Channel Growth Platform</title>
+<meta name="description" content="Plexudo is the all-in-one YouTube SEO and channel growth platform. Get actionable 50/50 SEO scoring, AI viral title suggestions with Groq, audience sentiment forecasting, and 28-day competitor audits using real YouTube data.">
+<meta name="keywords" content="Plexudo, YouTube SEO Tool, 50/50 SEO Score, YouTube Keyword Tool, YouTube Trend Analysis, YouTube Competitor Analysis, Video Virality Analyzer, YouTube Tag Generator, AI YouTube Titles, Creator Studio Growth">
+<meta name="author" content="Plexudo Team">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<link rel="canonical" href="https://plexudo.vercel.app/">
+
+<!-- OpenGraph Meta -->
+<meta property="og:title" content="Plexudo — YouTube Creator SEO, Keyword &amp; Growth Platform">
+<meta property="og:description" content="Actionable 50/50 SEO Scoring, Real YouTube Data API Analytics, AI Viral Titles, and Competitor Channel Audits for creators.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://plexudo.vercel.app/">
+<meta property="og:site_name" content="Plexudo">
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Plexudo — YouTube Creator SEO &amp; Growth Platform">
+<meta name="twitter:description" content="Actionable 50/50 SEO Scoring, Real YouTube Data API Analytics, AI Viral Titles, and Competitor Channel Audits.">
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
+<link rel="shortcut icon" href="/favicon.ico?v=3">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Schema.org JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "Plexudo - YouTube Creator SEO & Growth Platform",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Comprehensive YouTube creator suite with 50/50 SEO Scoring, keyword discovery, competitor audits, and Groq AI title generators.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "Organization",
+      "name": "Plexudo",
+      "url": "https://plexudo.vercel.app/",
+      "logo": "https://plexudo.vercel.app/favicon.svg"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Plexudo?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Plexudo is a specialized YouTube SEO and creator growth platform that provides 50/50 SEO scoring, competitor tracking, keyword discovery, and AI title recommendations using real YouTube Data API v3 metrics."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the Plexudo 50/50 SEO Score?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Plexudo SEO Score is a proprietary 50-point rating system that analyzes five key ranking factors: Tag Count (10 pts), Tag Volume (10 pts), Keywords in Title (10 pts), Keywords in Description (10 pts), and Triple Keyword Overlap (10 pts)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Plexudo use real YouTube data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Plexudo connects directly to Google Cloud YouTube Data API v3 to fetch authentic channel statistics, video metrics, view velocity, and audience comments."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Plexudo free to get started?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! All verified accounts start with free welcome credits and can access sponsored reward passes to use all optimization tools without subscription paywalls."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<style>
+/* ==========================================================================
+   PLEXUDO PREMIUM LIGHT DESIGN SYSTEM
+   ========================================================================== */
+:root {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --border-light: #e2e8f0;
+  --border-focus: #cbd5e1;
+  --primary: #4338ca;
+  --primary-hover: #3730a3;
+  --primary-light: #eef2ff;
+  --primary-border: #c7d2fe;
+  --success: #059669;
+  --success-light: #ecfdf5;
+  --warning: #d97706;
+  --warning-light: #fffbeb;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  --container-max: 1240px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(16px, 4vw, 32px);
+  padding-right: clamp(16px, 4vw, 32px);
+}
+
+/* Typography Utility */
+h1, h2, h3, h4 {
+  color: var(--text-main);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(1.85rem, 3.5vw, 2.75rem);
+  margin-bottom: 12px;
+}
+
+.section-desc {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  color: var(--text-muted);
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Announcement Bar */
+.announcement-bar {
+  background: #0f172a;
+  color: #f1f5f9;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.announcement-bar a {
+  color: #38bdf8;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* Navbar */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+  transition: all 0.2s ease;
+}
+
+.nav-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+}
+
+.nav-link {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-sponsor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid #a7f3d0;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.btn-sponsor:hover {
+  background: #d1fae5;
+}
+
+.btn-login {
+  background: transparent;
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-login:hover {
+  background: #f1f5f9;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+  border: 1px solid var(--primary);
+  padding: 10px 22px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.hamburger-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-main);
+}
+
+/* Mobile Drawer */
+.mobile-drawer {
+  display: none;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-light);
+  padding: 20px;
+}
+
+.mobile-drawer.active {
+  display: block;
+}
+
+.mobile-drawer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Hero Section */
+.hero-section {
+  padding-top: clamp(40px, 8vw, 80px);
+  padding-bottom: clamp(40px, 8vw, 80px);
+  background: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 60%);
+}
+
+.hero-content {
+  text-align: center;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 20px;
+}
+
+.hero-title span {
+  color: var(--primary);
+}
+
+.hero-desc {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.hero-cta-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.hero-trust-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.hero-trust-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hero-trust-item span {
+  color: var(--success);
+  font-weight: 800;
+}
+
+/* Hero Product Preview Card */
+.preview-container {
+  margin-top: 48px;
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.preview-topbar {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.preview-body {
+  padding: clamp(20px, 3vw, 32px);
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
+  text-align: left;
+}
+
+.score-meter-card {
+  background: var(--bg-page);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  text-align: center;
+}
+
+.score-big {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--success);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.score-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+}
+
+.score-factor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+/* Trust Strip */
+.trust-strip {
+  padding: 40px 0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  background: #ffffff;
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  text-align: center;
+}
+
+.trust-card {
+  padding: 16px;
+}
+
+.trust-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.trust-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.trust-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Problem Section */
+.problem-section {
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.problem-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+
+.problem-card:hover {
+  transform: translateY(-3px);
+  border-color: #cbd5e1;
+}
+
+.problem-icon {
+  width: 44px;
+  height: 44px;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+}
+
+/* Solutions Grid (6 Tools) */
+.tools-section {
+  padding: clamp(60px, 8vw, 100px) 0;
+  background: #ffffff;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.tool-card {
+  background: var(--bg-page);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.tool-card:hover {
+  border-color: var(--primary-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.tool-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.tool-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 20px;
+}
+
+/* Explainer Section */
+.explainer-section {
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+
+.explainer-box {
+  background: linear-gradient(135deg, #0f172a, #1e1b4b);
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: clamp(28px, 5vw, 48px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.explainer-factor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.explainer-factor-item {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Workflow Pipeline */
+.workflow-section {
+  padding: clamp(60px, 8vw, 100px) 0;
+  background: #ffffff;
+  border-top: 1px solid var(--border-light);
+}
+
+.workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 48px;
+  position: relative;
+}
+
+.step-card {
+  background: var(--bg-page);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  position: relative;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+}
+
+/* Blog / Academy */
+.blog-section {
+  padding: clamp(60px, 8vw, 100px) 0;
+}
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.blog-card {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+}
+
+.blog-category {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* FAQ Accordion */
+.faq-section {
+  padding: clamp(60px, 8vw, 100px) 0;
+  background: #ffffff;
+  border-top: 1px solid var(--border-light);
+}
+
+.faq-list {
+  max-width: 800px;
+  margin: 48px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.faq-item {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-page);
+}
+
+.faq-question {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 18px 24px;
+  text-align: left;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.faq-answer {
+  display: none;
+  padding: 0 24px 20px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.faq-item.open .faq-answer {
+  display: block;
+}
+
+.faq-item.open .faq-chevron {
+  transform: rotate(180deg);
+}
+
+/* Final CTA */
+.cta-section {
+  padding: clamp(60px, 8vw, 100px) 0;
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+}
+
+.cta-box {
+  background: #ffffff;
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(32px, 6vw, 64px);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* Footer */
+.footer {
+  background: #0f172a;
+  color: #94a3b8;
+  padding: 64px 0 32px;
+  border-top: 1px solid #1e293b;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr repeat(4, 1fr);
+  gap: 36px;
+  margin-bottom: 48px;
+}
+
+.footer-col-title {
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.88rem;
+}
+
+.footer-links a:hover {
+  color: #ffffff;
+}
+
+.footer-bottom {
+  padding-top: 24px;
+  border-top: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .preview-body, .explainer-box {
+    grid-template-columns: 1fr;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-menu, .nav-actions .btn-login {
+    display: none;
+  }
+  .hamburger-btn {
+    display: block;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Auth Modal Styles */
+/* Auth & Info Modal Styles - Responsive & Never Clipped */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-box {
+  background: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  overflow: hidden;
+  margin: auto;
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.modal-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-page);
+  flex-shrink: 0;
+}
+
+.modal-tab-btn {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.modal-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: #ffffff;
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  background: var(--bg-page);
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.form-input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+</style>
+</head>
+<body>
+
+<!-- Announcement Bar -->
+<div class="announcement-bar">
+  <span>🚀 Built for YouTube creators who want better SEO, viral keywords, and authentic channel growth.</span>
+  <a href="#seo-score">See How It Works ➔</a>
+</div>
+
+<!-- Navigation Bar -->
+<header>
+  <nav class="navbar">
+    <div class="container nav-wrap">
+      <!-- Brand Logo -->
+      <a href="/" class="brand-logo">
+        <svg width="30" height="30" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="42" width="14" height="14" rx="2.5" fill="#0B192C"/>
+          <rect x="16" y="28" width="14" height="14" rx="2.5" fill="#0B192C"/>
+          <path d="M30 14 H40 C44 14 46 16 46 20 V56 H36 V28 H30 V14 Z" fill="#0B192C"/>
+          <path d="M26 14 C26 7.5 30.5 3 36 3 H46 C55.941 3 64 11.059 64 21 C64 30.941 55.941 39 46 39 H40 C34.477 39 30 43.477 30 49 V56" stroke="#0B192C" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>PLEXUDO</span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <ul class="nav-menu">
+        <li><a href="#features" class="nav-link">Product</a></li>
+        <li><a href="#tools" class="nav-link">Tools</a></li>
+        <li><a href="#seo-score" class="nav-link">50/50 SEO Score</a></li>
+        <li><a href="#workflow" class="nav-link">Workflow</a></li>
+        <li><a href="#blog" class="nav-link">Creator Academy</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+      </ul>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener" class="btn-sponsor">
+          <span>🎁</span> Sponsor Partner ↗
+        </a>
+        <button onclick="openAuthModal('login')" class="btn-login">Sign In</button>
+        <button onclick="openAuthModal('register')" class="btn-primary">Start Free ➔</button>
+        <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer">
+      <ul class="mobile-drawer-links">
+        <li><a href="#features" class="nav-link" onclick="toggleMobileMenu()">Product</a></li>
+        <li><a href="#tools" class="nav-link" onclick="toggleMobileMenu()">Tools</a></li>
+        <li><a href="#seo-score" class="nav-link" onclick="toggleMobileMenu()">50/50 SEO Score</a></li>
+        <li><a href="#workflow" class="nav-link" onclick="toggleMobileMenu()">Workflow</a></li>
+        <li><a href="#blog" class="nav-link" onclick="toggleMobileMenu()">Creator Academy</a></li>
+        <li><a href="#faq" class="nav-link" onclick="toggleMobileMenu()">FAQ</a></li>
+      </ul>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button onclick="openAuthModal('login'); toggleMobileMenu();" class="btn-login" style="width:100%;">Sign In</button>
+        <button onclick="openAuthModal('register'); toggleMobileMenu();" class="btn-primary" style="width:100%; justify-content:center;">Start Free ➔</button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-content">
+      <div class="section-tag">✨ Complete YouTube Creator SEO Suite</div>
+      <h1 class="hero-title">
+        Optimize Your YouTube Videos.<br>
+        <span>Grow With Better Data.</span>
+      </h1>
+      <p class="hero-desc">
+        Analyze your videos, discover high-potential keywords, study competitors, track trends, and generate viral titles with real YouTube Data API v3 and Groq AI.
+      </p>
+      
+      <div class="hero-cta-group">
+        <button onclick="openAuthModal('register')" class="btn-primary" style="padding:14px 32px; font-size:1rem;">
+          Start Free Today ➔
+        </button>
+        <a href="#tools" class="btn-login" style="padding:14px 28px; font-size:1rem;">
+          Explore Tools ↓
+        </a>
+      </div>
+
+      <div class="hero-trust-row">
+        <div class="hero-trust-item"><span>✓</span> 3 Welcome Credits</div>
+        <div class="hero-trust-item"><span>✓</span> No Credit Card Required</div>
+        <div class="hero-trust-item"><span>✓</span> Real YouTube Data API v3</div>
+        <div class="hero-trust-item"><span>✓</span> Groq AI Optimization</div>
+      </div>
+
+      <!-- Hero Product Preview -->
+      <div class="preview-container">
+        <div class="preview-topbar">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; width:10px; height:10px; background:#10b981; border-radius:50%;"></span>
+            <span>SAMPLE DEMONSTRATION PREVIEW: Plexudo 50/50 SEO Studio</span>
+          </div>
+          <span style="font-size:0.75rem; color:#94a3b8;">Authoritative Server Calculation</span>
+        </div>
+        
+        <div class="preview-body">
+          <!-- Left: Video Details Preview -->
+          <div>
+            <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Sample Analyzed Video</div>
+            <h3 style="font-size:1.15rem; font-weight:800; color:var(--text-main); margin-bottom:12px;">
+              How to Rank YouTube Videos in 2026 (Step-by-Step SEO Checklist)
+            </h3>
+            
+            <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Detected Keyword Tags (18)</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;">
+              <span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; font-size:0.78rem; font-weight:700;">youtube seo (78)</span>
+              <span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; font-size:0.78rem; font-weight:700;">video ranking (84)</span>
+              <span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; font-size:0.78rem; font-weight:700;">creator growth (69)</span>
+              <span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; font-size:0.78rem; font-weight:700;">algorithm 2026 (81)</span>
+              <span style="background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; font-size:0.78rem; font-weight:700;">high ctr titles (75)</span>
+            </div>
+
+            <div style="background:var(--bg-page); border:1px solid var(--border-light); border-radius:var(--radius-sm); padding:12px; font-size:0.85rem; color:var(--text-muted);">
+              💡 <strong>AI Recommendation:</strong> Adding 2 long-tail keywords in your first 150 description characters will increase search discoverability by 24%.
+            </div>
+          </div>
+
+          <!-- Right: 50/50 Rating Meter -->
+          <div class="score-meter-card">
+            <div class="score-big">42<span style="font-size:1.8rem; color:var(--text-muted);">/50</span></div>
+            <div class="score-label">Plexudo SEO Rating</div>
+
+            <div class="score-factor-row">
+              <span>Tag Count (18 tags)</span>
+              <span style="color:var(--success);">9 / 10</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:90%;"></div></div>
+
+            <div class="score-factor-row" style="margin-top:10px;">
+              <span>Tag Volume (480 chars)</span>
+              <span style="color:var(--success);">9 / 10</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:90%;"></div></div>
+
+            <div class="score-factor-row" style="margin-top:10px;">
+              <span>Keywords in Title</span>
+              <span style="color:var(--success);">8 / 10</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:80%;"></div></div>
+
+            <div class="score-factor-row" style="margin-top:10px;">
+              <span>Keywords in Description</span>
+              <span style="color:var(--success);">8 / 10</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:80%;"></div></div>
+
+            <div class="score-factor-row" style="margin-top:10px;">
+              <span>Triple Keyword Overlap</span>
+              <span style="color:var(--success);">8 / 10</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:80%;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust / Value Strip -->
+  <section class="trust-strip">
+    <div class="container">
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon">📊</div>
+          <div class="trust-title">Real YouTube API Data</div>
+          <div class="trust-text">Authentic metrics direct from Google Cloud YouTube Data API v3.</div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">⚡</div>
+          <div class="trust-title">Groq AI Engine</div>
+          <div class="trust-text">Real-time viral title suggestions powered by ultra-fast Groq Llama 3.3.</div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🔒</div>
+          <div class="trust-title">Zero Credential Exposure</div>
+          <div class="trust-text">All tokens and API keys are strictly guarded server-side.</div>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🎯</div>
+          <div class="trust-title">Actionable 50/50 Scoring</div>
+          <div class="trust-text">Proven multi-factor optimization framework tailored for creators.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section class="problem-section" id="features">
+    <div class="container text-center">
+      <div class="section-tag">The Creator Challenge</div>
+      <h2 class="section-title">Growing on YouTube Shouldn't Be Guesswork</h2>
+      <p class="section-desc">
+        Millions of videos are uploaded every day. Without proper metadata signals, the YouTube recommendation algorithm simply cannot match your content to interested viewers.
+      </p>
+
+      <div class="problem-grid">
+        <div class="problem-card">
+          <div class="problem-icon">📉</div>
+          <h3 style="font-size:1.1rem; margin-bottom:8px;">Blind Tagging</h3>
+          <p style="font-size:0.9rem; color:var(--text-muted);">Guessing keyword tags without knowing search volume or relevance hurts your video's search ranking.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-icon">❌</div>
+          <h3 style="font-size:1.1rem; margin-bottom:8px;">Low-CTR Titles</h3>
+          <p style="font-size:0.9rem; color:var(--text-muted);">Generic titles fail to capture viewer attention on the YouTube browse feed and suggested column.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-icon">👁️</div>
+          <h3 style="font-size:1.1rem; margin-bottom:8px;">Hidden Competitor Tactics</h3>
+          <p style="font-size:0.9rem; color:var(--text-muted);">Not knowing what topics are driving 28-day growth for competitors leaves you one step behind.</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-icon">⏳</div>
+          <h3 style="font-size:1.1rem; margin-bottom:8px;">Missing Trending Waves</h3>
+          <p style="font-size:0.9rem; color:var(--text-muted);">Finding viral hashtags after they peak means missing out on tens of thousands of potential organic views.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Solutions Grid (6 Tools) -->
+  <section class="tools-section" id="tools">
+    <div class="container">
+      <div class="text-center">
+        <div class="section-tag">The Plexudo Solution</div>
+        <h2 class="section-title">Everything You Need to Optimize Smarter</h2>
+        <p class="section-desc">Six specialized creator tools designed to audit, optimize, and grow your YouTube channel.</p>
+      </div>
+
+      <div class="tools-grid">
+        <!-- 1. SEO Score -->
+        <div class="tool-card">
+          <div>
+            <div style="font-size:2rem; margin-bottom:12px;">🎬</div>
+            <div class="tool-badge">Core Engine</div>
+            <h3 style="font-size:1.25rem; margin-bottom:8px;">YouTube SEO Studio</h3>
+            <p style="font-size:0.92rem; color:var(--text-muted);">
+              Instant 50/50 SEO score evaluation. Live title editor, description optimizer, and keyword tag manager with direct YouTube sync.
+            </p>
+          </div>
+          <a href="/youtube-seo-tool" class="tool-link">Explore SEO Studio ➔</a>
+        </div>
+
+        <!-- 2. Video Analyzer -->
+        <div class="tool-card">
+          <div>
+            <div style="font-size:2rem; margin-bottom:12px;">🔍</div>
+            <div class="tool-badge">NLP Sentiment</div>
+            <h3 style="font-size:1.25rem; margin-bottom:8px;">Video Virality Analyzer</h3>
+            <p style="font-size:0.92rem; color:var(--text-muted);">
+              Deep-dive video analytics. Calculates virality index velocity, engagement ratios, and NLP sentiment across top audience comments.
+            </p>
+          </div>
+          <a href="/youtube-video-analyzer" class="tool-link">Explore Video Analyzer ➔</a>
+        </div>
+
+        <!-- 3. Keyword Tool -->
+        <div class="tool-card">
+          <div>
+            <div style="font-size:2rem; margin-bottom:12px;">🔑</div>
+            <div class="tool-badge">Search Intelligence</div>
+            <h3 style="font-size:1.25rem; margin-bottom:8px;">YouTube Keyword Tool</h3>
+            <p style="font-size:0.92rem; color:var(--text-muted);">
+              Discover high-demand search terms, estimated search volume, competition difficulty, and high-CTR tag combinations in 1-click.
+            </p>
+          </div>
+          <a href="/youtube-keyword-tool" class="tool-link">Explore Keyword Tool ➔</a>
+        </div>
+
+        <!-- 4. Trend Analyzer -->
+        <div class="tool-card">
+          <div>
+            <div style="font-size:2rem; margin-bottom:12px;">📈</div>
+            <div class="tool-badge">Regional Waves</div>
+            <h3 style="font-size:1.25rem; margin-bottom:8px;">Real-Time Trend Analyzer</h3>
+            <p style="font-size:0.92rem; color:var(--text-muted);">
+              Track viral breakout topics across regions (Global, US, PK, IN, UK, AE) and ride emerging content waves before saturation.
+            </p>
+          </div>
+          <a href="/youtube-trend-analyzer" class="tool-link">Explore Trend Analyzer ➔</a>
+        </div>
+
+        <!-- 5. Competitor Audit -->
+        <div class="tool-card">
+          <div>
+            <div style="font-size:2rem; margin-bottom:12px;">🔗</div>
+            <div class="tool-badge">Channel Benchmarks</div>
+            <h3 style="font-size:1.25rem; margin-bottom:8px;">Competitor Channel Audit</h3>
+            <p style="font-size:0.92rem; color:var(--text-muted);">
+              Analyze any competitor channel handle. View 28-day subscriber growth velocity, top performing uploads, and keyword strategies.
+            </p>
+          </div>
+          <a href="/youtube-competitor-analysis" class="tool-link">Explore Competitor Audit ➔</a>
+        </div>
+
+        <!-- 6. AI Assistant -->
+        <div class="tool-card">
+          <div>
+            <div style="font-size:2rem; margin-bottom:12px;">🤖</div>
+            <div class="tool-badge">Groq AI Cloud</div>
+            <h3 style="font-size:1.25rem; margin-bottom:8px;">AI Creator Strategist</h3>
+            <p style="font-size:0.92rem; color:var(--text-muted);">
+              Context-aware YouTube strategist. Generate high-CTR title variations, script hooks, community post ideas, and niche outlines.
+            </p>
+          </div>
+          <button onclick="openAuthModal('login')" class="tool-link" style="background:none; border:none; cursor:pointer;">
+            Try AI Strategist ➔
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEO Score Explainer -->
+  <section class="explainer-section" id="seo-score">
+    <div class="container">
+      <div class="explainer-box">
+        <div>
+          <div style="font-size:0.8rem; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">
+            Proprietary Framework
+          </div>
+          <h2 style="font-size:clamp(1.75rem, 3vw, 2.3rem); color:#ffffff; margin-bottom:16px;">
+            The Plexudo 50-Point SEO Rating Methodology
+          </h2>
+          <p style="color:#cbd5e1; font-size:0.95rem; line-height:1.6; margin-bottom:20px;">
+            The Plexudo SEO Score evaluates your video across 5 critical metadata factors (10 points each). This score is generated by Plexudo's analysis engine based on available video signals and YouTube ranking best practices.
+          </p>
+          <div style="font-size:0.82rem; color:#94a3b8; border-left:3px solid #38bdf8; padding-left:12px;">
+            ℹ️ <em>Note: This is Plexudo's proprietary optimization rating based on defined metadata factors, not an official YouTube score.</em>
+          </div>
+        </div>
+
+        <div class="explainer-factor-list">
+          <div class="explainer-factor-item">
+            <span>🏷️ Tag Count (15–25 tags recommended)</span>
+            <strong style="color:#38bdf8;">10 Pts</strong>
+          </div>
+          <div class="explainer-factor-item">
+            <span>📊 Tag Volume (>400 total characters)</span>
+            <strong style="color:#38bdf8;">10 Pts</strong>
+          </div>
+          <div class="explainer-factor-item">
+            <span>✍️ Keywords in Title Matching</span>
+            <strong style="color:#38bdf8;">10 Pts</strong>
+          </div>
+          <div class="explainer-factor-item">
+            <span>📝 Keywords in Description Placement</span>
+            <strong style="color:#38bdf8;">10 Pts</strong>
+          </div>
+          <div class="explainer-factor-item">
+            <span>⚡ Triple Keyword Co-occurrence Overlap</span>
+            <strong style="color:#38bdf8;">10 Pts</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Creator Workflow Section -->
+  <section class="workflow-section" id="workflow">
+    <div class="container text-center">
+      <div class="section-tag">Streamlined Pipeline</div>
+      <h2 class="section-title">From Concept to Maximum Views</h2>
+      <p class="section-desc">A step-by-step workflow designed to eliminate publishing blindspots.</p>
+
+      <div class="workflow-steps">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <h3 style="font-size:1.1rem; margin-bottom:6px;">Keyword Discovery</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Identify high-demand search topics and low-competition tag combinations.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <h3 style="font-size:1.1rem; margin-bottom:6px;">Metadata Audit</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Analyze your video against the 50-point Plexudo SEO scoring criteria.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <h3 style="font-size:1.1rem; margin-bottom:6px;">AI CTR Boost</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Generate 3 high-converting title options and optimized descriptions with Groq AI.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <h3 style="font-size:1.1rem; margin-bottom:6px;">1-Click Live Sync</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted);">Sync optimized metadata directly to your live YouTube video via secure OAuth.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Blog / Creator Academy -->
+  <section class="blog-section" id="blog">
+    <div class="container">
+      <div class="text-center">
+        <div class="section-tag">Creator Academy</div>
+        <h2 class="section-title">Latest YouTube SEO Strategies &amp; Guides</h2>
+        <p class="section-desc">Actionable guides written by YouTube algorithm and SEO specialists.</p>
+      </div>
+
+      <div class="blog-grid">
+        <!-- Guide 1 -->
+        <div class="blog-card">
+          <div>
+            <div class="blog-category">SEO Strategy • 6 min read</div>
+            <h3 style="font-size:1.15rem; margin-bottom:10px;">How to Check and Improve Your YouTube SEO Score (2026 Checklist)</h3>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:16px;">
+              Learn how YouTube's search and recommendation algorithm ranks videos using metadata signals, tag density, and description relevance.
+            </p>
+          </div>
+          <button onclick="openBlogModal('seo-guide')" class="tool-link" style="background:none; border:none; cursor:pointer;">
+            Read Full Guide ➔
+          </button>
+        </div>
+
+        <!-- Guide 2 -->
+        <div class="blog-card">
+          <div>
+            <div class="blog-category">Keyword Research • 5 min read</div>
+            <h3 style="font-size:1.15rem; margin-bottom:10px;">How to Find High-Search, Low-Competition YouTube Keywords</h3>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:16px;">
+              Discover how to uncover high-volume keyword opportunities that smaller channels can easily rank for on YouTube search.
+            </p>
+          </div>
+          <button onclick="openBlogModal('keyword-guide')" class="tool-link" style="background:none; border:none; cursor:pointer;">
+            Read Full Guide ➔
+          </button>
+        </div>
+
+        <!-- Guide 3 -->
+        <div class="blog-card">
+          <div>
+            <div class="blog-category">Channel Growth • 7 min read</div>
+            <h3 style="font-size:1.15rem; margin-bottom:10px;">Step-by-Step YouTube Competitor Channel Analysis Guide</h3>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:16px;">
+              How to reverse-engineer competitor channels, study 28-day view velocity curves, and identify untapped video topics.
+            </p>
+          </div>
+          <button onclick="openBlogModal('competitor-guide')" class="tool-link" style="background:none; border:none; cursor:pointer;">
+            Read Full Guide ➔
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Accordion -->
+  <section class="faq-section" id="faq">
+    <div class="container">
+      <div class="text-center">
+        <div class="section-tag">Frequently Asked Questions</div>
+        <h2 class="section-title">Everything You Need to Know</h2>
+        <p class="section-desc">Transparent answers about Plexudo, our data sources, and credit systems.</p>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>What is Plexudo?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            Plexudo is a specialized YouTube SEO and creator analytics platform that provides 50/50 SEO scoring, competitor tracking, keyword discovery, and AI title recommendations using real YouTube Data API v3 metrics.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Is Plexudo free to use?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            Yes! Every verified user receives 3 free welcome credits upon registration. You can also unlock sponsor reward passes to continue using all creator tools without monthly subscriptions.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Do I have to connect my YouTube channel?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            No! You can analyze public video links, inspect keywords, and audit competitor channels without connecting your YouTube account. Connecting your channel is only required if you want to sync metadata changes directly to your live videos.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>What is the Plexudo 50/50 SEO Score?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            The Plexudo SEO Score is our proprietary 50-point rating system that analyzes five key ranking factors: Tag Count (10 pts), Tag Volume (10 pts), Keywords in Title (10 pts), Keywords in Description (10 pts), and Triple Keyword Overlap (10 pts).
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Is my YouTube password stored?</span>
+            <span class="faq-chevron">▼</span>
+          </button>
+          <div class="faq-answer">
+            Never. Plexudo uses official Google OAuth 2.0 authentication. We never see, request, or store your Google or YouTube passwords.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <h2 style="font-size:clamp(1.85rem, 3.5vw, 2.5rem); margin-bottom:12px;">Ready to Optimize Your Next YouTube Video?</h2>
+        <p style="font-size:1.05rem; color:var(--text-muted); margin-bottom:28px;">
+          Create your free account today and start optimizing with your welcome credits.
+        </p>
+        <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
+          <button onclick="openAuthModal('register')" class="btn-primary" style="padding:14px 32px; font-size:1rem;">
+            Start Free Today ➔
+          </button>
+          <button onclick="openAuthModal('login')" class="btn-login" style="padding:14px 28px; font-size:1rem;">
+            Sign In to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Semantic Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <!-- Col 1: Brand Info -->
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; color:#ffffff; font-size:1.25rem; font-weight:800; margin-bottom:12px;">
+          <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="42" width="14" height="14" rx="2.5" fill="#38BDF8"/>
+            <rect x="16" y="28" width="14" height="14" rx="2.5" fill="#38BDF8"/>
+            <path d="M30 14 H40 C44 14 46 16 46 20 V56 H36 V28 H30 V14 Z" fill="#38BDF8"/>
+            <path d="M26 14 C26 7.5 30.5 3 36 3 H46 C55.941 3 64 11.059 64 21 C64 30.941 55.941 39 46 39 H40 C34.477 39 30 43.477 30 49 V56" stroke="#38BDF8" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>PLEXUDO</span>
+        </div>
+        <p style="font-size:0.85rem; color:#94a3b8; line-height:1.6; max-width:280px; margin-bottom:16px;">
+          The all-in-one YouTube creator SEO and channel growth platform powered by real YouTube Data API v3 and Groq AI.
+        </p>
+        <div style="font-size:0.8rem; color:#64748b;">
+          © 2026 Plexudo. All rights reserved.
+        </div>
+      </div>
+
+      <!-- Col 2: Products -->
+      <div>
+        <div class="footer-col-title">Creator Tools</div>
+        <ul class="footer-links">
+          <li><a href="/youtube-seo-tool">YouTube SEO Studio</a></li>
+          <li><a href="/youtube-video-analyzer">Video Virality Analyzer</a></li>
+          <li><a href="/youtube-keyword-tool">YouTube Keyword Tool</a></li>
+          <li><a href="/youtube-trend-analyzer">Real-Time Trend Tracker</a></li>
+          <li><a href="/youtube-competitor-analysis">Competitor Channel Audit</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Resources -->
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <ul class="footer-links">
+          <li><a href="#blog">Creator Academy</a></li>
+          <li><a href="#seo-score">50/50 Score Breakdown</a></li>
+          <li><a href="#faq">Help &amp; FAQ</a></li>
+          <li><a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener">Sponsor Partner ↗</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Legal -->
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <ul class="footer-links">
+          <li><a href="javascript:void(0)" onclick="openLegalModal('privacy')">Privacy Policy</a></li>
+          <li><a href="javascript:void(0)" onclick="openLegalModal('terms')">Terms of Service</a></li>
+          <li><a href="robots.txt">robots.txt</a></li>
+          <li><a href="sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 5: Account -->
+      <div>
+        <div class="footer-col-title">Account</div>
+        <ul class="footer-links">
+          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Sign In</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthModal('register')">Create Free Account</a></li>
+          <li><a href="/dashboard.html">Dashboard App</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>
+        Plexudo is an independent analytics platform and is not officially affiliated with or endorsed by YouTube or Google LLC.
+      </div>
+      <div>
+        Hosted securely • Enterprise SSL
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ======== AUTHENTICATION MODAL (PREMIUM LIGHT SAAS) ======== -->
+<div class="modal-overlay" id="authModal" onclick="if(event.target===this) closeAuthModal()">
+  <div class="modal-box">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div style="font-size:1.1rem; font-weight:800; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+        <svg width="22" height="22" viewBox="0 0 64 64" fill="none">
+          <rect x="2" y="42" width="14" height="14" rx="2.5" fill="#4F46E5"/>
+          <rect x="16" y="28" width="14" height="14" rx="2.5" fill="#4F46E5"/>
+          <path d="M30 14 H40 C44 14 46 16 46 20 V56 H36 V28 H30 V14 Z" fill="#4F46E5"/>
+          <path d="M26 14 C26 7.5 30.5 3 36 3 H46 C55.941 3 64 11.059 64 21 C64 30.941 55.941 39 46 39 H40 C34.477 39 30 43.477 30 49 V56" stroke="#4F46E5" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="authModalTitle">Welcome to Plexudo</span>
+      </div>
+      <button onclick="closeAuthModal()" style="background:#f1f5f9; border:none; width:28px; height:28px; border-radius:50%; font-size:1rem; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+
+    <!-- Modal Tabs -->
+    <div class="modal-tabs" id="authModalTabs">
+      <button class="modal-tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="modal-tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">Create Account</button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- 1. MAIN LOGIN / SIGNUP VIEW -->
+      <div id="authMainView">
+        <!-- Prominent Google Continue Button -->
+        <a href="/api/channel-seo/auth/google" class="btn-google" style="display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:11px 16px; background:#ffffff; border:1px solid #cbd5e1; border-radius:var(--radius-sm); font-size:0.92rem; font-weight:700; color:#0f172a; text-decoration:none; box-shadow:var(--shadow-sm); transition:all 0.2s;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.97 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </a>
+
+        <!-- OR Divider -->
+        <div style="display:flex; align-items:center; margin:16px 0 14px; color:#94a3b8; font-size:0.75rem; font-weight:700;">
+          <span style="flex:1; height:1px; background:#e2e8f0;"></span>
+          <span style="padding:0 10px; text-transform:uppercase; letter-spacing:0.04em;">or with email</span>
+          <span style="flex:1; height:1px; background:#e2e8f0;"></span>
+        </div>
+
+        <form id="authForm" onsubmit="handleAuthSubmit(event)">
+          <!-- Register Only Name -->
+          <div class="form-group" id="groupName" style="display:none;">
+            <label class="form-label">Full Name / Creator Handle</label>
+            <input type="text" id="authName" class="form-input" placeholder="e.g. Alex Miller" autocomplete="name">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="authEmail" class="form-input" placeholder="you@domain.com" required autocomplete="email">
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label class="form-label" style="margin:0;">Password</label>
+              <a href="javascript:void(0)" onclick="switchAuthTab('forgot')" id="linkForgotPassword" style="font-size:0.8rem; font-weight:600; color:var(--primary); text-decoration:none;">Forgot password?</a>
+            </div>
+            <div style="position:relative;">
+              <input type="password" id="authPassword" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="current-password" style="padding-right:42px;">
+              <button type="button" onclick="togglePasswordVisibility('authPassword', this)" aria-label="Toggle password visibility" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#64748b; font-size:1rem; cursor:pointer; padding:4px;">👁️</button>
+            </div>
+          </div>
+
+          <!-- Register Only Role -->
+          <div class="form-group" id="groupRole" style="display:none;">
+            <label class="form-label">Creator Role</label>
+            <select id="authRole" class="form-input">
+              <option value="Content Creator">YouTube Content Creator</option>
+              <option value="Digital Marketer">Digital Marketer / Agency</option>
+              <option value="Channel Manager">Channel Manager</option>
+            </select>
+            <div style="font-size:0.78rem; color:#059669; font-weight:600; margin-top:6px; display:flex; align-items:center; gap:4px;">
+              <span>🎁</span> 3 Free Welcome Credits added upon registration.
+            </div>
+          </div>
+
+          <div id="authError" style="display:none; padding:10px 14px; background:#fee2e2; color:#dc2626; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
+
+          <button type="submit" id="authSubmitBtn" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:0.95rem;">
+            Sign In ➔
+          </button>
+        </form>
+
+        <div style="margin-top:16px; text-align:center; font-size:0.85rem; color:var(--text-muted);">
+          <span id="authSwitchPrompt">Don't have an account?</span>
+          <a href="javascript:void(0)" onclick="switchAuthTab(currentAuthTab === 'register' ? 'login' : 'register')" id="authSwitchLink" style="font-weight:700; color:var(--primary); text-decoration:none; margin-left:4px;">Create account</a>
+        </div>
+      </div>
+
+      <!-- 2. FORGOT PASSWORD VIEW -->
+      <div id="viewForgotPassword" style="display:none;">
+        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;">Forgot your password?</h3>
+        <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px; line-height:1.5;">Enter your registered email address and we'll send you a password reset link.</p>
+        <form onsubmit="handleForgotPassword(event)">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="forgotEmail" class="form-input" placeholder="you@domain.com" required autocomplete="email">
+          </div>
+          <div id="forgotFeedback" style="display:none; padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
+          <button type="submit" id="btnForgotSubmit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
+            Send Reset Link ➔
+          </button>
+        </form>
+        <div style="margin-top:16px; text-align:center;">
+          <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="font-size:0.85rem; font-weight:700; color:var(--primary); text-decoration:none;">← Back to Sign In</a>
+        </div>
+      </div>
+
+      <!-- 3. RESET PASSWORD VIEW -->
+      <div id="viewResetPassword" style="display:none;">
+        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;">Reset your password</h3>
+        <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px; line-height:1.5;">Enter your new secure password (min 8 characters).</p>
+        <form onsubmit="handleResetPassword(event)">
+          <input type="hidden" id="resetToken">
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <div style="position:relative;">
+              <input type="password" id="resetNewPassword" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password" style="padding-right:42px;">
+              <button type="button" onclick="togglePasswordVisibility('resetNewPassword', this)" aria-label="Toggle password visibility" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#64748b; font-size:1rem; cursor:pointer; padding:4px;">👁️</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" id="resetConfirmPassword" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password">
+          </div>
+          <div id="resetFeedback" style="display:none; padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
+          <button type="submit" id="btnResetSubmit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
+            Update Password ➔
+          </button>
+        </form>
+        <div style="margin-top:16px; text-align:center;">
+          <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="font-size:0.85rem; font-weight:700; color:var(--primary); text-decoration:none;">← Back to Sign In</a>
+        </div>
+      </div>
+
+      <!-- 4. EMAIL VERIFICATION VIEW -->
+      <div id="viewVerifyEmail" style="display:none; text-align:center;">
+        <div style="font-size:2.5rem; margin-bottom:8px;">📬</div>
+        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;" id="verifyStatusTitle">Verifying Email…</h3>
+        <p style="font-size:0.88rem; color:#64748b; margin-bottom:18px; line-height:1.6;" id="verifyStatusDesc">Please wait while we verify your Plexudo creator account.</p>
+        <div id="verifyFeedback" style="display:none; padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
+        <button onclick="switchAuthTab('login')" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
+          Continue to Sign In ➔
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ======== LEGAL & BLOG MODAL ======== -->
+<div class="modal-overlay" id="infoModal" onclick="if(event.target===this) closeInfoModal()">
+  <div class="modal-box" style="max-width:680px; max-height:85vh; display:flex; flex-direction:column;">
+    <div class="modal-header">
+      <div style="font-size:1.15rem; font-weight:800; color:var(--text-main);" id="infoModalTitle">Plexudo Guide</div>
+      <button onclick="closeInfoModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-muted);">✕</button>
+    </div>
+    <div class="modal-body" id="infoModalContent" style="overflow-y:auto; font-size:0.92rem; line-height:1.7; color:var(--text-muted);"></div>
+  </div>
+</div>
+
+<script>
+// ==========================================================================
+// PLEXUDO CLIENT JAVASCRIPT (AUTH & NAVIGATION SUITE)
+// ==========================================================================
+let currentAuthTab = 'login';
+
+function toggleMobileMenu() {
+  const drawer = document.getElementById('mobileDrawer');
+  if (drawer) drawer.classList.toggle('active');
+}
+
+function togglePasswordVisibility(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🔒';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+
+function openAuthModal(tab) {
+  currentAuthTab = tab || 'login';
+  const modal = document.getElementById('authModal');
+  if (modal) modal.classList.add('active');
+  switchAuthTab(currentAuthTab);
+}
+
+function closeAuthModal() {
+  const modal = document.getElementById('authModal');
+  if (modal) modal.classList.remove('active');
+  const err = document.getElementById('authError');
+  if (err) err.style.display = 'none';
+}
+
+function switchAuthTab(tab) {
+  currentAuthTab = tab;
+  const mainView = document.getElementById('authMainView');
+  const forgotView = document.getElementById('viewForgotPassword');
+  const resetView = document.getElementById('viewResetPassword');
+  const verifyView = document.getElementById('viewVerifyEmail');
+  const tabs = document.getElementById('authModalTabs');
+  const title = document.getElementById('authModalTitle');
+
+  // Hide sub-views by default
+  mainView.style.display = 'none';
+  forgotView.style.display = 'none';
+  resetView.style.display = 'none';
+  verifyView.style.display = 'none';
+  tabs.style.display = 'flex';
+
+  if (tab === 'forgot') {
+    tabs.style.display = 'none';
+    forgotView.style.display = 'block';
+    title.textContent = 'Forgot Password';
+  } else if (tab === 'reset') {
+    tabs.style.display = 'none';
+    resetView.style.display = 'block';
+    title.textContent = 'Reset Password';
+  } else if (tab === 'verify') {
+    tabs.style.display = 'none';
+    verifyView.style.display = 'block';
+    title.textContent = 'Email Verification';
+  } else {
+    // Login or Register
+    mainView.style.display = 'block';
+    const isReg = tab === 'register';
+    document.getElementById('tabBtnLogin').classList.toggle('active', !isReg);
+    document.getElementById('tabBtnRegister').classList.toggle('active', isReg);
+    document.getElementById('groupName').style.display = isReg ? 'block' : 'none';
+    document.getElementById('groupRole').style.display = isReg ? 'block' : 'none';
+    document.getElementById('authSubmitBtn').textContent = isReg ? 'Create Free Account ➔' : 'Sign In ➔';
+    title.textContent = isReg ? 'Create Your Free Account' : 'Welcome Back to Plexudo';
+    document.getElementById('authSwitchPrompt').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
+    document.getElementById('authSwitchLink').textContent = isReg ? 'Sign In' : 'Create account';
+  }
+}
+
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const errorEl = document.getElementById('authError');
+  const btn = document.getElementById('authSubmitBtn');
+  errorEl.style.display = 'none';
+  
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value.trim();
+  const role = document.getElementById('authRole').value;
+
+  btn.disabled = true;
+  btn.textContent = currentAuthTab === 'register' ? 'Creating Account...' : 'Signing In...';
+
+  try {
+    if (currentAuthTab === 'register') {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name || 'Creator', email, password, role })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+      // Auto login to establish authenticated session
+      await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      window.location.href = '/dashboard.html';
+    } else {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Invalid email or password');
+      }
+      window.location.href = '/dashboard.html';
+    }
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = currentAuthTab === 'register' ? 'Create Free Account ➔' : 'Sign In ➔';
+  }
+}
+
+async function handleForgotPassword(e) {
+  e.preventDefault();
+  const email = document.getElementById('forgotEmail').value.trim();
+  const feedback = document.getElementById('forgotFeedback');
+  const btn = document.getElementById('btnForgotSubmit');
+
+  btn.disabled = true;
+  btn.textContent = 'Sending Link...';
+  feedback.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    feedback.style.display = 'block';
+    feedback.style.background = '#ecfdf5';
+    feedback.style.color = '#059669';
+    feedback.textContent = data.message || "If an account exists for this email, you'll receive a reset link.";
+  } catch (err) {
+    feedback.style.display = 'block';
+    feedback.style.background = '#fee2e2';
+    feedback.style.color = '#dc2626';
+    feedback.textContent = 'Network error. Please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send Reset Link ➔';
+  }
+}
+
+async function handleResetPassword(e) {
+  e.preventDefault();
+  const token = document.getElementById('resetToken').value;
+  const newPassword = document.getElementById('resetNewPassword').value;
+  const confirmPassword = document.getElementById('resetConfirmPassword').value;
+  const feedback = document.getElementById('resetFeedback');
+  const btn = document.getElementById('btnResetSubmit');
+
+  if (newPassword !== confirmPassword) {
+    feedback.style.display = 'block';
+    feedback.style.background = '#fee2e2';
+    feedback.style.color = '#dc2626';
+    feedback.textContent = 'Passwords do not match.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Updating Password...';
+  feedback.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: newPassword })
+    });
+    const data = await res.json();
+    feedback.style.display = 'block';
+    if (res.ok) {
+      feedback.style.background = '#ecfdf5';
+      feedback.style.color = '#059669';
+      feedback.textContent = data.message || 'Password reset successfully! Redirecting to Sign In...';
+      setTimeout(() => switchAuthTab('login'), 2000);
+    } else {
+      feedback.style.background = '#fee2e2';
+      feedback.style.color = '#dc2626';
+      feedback.textContent = data.error || 'Failed to reset password.';
+    }
+  } catch (err) {
+    feedback.style.display = 'block';
+    feedback.style.background = '#fee2e2';
+    feedback.style.color = '#dc2626';
+    feedback.textContent = 'Network error. Please try again.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Update Password ➔';
+  }
+}
+
+// Auto-check URL routes and query parameters on page load
+window.addEventListener('DOMContentLoaded', async () => {
+  const path = window.location.pathname.toLowerCase();
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+
+  if (path === '/login') {
+    openAuthModal('login');
+  } else if (path === '/signup' || path === '/register') {
+    openAuthModal('register');
+  } else if (path === '/forgot-password') {
+    openAuthModal('forgot');
+  } else if (path === '/reset-password' || (token && path.includes('reset'))) {
+    openAuthModal('reset');
+    if (token) document.getElementById('resetToken').value = token;
+  } else if (path === '/verify-email' || (token && path.includes('verify'))) {
+    openAuthModal('verify');
+    if (token) {
+      try {
+        const res = await fetch(`/api/verify-email?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        const title = document.getElementById('verifyStatusTitle');
+        const desc = document.getElementById('verifyStatusDesc');
+        const feedback = document.getElementById('verifyFeedback');
+        feedback.style.display = 'block';
+        if (res.ok) {
+          title.textContent = 'Email Verified! 🎉';
+          desc.textContent = 'Your Plexudo creator account is ready with 3 welcome credits.';
+          feedback.style.background = '#ecfdf5';
+          feedback.style.color = '#059669';
+          feedback.textContent = '✓ Verified successfully.';
+        } else {
+          title.textContent = 'Verification Notice';
+          desc.textContent = data.error || 'This verification link is invalid or has expired.';
+          feedback.style.background = '#fee2e2';
+          feedback.style.color = '#dc2626';
+          feedback.textContent = data.error || 'Verification failed.';
+        }
+      } catch (err) {
+        console.error('Verify error:', err);
+      }
+    }
+  }
+});
+
+function toggleFaq(btn) {
+  const item = btn.parentElement;
+  item.classList.toggle('open');
+}
+
+function openLegalModal(type) {
+  const modal = document.getElementById('infoModal');
+  const title = document.getElementById('infoModalTitle');
+  const content = document.getElementById('infoModalContent');
+
+  if (type === 'privacy') {
+    title.textContent = 'Plexudo — Privacy Policy';
+    content.innerHTML = `
+      <h4 style="color:#0f172a; margin-bottom:8px;">1. Information We Collect</h4>
+      <p style="margin-bottom:14px;">Plexudo accesses only publicly available YouTube metadata and authorized channel metrics via Google OAuth 2.0. We never store passwords or sell user data.</p>
+      <h4 style="color:#0f172a; margin-bottom:8px;">2. How Data is Used</h4>
+      <p style="margin-bottom:14px;">Data is processed strictly in real-time to compute SEO scores, keyword competition metrics, and AI recommendations.</p>
+      <h4 style="color:#0f172a; margin-bottom:8px;">3. Data Security</h4>
+      <p>All authentication tokens and API keys are protected behind server-side encryption layers and HttpOnly session cookies.</p>
+    `;
+  } else {
+    title.textContent = 'Plexudo — Terms of Service';
+    content.innerHTML = `
+      <h4 style="color:#0f172a; margin-bottom:8px;">1. Acceptance of Terms</h4>
+      <p style="margin-bottom:14px;">By accessing Plexudo, you agree to comply with YouTube's Terms of Service and Google API Services User Data Policy.</p>
+      <h4 style="color:#0f172a; margin-bottom:8px;">2. Fair Use &amp; Credits</h4>
+      <p style="margin-bottom:14px;">Credits are allocated for computational workloads. Automated scraping or reverse engineering is prohibited.</p>
+      <h4 style="color:#0f172a; margin-bottom:8px;">3. Disclaimer</h4>
+      <p>Plexudo provides optimization recommendations based on defined algorithm heuristics. Video performance on YouTube depends on audience retention and content quality.</p>
+    `;
+  }
+  modal.classList.add('active');
+}
+
+function openBlogModal(guideKey) {
+  const modal = document.getElementById('infoModal');
+  const title = document.getElementById('infoModalTitle');
+  const content = document.getElementById('infoModalContent');
+
+  if (guideKey === 'seo-guide') {
+    title.textContent = 'How to Check and Improve Your YouTube SEO Score';
+    content.innerHTML = `
+      <p style="margin-bottom:14px;">YouTube is the second largest search engine in the world. To maximize search discoverability, follow this checklist:</p>
+      <h4 style="color:#0f172a; margin-bottom:6px;">1. Title Keyword Placement</h4>
+      <p style="margin-bottom:12px;">Place your primary target keyword within the first 40 characters of your title.</p>
+      <h4 style="color:#0f172a; margin-bottom:6px;">2. Description Context Depth</h4>
+      <p style="margin-bottom:12px;">Write at least 250 words with timestamps, related topic keywords, and relevant external links.</p>
+      <h4 style="color:#0f172a; margin-bottom:6px;">3. Triple Keyword Co-occurrence</h4>
+      <p>Ensure your main keyword appears identically in your Title, Description, and Tag list.</p>
+    `;
+  } else if (guideKey === 'keyword-guide') {
+    title.textContent = 'How to Find High-Search, Low-Competition YouTube Keywords';
+    content.innerHTML = `
+      <p style="margin-bottom:14px;">Targeting keywords with high search volume and low competition is the fastest way for small channels to gain traction:</p>
+      <h4 style="color:#0f172a; margin-bottom:6px;">1. Long-Tail Search Phrases</h4>
+      <p style="margin-bottom:12px;">Look for 3-5 word phrases that directly answer specific viewer search queries.</p>
+      <h4 style="color:#0f172a; margin-bottom:6px;">2. Search Volume vs Competition Score</h4>
+      <p>Aim for keywords where competition score is below 45 and search volume is above 60.</p>
+    `;
+  } else {
+    title.textContent = 'YouTube Competitor Channel Analysis Guide';
+    content.innerHTML = `
+      <p style="margin-bottom:14px;">Analyzing successful creators in your niche gives you an algorithmic blueprint:</p>
+      <h4 style="color:#0f172a; margin-bottom:6px;">1. 28-Day View Velocity</h4>
+      <p style="margin-bottom:12px;">Look at which uploads have higher view-to-subscriber ratios (Outlier Videos).</p>
+      <h4 style="color:#0f172a; margin-bottom:6px;">2. Thumbnail &amp; Title Patterns</h4>
+      <p>Identify what emotional triggers and visual contrasts are generating high CTR in your niche.</p>
+    `;
+  }
+  modal.classList.add('active');
+}
+
+function closeInfoModal() {
+  const modal = document.getElementById('infoModal');
+  if (modal) modal.classList.remove('active');
+}
+</script>
+
+<!-- Social Bar Ad Unit (Right above closing body tag) -->
+<script src="https://bibleearthquake.com/0e/89/57/0e89577e43e820c87b40cc837855b0fd.js"></script>
+</body>
 </html>
