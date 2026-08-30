@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}YouTube Video Analyzer — Stats, Tags & Retention Metrics | Plexudo{% endblock %}
+{% block description %}Analyze live YouTube video statistics, view-to-like engagement ratios, extracted tags, and AI title improvement suggestions with Plexudo.{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+    <div class="text-center space-y-4">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-xs font-bold shadow-sm">
+            <span>Live Video Analytics</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+            YouTube Video Analyzer
+        </h1>
+        <p class="text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Inspect live view counts, engagement percentages, hidden video tags, and Groq AI title improvement suggestions.
+        </p>
+    </div>
+
+    <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-card space-y-6">
+        <h2 class="text-xl font-bold text-slate-900">What Video Analyzer Reveals</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">Real-Time Engagement</span>
+                <p class="text-slate-500">Calculates precise like-to-view and comment engagement ratios against niche benchmarks.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">Extracted Hidden Tags</span>
+                <p class="text-slate-500">Extracts complete tag catalogues from top-performing videos to uncover ranking factors.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">AI Title Optimization</span>
+                <p class="text-slate-500">Generates 3 higher-CTR title alternatives designed to boost browse feature impressions.</p>
+            </div>
+        </div>
+
+        <div class="pt-4 flex justify-center">
+            <a href="/signup" class="px-8 py-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm shadow-sm transition-all hover:scale-105">
+                Analyze Any YouTube Video &rarr;
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

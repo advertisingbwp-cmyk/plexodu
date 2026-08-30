@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}YouTube SEO Tool — 50-Point Algorithmic Audit | Plexudo{% endblock %}
+{% block description %}Analyze your YouTube video metadata against our proprietary 50-point SEO algorithm. Maximize click-through rates and YouTube search ranking.{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+    <!-- Header -->
+    <div class="text-center space-y-4">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold shadow-sm">
+            <span>Proprietary Algorithm</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+            Plexudo 50-Point YouTube SEO Score
+        </h1>
+        <p class="text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Audit your title, description depth, tag density, search keyword volume, and triple keyword overlap before publishing.
+        </p>
+    </div>
+
+    <!-- Features Breakdown Card -->
+    <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-card space-y-6">
+        <h2 class="text-xl font-bold text-slate-900">How the 50-Point SEO Score Works</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">1. Title Optimization (10 Pts)</span>
+                <p class="text-slate-500">Evaluates optimal length (40–70 chars), capital letters, and power hook keywords.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">2. Description Depth (10 Pts)</span>
+                <p class="text-slate-500">Checks for rich keyword-dense paragraphs (>250 words) and video timestamps.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">3. Tag Density (10 Pts)</span>
+                <p class="text-slate-500">Targets 10–25 high-relevance tags covering niche and long-tail topics.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">4. Keyword Volume (10 Pts)</span>
+                <p class="text-slate-500">Identifies whether high-intent search terms exist throughout metadata.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1 md:col-span-2">
+                <span class="font-bold text-slate-900">5. Triple Keyword Overlap (10 Pts)</span>
+                <p class="text-slate-500">Measures the exact-match algorithmic synergy between Title, Description, and Tags.</p>
+            </div>
+        </div>
+
+        <div class="pt-4 flex justify-center">
+            <a href="/signup" class="px-8 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-sm transition-all hover:scale-105">
+                Audit Your Video Now (3 Free Credits) &rarr;
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

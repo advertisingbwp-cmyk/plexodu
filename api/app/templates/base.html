@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Plexudo — YouTube SEO & Growth Suite for Creators{% endblock %}</title>
+    <meta name="description" content="{% block description %}Supercharge your YouTube channel growth with real YouTube Data API analytics, Plexudo 50-point SEO scoring, AI keyword discovery, and trend insights.{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ self.description() }}{% endblock %}">
+    <meta property="og:image" content="https://plexudo.vercel.app/static/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.url }}">
+    <meta property="twitter:title" content="{{ self.title() }}">
+    <meta property="twitter:description" content="{{ self.description() }}">
+    <meta property="twitter:image" content="https://plexudo.vercel.app/static/og-image.png">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Plexudo",
+      "url": "https://plexudo.vercel.app",
+      "description": "YouTube SEO, Video Analytics, Keyword Discovery, and AI Growth Optimization Suite for Creators.",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    {% block jsonld %}{% endblock %}
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-indigo-600 selection:text-white">
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-3">
+            <a href="/" class="flex items-center gap-2 group shrink-0">
+                <div style="width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(to top right, #4f46e5, #7c3aed); display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 15px;">
+                    P
+                </div>
+                <span class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">Plexudo</span>
+            </a>
+
+            <nav class="hidden md:flex items-center gap-4 lg:gap-6 text-xs sm:text-sm font-semibold text-slate-600">
+                <a href="/youtube-seo-tool" class="hover:text-indigo-600 transition-colors">SEO Score</a>
+                <a href="/youtube-video-analyzer" class="hover:text-indigo-600 transition-colors">Video Analyzer</a>
+                <a href="/youtube-keyword-tool" class="hover:text-indigo-600 transition-colors">Keywords</a>
+                <a href="/youtube-trend-analyzer" class="hover:text-indigo-600 transition-colors">Trends</a>
+                <a href="/youtube-competitor-analysis" class="hover:text-indigo-600 transition-colors">Competitors</a>
+                <a href="/blog" class="hover:text-indigo-600 transition-colors">Blog</a>
+            </nav>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="/login" class="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all">
+                    Sign In
+                </a>
+                <a href="/signup" class="px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm transition-all hover:shadow">
+                    Get 3 Free Credits
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200/80 bg-white mt-12 sm:mt-16">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <div style="width: 26px; height: 26px; border-radius: 7px; background: #4f46e5; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 13px;">P</div>
+                        <span class="font-bold text-base text-slate-900">Plexudo</span>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        The ultimate YouTube growth suite for creators. Real Data API metrics, 50-point algorithmic SEO scoring, and AI assistance with zero fake data.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-2.5">Creator Tools</h3>
+                    <ul class="space-y-1.5 text-xs font-medium text-slate-500">
+                        <li><a href="/youtube-seo-tool" class="hover:text-indigo-600">YouTube SEO Tool</a></li>
+                        <li><a href="/youtube-video-analyzer" class="hover:text-indigo-600">Video Analyzer</a></li>
+                        <li><a href="/youtube-keyword-tool" class="hover:text-indigo-600">Keyword Explorer</a></li>
+                        <li><a href="/youtube-trend-analyzer" class="hover:text-indigo-600">Trend Analyzer</a></li>
+                        <li><a href="/youtube-competitor-analysis" class="hover:text-indigo-600">Competitor Insights</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-2.5">Resources</h3>
+                    <ul class="space-y-1.5 text-xs font-medium text-slate-500">
+                        <li><a href="/blog" class="hover:text-indigo-600">Creator Blog</a></li>
+                        <li><a href="/dashboard" class="hover:text-indigo-600">Creator Dashboard</a></li>
+                        <li><a href="/login" class="hover:text-indigo-600">Account Login</a></li>
+                        <li><a href="/signup" class="hover:text-indigo-600">Claim 3 Free Credits</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-bold text-slate-900 uppercase tracking-wider mb-2.5">Legal</h3>
+                    <ul class="space-y-1.5 text-xs font-medium text-slate-500">
+                        <li><a href="/privacy" class="hover:text-indigo-600">Privacy Policy</a></li>
+                        <li><a href="/terms" class="hover:text-indigo-600">Terms of Service</a></li>
+                    </ul>
+                    <p class="text-[10px] text-slate-400 mt-3 leading-tight">
+                        Plexudo is not affiliated with Google or YouTube. YouTube is a registered trademark of Google LLC.
+                    </p>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 pt-5 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-400 gap-3">
+                <p>&copy; 2026 Plexudo. All rights reserved. Zero fake data.</p>
+                <div class="flex gap-5 font-medium">
+                    <a href="/privacy" class="hover:text-slate-600">Privacy</a>
+                    <a href="/terms" class="hover:text-slate-600">Terms</a>
+                    <a href="/sitemap.xml" class="hover:text-slate-600">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

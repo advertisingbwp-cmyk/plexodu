@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}YouTube Trend Analyzer — 5 Regional Markets & Breakout Tags | Plexudo{% endblock %}
+{% block description %}Track viral trending YouTube videos and high-frequency breakout tags across the United States, Pakistan, UK, India, and UAE.{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+    <div class="text-center space-y-4">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-xs font-bold shadow-sm">
+            <span>5 Geographic Regions</span>
+        </div>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
+            YouTube Trend Analyzer
+        </h1>
+        <p class="text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Monitor breakout content topics and tag frequency patterns across US, Pakistan, UK, India, and UAE in real time.
+        </p>
+    </div>
+
+    <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-card space-y-6">
+        <h2 class="text-xl font-bold text-slate-900">Regional Viral Trend Intelligence</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">Breakout Tag Frequency Matrix</span>
+                <p class="text-slate-500">Aggregates and counts repeating tags across top trending videos to identify viral hooks.</p>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span class="font-bold text-slate-900">Multi-Region Localization</span>
+                <p class="text-slate-500">Compare regional trend velocity between Western, South Asian, and Middle Eastern markets.</p>
+            </div>
+        </div>
+
+        <div class="pt-4 flex justify-center">
+            <a href="/signup" class="px-8 py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm shadow-sm transition-all hover:scale-105">
+                Analyze Regional Trends Now &rarr;
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

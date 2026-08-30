@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Terms of Service — Plexudo{% endblock %}
+{% block description %}Plexudo Terms of Service: Platform usage guidelines, ad-supported credit mechanics, and acceptable use policies.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-8">
+    <div class="space-y-2">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Terms of Service</h1>
+        <p class="text-xs text-slate-500">Last updated: August 2026</p>
+    </div>
+
+    <div class="p-8 rounded-3xl bg-white border border-slate-200/80 shadow-card text-xs text-slate-600 leading-relaxed space-y-6">
+        <section class="space-y-2">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">1. Platform Overview</h2>
+            <p>
+                Plexudo provides algorithmic YouTube SEO scoring, video analytics, keyword clustering, and AI-assisted content optimization. The platform operates on a credits-based monetization model with zero recurring subscription fees.
+            </p>
+        </section>
+
+        <section class="space-y-2">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">2. Credits & Monetization Invariants</h2>
+            <p>
+                Every new user receives 3 free welcome credits upon completing email verification. Users can earn additional credits (+1 per verified view) by engaging with sponsor advertisements. Credits are managed authoritatively by server ledger transactions.
+            </p>
+        </section>
+
+        <section class="space-y-2">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">3. YouTube API Compliance</h2>
+            <p>
+                Plexudo uses the official YouTube Data API v3 and complies with all Google API Services User Data Policies. Plexudo is an independent software tool and is not officially affiliated with Google LLC or YouTube.
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}
