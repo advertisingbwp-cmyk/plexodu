@@ -10,6 +10,8 @@ import { LandingPage } from './pages/LandingPage';
 import { BlogPage } from './pages/BlogPage';
 import { PublicToolPage } from './pages/PublicToolPage';
 
+import { LegalPage } from './pages/LegalPage';
+
 // Auth Pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -89,6 +91,8 @@ export const App: React.FC = () => {
           <Route path="/youtube-keyword-tool" element={<PublicToolPage tool="keyword" />} />
           <Route path="/youtube-trend-analyzer" element={<PublicToolPage tool="trend" />} />
           <Route path="/youtube-competitor-analysis" element={<PublicToolPage tool="competitor" />} />
+          <Route path="/privacy" element={<LegalPage type="privacy" />} />
+          <Route path="/terms" element={<LegalPage type="terms" />} />
 
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />

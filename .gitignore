@@ -32,3 +32,4 @@ dist/
 *.swp
 .DS_Store
 Thumbs.db
+.vercel
