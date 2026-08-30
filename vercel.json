@@ -7,15 +7,7 @@
       "destination": "/api/index.py"
     },
     {
-      "source": "/(blog.*|youtube-.*|privacy|terms|sitemap.xml|robots.txt|favicon.ico)",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/((?!api/|blog|youtube-|privacy|terms|sitemap.xml|robots.txt|favicon.ico).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]

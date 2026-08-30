@@ -5,6 +5,11 @@ import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { Loader2 } from 'lucide-react';
 
+// Public Marketing & SEO Pages
+import { LandingPage } from './pages/LandingPage';
+import { BlogPage } from './pages/BlogPage';
+import { PublicToolPage } from './pages/PublicToolPage';
+
 // Auth Pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -13,7 +18,7 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { YouTubeCallback } from './pages/YouTubeCallback';
 
-// Dashboard & Tools Pages
+// Private Dashboard & Tools Pages
 import { Dashboard } from './pages/Dashboard';
 import { ProfileSettings } from './pages/ProfileSettings';
 import { HistoryPage } from './pages/HistoryPage';
@@ -76,6 +81,15 @@ export const App: React.FC = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public Landing & Marketing Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/youtube-seo-tool" element={<PublicToolPage tool="seo" />} />
+          <Route path="/youtube-video-analyzer" element={<PublicToolPage tool="video" />} />
+          <Route path="/youtube-keyword-tool" element={<PublicToolPage tool="keyword" />} />
+          <Route path="/youtube-trend-analyzer" element={<PublicToolPage tool="trend" />} />
+          <Route path="/youtube-competitor-analysis" element={<PublicToolPage tool="competitor" />} />
+
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
