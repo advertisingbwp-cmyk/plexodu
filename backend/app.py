@@ -184,6 +184,14 @@ from services.email_service import (
 )
 app.add_url_rule('/auth/google/callback', 'auth_google_callback', auth_callback)
 
+
+@app.after_request
+def add_security_and_robots_headers(response):
+    # Send X-Robots-Tag for private/authenticated dashboard and api routes
+    if request.path in ["/dashboard.html", "/dashboard"] or request.path.startswith("/api/"):
+        response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response
+
 MAX_LOGIN_ATTEMPTS = 5
 YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "").strip()
 
@@ -300,7 +308,9 @@ def serve_favicon_png():
 @app.route("/dashboard.html")
 @app.route("/dashboard")
 def serve_dashboard():
-    return send_from_directory(FRONTEND_DIR, "dashboard.html")
+    response = send_from_directory(FRONTEND_DIR, "dashboard.html")
+    response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response
 
 
 @app.route("/<path:path>")
