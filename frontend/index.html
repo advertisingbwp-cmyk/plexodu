@@ -1733,12 +1733,17 @@ h1, h2, h3, h4 {
       <!-- 4. EMAIL VERIFICATION VIEW -->
       <div id="viewVerifyEmail" style="display:none; text-align:center;">
         <div style="font-size:2.5rem; margin-bottom:8px;">📬</div>
-        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;" id="verifyStatusTitle">Verifying Email…</h3>
-        <p style="font-size:0.88rem; color:#64748b; margin-bottom:18px; line-height:1.6;" id="verifyStatusDesc">Please wait while we verify your Plexudo creator account.</p>
+        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;" id="verifyStatusTitle">Verification Email Sent! 📬</h3>
+        <p style="font-size:0.88rem; color:#64748b; margin-bottom:18px; line-height:1.6;" id="verifyStatusDesc">Please check your inbox. The confirmation link is valid for <strong>2 minutes</strong>.</p>
         <div id="verifyFeedback" style="display:none; padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
-        <button onclick="switchAuthTab('login')" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
-          Continue to Sign In ➔
-        </button>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button onclick="handleResendVerification()" id="btnResendVerify" class="btn-login" style="width:100%; justify-content:center; padding:10px; font-size:0.88rem;">
+            🔄 Resend Confirmation Link (2 Min)
+          </button>
+          <button onclick="switchAuthTab('login')" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
+            Continue to Sign In ➔
+          </button>
+        </div>
       </div>
 
     </div>
@@ -1862,17 +1867,18 @@ async function handleAuthSubmit(e) {
         throw new Error(data.error || 'Registration failed');
       }
       
+      lastRegisteredEmail = email;
       // Switch to Verification View informing user to check inbox
       switchAuthTab('verify');
       const title = document.getElementById('verifyStatusTitle');
       const desc = document.getElementById('verifyStatusDesc');
       const feedback = document.getElementById('verifyFeedback');
       title.textContent = 'Verification Email Sent! 📬';
-      desc.innerHTML = `We have sent an activation link to <strong>${email}</strong>.<br><br>Please open your email inbox and click the verification link to activate your account and claim your <strong>3 Free Welcome Credits</strong> before signing in.`;
+      desc.innerHTML = `We have sent a 2-minute activation link to <strong>${email}</strong>.<br><br>Please open your email inbox and click the verification link to activate your account and claim your <strong>3 Free Welcome Credits</strong> before signing in.`;
       feedback.style.display = 'block';
       feedback.style.background = '#ecfdf5';
       feedback.style.color = '#059669';
-      feedback.textContent = 'Account created successfully! Check your inbox to complete verification.';
+      feedback.textContent = 'Account created! Link valid for 2 minutes. Check your inbox.';
     } else {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -1891,6 +1897,38 @@ async function handleAuthSubmit(e) {
   } finally {
     btn.disabled = false;
     btn.textContent = currentAuthTab === 'register' ? 'Create Free Account ➔' : 'Sign In ➔';
+  }
+}
+
+async function handleResendVerification() {
+  const email = lastRegisteredEmail || document.getElementById('authEmail')?.value?.trim();
+  const feedback = document.getElementById('verifyFeedback');
+  const btn = document.getElementById('btnResendVerify');
+  if (!email) {
+    alert('Please enter your email to request a new link.');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Sending new link...';
+  try {
+    const res = await fetch('/api/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    feedback.style.display = 'block';
+    feedback.style.background = '#ecfdf5';
+    feedback.style.color = '#059669';
+    feedback.textContent = data.message || 'A new 2-minute confirmation link has been sent!';
+  } catch (err) {
+    feedback.style.display = 'block';
+    feedback.style.background = '#fee2e2';
+    feedback.style.color = '#dc2626';
+    feedback.textContent = 'Failed to resend. Please try again in a moment.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 Resend Confirmation Link (2 Min)';
   }
 }
 

@@ -240,11 +240,11 @@ def register():
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "An account with this email already exists"}), 409
 
-    # Generate verification token
+    # Generate verification token (2 minutes validity)
     verify_token = secrets.token_urlsafe(32)
     EMAIL_VERIFY_TOKENS[verify_token] = {
         "email": email,
-        "expires": time.time() + 86400  # 24 hours
+        "expires": time.time() + 120  # 2 minutes expiry
     }
 
     user = User(
@@ -453,9 +453,9 @@ def verify_email():
             <!DOCTYPE html><html><head><meta charset="utf-8"><title>Link Expired — Plexudo</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
             <style>body{font-family:'Plus Jakarta Sans',sans-serif;background:#edf2fb;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#0f172a;}.card{background:#fff;padding:40px;border-radius:24px;text-align:center;max-width:460px;box-shadow:0 10px 30px rgba(0,0,0,0.06);border:1px solid #e2e8f0;}.btn{display:inline-block;background:#4349bf;color:#fff;text-decoration:none;padding:12px 28px;border-radius:12px;font-weight:700;margin-top:20px;}</style></head>
-            <body><div class="card"><div style="font-size:40px;margin-bottom:12px;">⏰</div><h2 style="margin:0 0 10px;">Verification Link Expired</h2><p style="color:#64748b;font-size:14px;line-height:1.6;">This verification link has expired. Please sign in or request a new one.</p><a href="/" class="btn">Back to Sign In ➔</a></div></body></html>
+            <body><div class="card"><div style="font-size:40px;margin-bottom:12px;">⏰</div><h2 style="margin:0 0 10px;">Verification Link Expired</h2><p style="color:#64748b;font-size:14px;line-height:1.6;">This confirmation link has expired (valid for 2 minutes). You can request a fresh confirmation link right now.</p><a href="/?open_auth=login" class="btn">Request New Link ➔</a></div></body></html>
             """, 400
-        return jsonify({"error": "This verification link has expired."}), 400
+        return jsonify({"error": "This verification link has expired (2 minutes limit)."}), 400
 
     user = User.query.filter_by(email=token_info["email"]).first()
     if user:
@@ -490,13 +490,13 @@ def resend_verification():
             token = secrets.token_urlsafe(32)
             EMAIL_VERIFY_TOKENS[token] = {
                 "email": email,
-                "expires": time.time() + 86400
+                "expires": time.time() + 120  # 2 minutes expiry
             }
             _log_action("RESEND_VERIFICATION", f"Resent verification token for {email}")
             send_verification_email(user.email, user.name, token)
 
     return jsonify({
-        "message": "If your account is pending verification, a new verification link has been sent to your email."
+        "message": "A new 2-minute confirmation link has been sent to your email."
     }), 200
 
 

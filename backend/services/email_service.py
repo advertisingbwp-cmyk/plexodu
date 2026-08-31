@@ -91,7 +91,7 @@ def send_verification_email(to_email: str, name: str, verify_token: str):
         </div>
 
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px 20px; margin-bottom:24px; font-size:13px; color:#64748b; line-height:1.6;">
-          <strong>Security Notice:</strong> You must verify your email before signing in. This link will expire in 24 hours.<br><br>
+          <strong>Security Notice:</strong> You must verify your email before signing in. This link will expire in <strong>2 minutes</strong>.<br><br>
           If the button doesn't work, copy &amp; paste this link into your browser:<br>
           <a href="{verify_link}" style="color:#4349bf; word-break:break-all; font-size:12px;">{verify_link}</a>
         </div>
