@@ -36,32 +36,99 @@
   "@context": "https://schema.org",
   "@graph": [
     {
+      "@type": "Organization",
+      "@id": "https://plexudo.vercel.app/#organization",
+      "name": "Plexudo",
+      "url": "https://plexudo.vercel.app/",
+      "logo": {
+        "@type": "ImageObject",
+        "@id": "https://plexudo.vercel.app/#logo",
+        "url": "https://plexudo.vercel.app/favicon.png",
+        "contentUrl": "https://plexudo.vercel.app/favicon.png",
+        "caption": "Plexudo Logo"
+      },
+      "description": "Plexudo is a specialized YouTube SEO and channel growth platform providing 50/50 SEO scoring, keyword discovery, competitor analytics, and AI creator titles."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://plexudo.vercel.app/#website",
+      "url": "https://plexudo.vercel.app/",
+      "name": "Plexudo",
+      "description": "All-in-one YouTube creator SEO, keyword discovery, and channel growth platform.",
+      "publisher": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
+      "inLanguage": "en-US"
+    },
+    {
       "@type": "SoftwareApplication",
+      "@id": "https://plexudo.vercel.app/#software",
       "name": "Plexudo - YouTube Creator SEO & Growth Platform",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
+      "url": "https://plexudo.vercel.app/",
       "description": "Comprehensive YouTube creator suite with 50/50 SEO Scoring, keyword discovery, competitor audits, and Groq AI title generators.",
+      "applicationCategory": "BusinessApplication",
+      "applicationSubCategory": "Video SEO & Creator Analytics",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "publisher": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "description": "Free welcome credits and sponsored reward passes."
       }
     },
     {
-      "@type": "Organization",
-      "name": "Plexudo",
+      "@type": "WebPage",
+      "@id": "https://plexudo.vercel.app/#webpage",
       "url": "https://plexudo.vercel.app/",
-      "logo": "https://plexudo.vercel.app/favicon.svg"
+      "name": "Plexudo — YouTube Creator SEO, Keyword & Channel Growth Platform",
+      "description": "Plexudo is the all-in-one YouTube SEO and channel growth platform. Get actionable 50/50 SEO scoring, AI viral title suggestions with Groq, audience sentiment forecasting, and 28-day competitor audits using real YouTube data.",
+      "isPartOf": {
+        "@id": "https://plexudo.vercel.app/#website"
+      },
+      "about": {
+        "@id": "https://plexudo.vercel.app/#software"
+      },
+      "publisher": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
+      "inLanguage": "en-US",
+      "primaryImageOfPage": {
+        "@id": "https://plexudo.vercel.app/#logo"
+      }
     },
     {
       "@type": "FAQPage",
+      "@id": "https://plexudo.vercel.app/#faq",
+      "isPartOf": {
+        "@id": "https://plexudo.vercel.app/#webpage"
+      },
       "mainEntity": [
         {
           "@type": "Question",
           "name": "What is Plexudo?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Plexudo is a specialized YouTube SEO and creator growth platform that provides 50/50 SEO scoring, competitor tracking, keyword discovery, and AI title recommendations using real YouTube Data API v3 metrics."
+            "text": "Plexudo is a specialized YouTube SEO and creator analytics platform that provides 50/50 SEO scoring, competitor tracking, keyword discovery, and AI title recommendations using real YouTube Data API v3 metrics."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Plexudo free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Every verified user receives 3 free welcome credits upon registration. You can also unlock sponsor reward passes to continue using all creator tools without monthly subscriptions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I have to connect my YouTube channel?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No! You can analyze public video links, inspect keywords, and audit competitor channels without connecting your YouTube account. Connecting your channel is only required if you want to sync metadata changes directly to your live videos."
           }
         },
         {
@@ -69,26 +136,73 @@
           "name": "What is the Plexudo 50/50 SEO Score?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The Plexudo SEO Score is a proprietary 50-point rating system that analyzes five key ranking factors: Tag Count (10 pts), Tag Volume (10 pts), Keywords in Title (10 pts), Keywords in Description (10 pts), and Triple Keyword Overlap (10 pts)."
+            "text": "The Plexudo SEO Score is our proprietary 50-point rating system that analyzes five key ranking factors: Tag Count (10 pts), Tag Volume (10 pts), Keywords in Title (10 pts), Keywords in Description (10 pts), and Triple Keyword Overlap (10 pts)."
           }
         },
         {
           "@type": "Question",
-          "name": "Does Plexudo use real YouTube data?",
+          "name": "Is my YouTube password stored?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Plexudo connects directly to Google Cloud YouTube Data API v3 to fetch authentic channel statistics, video metrics, view velocity, and audience comments."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Is Plexudo free to get started?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes! All verified accounts start with free welcome credits and can access sponsored reward passes to use all optimization tools without subscription paywalls."
+            "text": "Never. Plexudo uses official Google OAuth 2.0 authentication. We never see, request, or store your Google or YouTube passwords."
           }
         }
       ]
+    },
+    {
+      "@type": "Service",
+      "@id": "https://plexudo.vercel.app/#service-seo-studio",
+      "name": "YouTube SEO Studio",
+      "serviceType": "Video SEO Optimization",
+      "description": "Instant 50/50 SEO score evaluation. Live title editor, description optimizer, and keyword tag manager with direct YouTube sync.",
+      "provider": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
+      "url": "https://plexudo.vercel.app/youtube-seo-tool"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://plexudo.vercel.app/#service-video-analyzer",
+      "name": "Video Virality Analyzer",
+      "serviceType": "YouTube Video Analytics",
+      "description": "Deep-dive video analytics. Calculates virality index velocity, engagement ratios, and NLP sentiment across top audience comments.",
+      "provider": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
+      "url": "https://plexudo.vercel.app/youtube-video-analyzer"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://plexudo.vercel.app/#service-keyword-tool",
+      "name": "YouTube Keyword Tool",
+      "serviceType": "Keyword Discovery & Search Intelligence",
+      "description": "Discover high-demand search terms, estimated search volume, competition difficulty, and high-CTR tag combinations in 1-click.",
+      "provider": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
+      "url": "https://plexudo.vercel.app/youtube-keyword-tool"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://plexudo.vercel.app/#service-trend-analyzer",
+      "name": "Real-Time Trend Analyzer",
+      "serviceType": "Trend Forecasting & Regional Analytics",
+      "description": "Track viral breakout topics across regions (Global, US, PK, IN, UK, AE) and ride emerging content waves before saturation.",
+      "provider": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
+      "url": "https://plexudo.vercel.app/youtube-trend-analyzer"
+    },
+    {
+      "@type": "Service",
+      "@id": "https://plexudo.vercel.app/#service-competitor-audit",
+      "name": "Competitor Channel Audit",
+      "serviceType": "Competitor Benchmarking",
+      "description": "Analyze any competitor channel handle. View 28-day subscriber growth velocity, top performing uploads, and keyword strategies.",
+      "provider": {
+        "@id": "https://plexudo.vercel.app/#organization"
+      },
+      "url": "https://plexudo.vercel.app/youtube-competitor-analysis"
     }
   ]
 }
