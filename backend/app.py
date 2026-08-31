@@ -10,6 +10,7 @@ import io
 import time
 import secrets
 import json
+import uuid
 from datetime import datetime, date, timedelta
 
 from flask import Flask, request, jsonify, session, send_from_directory, Response, redirect
@@ -20,7 +21,7 @@ from dotenv import load_dotenv
 sys.path.append(os.path.dirname(__file__))
 from app.core.config import settings
 
-from models import db, User, Trend, Metric, Sentiment, Report, AuditLog
+from models import db, User, Trend, Metric, Sentiment, Report, AuditLog, RewardTransaction
 from services.real_api import fetch_youtube_data, audit_youtube_channel, analyze_youtube_video  # LIVE YouTube Data API v3
 from services.nlp_engine import analyze_sentiment
 from services.trend_engine import (
@@ -159,6 +160,46 @@ def _delete_token_cache(token_type, token):
                 json.dump(data, f)
     except Exception:
         pass
+
+
+def _grant_credits_authoritative(user, amount, provider, reward_type, session_id=None, verification_data=None):
+    """
+    Authoritative server-side credit ledger transaction.
+    Guarantees idempotency, audit trail, and database credit consistency.
+    """
+    try:
+        if not user:
+            return False, "User not found"
+
+        # Check idempotency if session_id provided
+        if session_id:
+            existing = RewardTransaction.query.filter_by(session_id=session_id, status="COMPLETED").first()
+            if existing:
+                return False, "Reward session already redeemed"
+
+        reward_id = str(uuid.uuid4())
+        txn = RewardTransaction(
+            reward_id=reward_id,
+            user_id=user.id,
+            provider=provider,
+            session_id=session_id,
+            reward_type=reward_type,
+            credit_amount=amount,
+            status="COMPLETED",
+            created_at=datetime.utcnow(),
+            completed_at=datetime.utcnow(),
+            verification_data=json.dumps(verification_data) if isinstance(verification_data, (dict, list)) else str(verification_data or "")
+        )
+        db.session.add(txn)
+        user.credits = (user.credits if user.credits is not None else 0) + amount
+        db.session.commit()
+        _persist_user_cache(user)
+        _log_action("CREDIT_GRANTED", f"Granted {amount} credits to {user.email} (type={reward_type}, txn={reward_id})")
+        return True, reward_id
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
+
 
 
 app = Flask(__name__, static_folder=None)
@@ -619,9 +660,8 @@ def verify_email():
     user = User.query.filter_by(email=token_info["email"]).first() or _load_user_cache(token_info["email"])
     if user:
         user.email_verified = True
-        user.credits = 3  # Grant 3 Welcome credits upon verification!
         db.session.commit()
-        _persist_user_cache(user)
+        _grant_credits_authoritative(user, 3, "welcome_bonus", "WELCOME_GRANT", session_id=f"welcome_{user.email}")
         _log_action("EMAIL_VERIFIED", f"Email verified and 3 credits granted for {user.email}")
 
     EMAIL_VERIFY_TOKENS.pop(token, None)

@@ -76,3 +76,19 @@ class AuditLog(db.Model):
     details = db.Column(db.Text, nullable=True)          # extra context (keyword, platform …)
     ip_address = db.Column(db.String(45), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class RewardTransaction(db.Model):
+    __tablename__ = "reward_transactions"
+    id = db.Column(db.Integer, primary_key=True)
+    reward_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    provider = db.Column(db.String(50), nullable=False)  # "welcome_bonus", "rewarded_ad_ssv", "admin_grant"
+    session_id = db.Column(db.String(128), nullable=True)
+    reward_type = db.Column(db.String(50), nullable=False)  # "WELCOME_CREDIT", "REWARDED_AD", "SPONSOR_PASS"
+    credit_amount = db.Column(db.Integer, nullable=False, default=1)
+    status = db.Column(db.String(20), nullable=False, default="PENDING")  # PENDING, COMPLETED, REJECTED, EXPIRED
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    verification_data = db.Column(db.Text, nullable=True)
+
