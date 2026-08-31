@@ -69,6 +69,11 @@ app.register_blueprint(channel_seo_bp)
 
 from services.channel_seo_service import auth_callback
 from services.title_intelligence import generate_context_aware_titles
+from services.email_service import (
+    send_welcome_email,
+    send_password_changed_email,
+    send_password_reset_email,
+)
 app.add_url_rule('/auth/google/callback', 'auth_google_callback', auth_callback)
 
 MAX_LOGIN_ATTEMPTS = 5
@@ -253,6 +258,10 @@ def register():
     db.session.add(user)
     db.session.commit()
     _log_action("REGISTER", f"New account created: {email} role={role}")
+    
+    # Send transactional Welcome Email in background
+    send_welcome_email(user.email, user.name, verify_token)
+
     return jsonify({
         "message": "Account created successfully! Your 3 welcome credits are ready.",
         "verification_token": verify_token,
@@ -366,6 +375,7 @@ def forgot_password():
                 "expires": time.time() + 3600  # 1 hour validity
             }
             _log_action("FORGOT_PASSWORD_REQUEST", f"Reset token generated for {email}")
+            send_password_reset_email(user.email, token)
 
     # Anti-account enumeration: Return generic safe response
     return jsonify({
@@ -403,6 +413,7 @@ def reset_password():
     del PASSWORD_RESET_TOKENS[token]
     session.clear()
     _log_action("PASSWORD_RESET_SUCCESS", f"Password reset for {user.email}")
+    send_password_changed_email(user.email, user.name)
 
     return jsonify({
         "message": "Password reset successfully! Please sign in with your new password."
@@ -478,6 +489,7 @@ def change_password():
     user.password_hash = generate_password_hash(new_pwd)
     db.session.commit()
     _log_action("PASSWORD_CHANGE", f"Password changed for user {user.email}")
+    send_password_changed_email(user.email, user.name)
     return jsonify({"message": "Password updated successfully"})
 
 
