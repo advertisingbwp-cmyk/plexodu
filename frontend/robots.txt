@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Sitemap: https://smtas-trend.netlify.app/sitemap.xml
+Sitemap: https://plexudo.vercel.app/sitemap.xml
