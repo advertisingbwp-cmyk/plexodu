@@ -25,6 +25,7 @@ BASE_URL = os.environ.get("BASE_URL", "https://plexudo.vercel.app")
 def _send_smtp_email_async(to_email: str, subject: str, html_content: str, text_content: str = ""):
     """Internal worker to dispatch SMTP emails safely in background."""
     if not SMTP_USERNAME or not SMTP_PASSWORD:
+        print("[EMAIL_WARN] SMTP credentials not configured.")
         return False
 
     try:
@@ -40,11 +41,12 @@ def _send_smtp_email_async(to_email: str, subject: str, html_content: str, text_
         part2 = MIMEText(html_content, "html", "utf-8")
         msg.attach(part2)
 
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=12) as server:
             if SMTP_USE_TLS:
                 server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.sendmail(EMAIL_FROM_ADDRESS, [to_email], msg.as_string())
+        print(f"[EMAIL_SUCCESS] Dispatched email to {to_email}: {subject}")
         return True
     except Exception as e:
         print(f"[EMAIL_ERROR] Failed to send email to {to_email}: {e}")
@@ -61,10 +63,10 @@ def send_async(to_email: str, subject: str, html_content: str, text_content: str
     t.start()
 
 
-# ─── 1. Welcome & Email Verification Email ─────────────────────────────────────
-def send_welcome_email(to_email: str, name: str, verify_token: str = ""):
-    verify_link = f"{BASE_URL}/api/verify-email?token={verify_token}" if verify_token else f"{BASE_URL}/dashboard.html"
-    subject = "Welcome to Plexudo! 🚀 Your 3 Free Credits Are Ready"
+# ─── 1. Account Confirmation & Email Verification Link ─────────────────────────
+def send_verification_email(to_email: str, name: str, verify_token: str):
+    verify_link = f"{BASE_URL}/api/verify-email?token={verify_token}"
+    subject = "Verify Your Email to Activate Your Plexudo Account 🚀"
     
     html = f"""
     <!DOCTYPE html>
@@ -82,39 +84,34 @@ def send_welcome_email(to_email: str, name: str, verify_token: str = ""):
         </div>
 
         <!-- Body -->
-        <h1 style="font-size:22px; font-weight:800; color:#0f172a; margin-top:0; margin-bottom:12px;">Welcome aboard, {name or 'Creator'}! 🎉</h1>
+        <h1 style="font-size:22px; font-weight:800; color:#0f172a; margin-top:0; margin-bottom:12px;">Confirm Your Email Address ✉️</h1>
         <p style="font-size:14.5px; color:#475569; line-height:1.6; margin-bottom:20px;">
-          Your Plexudo account is now active. You have been credited with <strong>3 Free AI &amp; YouTube SEO Credits</strong> to start optimizing your channel and discovering high-ranking keywords.
+          Hello <strong>{name or 'Creator'}</strong>, thanks for joining Plexudo! To activate your account and claim your <strong>3 Free Welcome Credits</strong>, please confirm your email address by clicking below:
         </p>
 
-        <!-- Feature Highlights -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:18px 20px; margin-bottom:24px;">
-          <div style="font-size:12px; font-weight:800; color:#4349bf; text-transform:uppercase; margin-bottom:8px;">What you can do right now:</div>
-          <ul style="margin:0; padding-left:20px; font-size:13.5px; color:#334155; line-height:1.7;">
-            <li>🎯 Calculate real <strong>50/50 YouTube SEO Scores</strong></li>
-            <li>💡 Generate trending, high-CTR <strong>AI Creator Titles</strong></li>
-            <li>📈 Track 28-day <strong>View Growth Velocity</strong> curves</li>
-            <li>💬 Extract NLP <strong>Audience Sentiment &amp; Reactions</strong></li>
-          </ul>
+        <!-- CTA Verification Button -->
+        <div style="text-align:center; margin:28px 0;">
+          <a href="{verify_link}" style="background:#4349bf; color:#ffffff; text-decoration:none; padding:15px 36px; border-radius:14px; font-weight:800; font-size:15px; display:inline-block; box-shadow:0 6px 18px rgba(67,73,191,0.28);">
+            ✅ Verify My Email &amp; Activate Account
+          </a>
         </div>
 
-        <!-- CTA Button -->
-        <div style="text-align:center; margin-bottom:24px;">
-          <a href="{BASE_URL}/dashboard.html" style="background:#4349bf; color:#ffffff; text-decoration:none; padding:13px 32px; border-radius:14px; font-weight:700; font-size:14px; display:inline-block; box-shadow:0 4px 14px rgba(67,73,191,0.25);">
-            Launch Plexudo Dashboard ➔
-          </a>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px 20px; margin-bottom:24px; font-size:13px; color:#64748b; line-height:1.6;">
+          🔒 <strong>Security Notice:</strong> You must verify your email before signing in. This link will expire in 24 hours.<br><br>
+          If button doesn't work, copy &amp; paste this link into your browser:<br>
+          <a href="{verify_link}" style="color:#4349bf; word-break:break-all; font-size:12px;">{verify_link}</a>
         </div>
 
         <!-- Footer Notice -->
         <div style="border-top:1px solid #f1f5f9; padding-top:18px; text-align:center; font-size:12px; color:#94a3b8;">
-          If you didn't create this account, you can safely ignore this email.<br>
+          If you didn't create an account on Plexudo, you can safely ignore this email.<br>
           &copy; 2026 Plexudo • YouTube Creator SEO &amp; Analytics
         </div>
       </div>
     </body>
     </html>
     """
-    send_async(to_email, subject, html, f"Welcome to Plexudo! Log in at {BASE_URL}/dashboard.html")
+    send_async(to_email, subject, html, f"Verify your Plexudo account by clicking: {verify_link}")
 
 
 # ─── 2. Password Changed Security Alert ────────────────────────────────────────

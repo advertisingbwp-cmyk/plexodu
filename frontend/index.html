@@ -1841,13 +1841,18 @@ async function handleAuthSubmit(e) {
       if (!res.ok) {
         throw new Error(data.error || 'Registration failed');
       }
-      // Auto login to establish authenticated session
-      await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      window.location.href = '/dashboard.html';
+      
+      // Switch to Verification View informing user to check inbox
+      switchAuthTab('verify');
+      const title = document.getElementById('verifyStatusTitle');
+      const desc = document.getElementById('verifyStatusDesc');
+      const feedback = document.getElementById('verifyFeedback');
+      title.textContent = 'Verification Email Sent! 📬';
+      desc.innerHTML = `We have sent an activation link to <strong>${email}</strong>.<br><br>Please open your email inbox and click the verification link to activate your account and claim your <strong>3 Free Welcome Credits</strong> before signing in.`;
+      feedback.style.display = 'block';
+      feedback.style.background = '#ecfdf5';
+      feedback.style.color = '#059669';
+      feedback.textContent = 'Account created successfully! Check your inbox to complete verification.';
     } else {
       const res = await fetch('/api/login', {
         method: 'POST',

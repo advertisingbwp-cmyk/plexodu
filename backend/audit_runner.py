@@ -71,10 +71,15 @@ test_pass = "ComplexPlexudoPass!2026"
 # Register
 reg = session.post(f"{BASE_URL}/api/register", json={"name": "Audit User", "email": test_user, "password": test_pass, "role": "Researcher"})
 audit_assert("AUTH", "User Registration (201)", reg.status_code == 201)
+v_token = (reg.json() or {}).get("verification_token")
 
 # Duplicate
 dup = session.post(f"{BASE_URL}/api/register", json={"name": "Audit User", "email": test_user, "password": test_pass, "role": "Researcher"})
 audit_assert("AUTH", "Duplicate Email Rejection (409)", dup.status_code == 409)
+
+# Verify Email Token
+ver = session.post(f"{BASE_URL}/api/verify-email", json={"token": v_token})
+audit_assert("AUTH", "Mandatory Email Verification (200)", ver.status_code == 200)
 
 # Login
 login = session.post(f"{BASE_URL}/api/login", json={"email": test_user, "password": test_pass})

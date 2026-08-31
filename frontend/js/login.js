@@ -91,7 +91,7 @@ registerForm.addEventListener("submit", async (e) => {
     if (!res.ok) { showError(data.error || "Registration failed"); return; }
     switchTab("login");
     clearError();
-    showSuccess("Account created successfully! Please sign in.");
+    showSuccess("Account created! Please check your email inbox to verify your account before signing in.");
   } catch (err) {
     showError("Cannot reach the server. Is the Flask backend running on port 5000?");
   } finally {

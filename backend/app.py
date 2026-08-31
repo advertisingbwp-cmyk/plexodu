@@ -70,7 +70,7 @@ app.register_blueprint(channel_seo_bp)
 from services.channel_seo_service import auth_callback
 from services.title_intelligence import generate_context_aware_titles
 from services.email_service import (
-    send_welcome_email,
+    send_verification_email,
     send_password_changed_email,
     send_password_reset_email,
 )
@@ -252,20 +252,22 @@ def register():
         email=email,
         password_hash=generate_password_hash(password),
         role=role,
-        email_verified=True,  # Ready for immediate use
-        credits=3             # 3 Free Welcome Credits
+        email_verified=False,  # Verification link in email required
+        credits=0              # 3 Welcome Credits activated upon verification
     )
     db.session.add(user)
     db.session.commit()
-    _log_action("REGISTER", f"New account created: {email} role={role}")
+    _log_action("REGISTER", f"New account created (pending verification): {email} role={role}")
     
-    # Send transactional Welcome Email in background
-    send_welcome_email(user.email, user.name, verify_token)
+    # Send transactional Verification Email with activation link in background
+    send_verification_email(user.email, user.name, verify_token)
 
     return jsonify({
-        "message": "Account created successfully! Your 3 welcome credits are ready.",
+        "message": "Account created! We've sent a verification link to your email. Please verify your email to activate your account and claim your 3 free credits.",
+        "requires_verification": True,
+        "email": email,
         "verification_token": verify_token,
-        "user": {"name": user.name, "email": user.email, "role": user.role, "credits": 3}
+        "user": {"name": user.name, "email": user.email, "role": user.role, "email_verified": False}
     }), 201
 
 
@@ -294,6 +296,13 @@ def login():
         return jsonify({"error": "Account locked due to repeated failed attempts. Contact support."}), 403
 
     if check_password_hash(user.password_hash, password):
+        if not user.email_verified:
+            return jsonify({
+                "error": "Your email address is not verified yet. Please check your inbox for the verification link to activate your account.",
+                "requires_verification": True,
+                "email": user.email
+            }), 403
+
         user.login_attempts = 0
         db.session.commit()
         session["user_id"] = user.id
@@ -427,22 +436,44 @@ def verify_email():
     token = token.strip() if token else ""
 
     if not token or token not in EMAIL_VERIFY_TOKENS:
+        if request.method == "GET":
+            return """
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>Verification Failed — Plexudo</title>
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
+            <style>body{font-family:'Plus Jakarta Sans',sans-serif;background:#edf2fb;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#0f172a;}.card{background:#fff;padding:40px;border-radius:24px;text-align:center;max-width:460px;box-shadow:0 10px 30px rgba(0,0,0,0.06);border:1px solid #e2e8f0;}.btn{display:inline-block;background:#4349bf;color:#fff;text-decoration:none;padding:12px 28px;border-radius:12px;font-weight:700;margin-top:20px;}</style></head>
+            <body><div class="card"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><h2 style="margin:0 0 10px;">Verification Link Invalid</h2><p style="color:#64748b;font-size:14px;line-height:1.6;">This link is invalid or has already been used. Please request a new verification link.</p><a href="/" class="btn">Back to Plexudo ➔</a></div></body></html>
+            """, 400
         return jsonify({"error": "Invalid or expired verification link."}), 400
 
     token_info = EMAIL_VERIFY_TOKENS[token]
     if time.time() > token_info["expires"]:
         del EMAIL_VERIFY_TOKENS[token]
+        if request.method == "GET":
+            return """
+            <!DOCTYPE html><html><head><meta charset="utf-8"><title>Link Expired — Plexudo</title>
+            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
+            <style>body{font-family:'Plus Jakarta Sans',sans-serif;background:#edf2fb;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#0f172a;}.card{background:#fff;padding:40px;border-radius:24px;text-align:center;max-width:460px;box-shadow:0 10px 30px rgba(0,0,0,0.06);border:1px solid #e2e8f0;}.btn{display:inline-block;background:#4349bf;color:#fff;text-decoration:none;padding:12px 28px;border-radius:12px;font-weight:700;margin-top:20px;}</style></head>
+            <body><div class="card"><div style="font-size:40px;margin-bottom:12px;">⏰</div><h2 style="margin:0 0 10px;">Verification Link Expired</h2><p style="color:#64748b;font-size:14px;line-height:1.6;">This verification link has expired. Please sign in or request a new one.</p><a href="/" class="btn">Back to Sign In ➔</a></div></body></html>
+            """, 400
         return jsonify({"error": "This verification link has expired."}), 400
 
     user = User.query.filter_by(email=token_info["email"]).first()
     if user:
         user.email_verified = True
-        if not user.credits or user.credits < 3:
-            user.credits = 3
+        user.credits = 3  # Grant 3 Welcome credits upon verification!
         db.session.commit()
-        _log_action("EMAIL_VERIFIED", f"Email verified for {user.email}")
+        _log_action("EMAIL_VERIFIED", f"Email verified and 3 credits granted for {user.email}")
 
     del EMAIL_VERIFY_TOKENS[token]
+
+    if request.method == "GET":
+        return """
+        <!DOCTYPE html><html><head><meta charset="utf-8"><title>Email Verified — Plexudo</title>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+        <style>body{font-family:'Plus Jakarta Sans',sans-serif;background:#edf2fb;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#0f172a;}.card{background:#fff;padding:44px 36px;border-radius:24px;text-align:center;max-width:480px;box-shadow:0 12px 36px rgba(67,73,191,0.08);border:1px solid #e2e8f0;}.btn{display:inline-block;background:#4349bf;color:#fff;text-decoration:none;padding:14px 32px;border-radius:14px;font-weight:800;font-size:15px;margin-top:24px;box-shadow:0 6px 18px rgba(67,73,191,0.25);}</style></head>
+        <body><div class="card"><div style="font-size:48px;margin-bottom:12px;">🎉</div><h2 style="margin:0 0 10px;font-size:22px;font-weight:800;color:#0f172a;">Email Verified Successfully!</h2><p style="color:#475569;font-size:14.5px;line-height:1.6;margin-bottom:16px;">Your Plexudo account is now active and your <strong>3 Free Welcome Credits</strong> are ready.</p><a href="/?open_auth=login" class="btn">Sign In to Dashboard ➔</a></div></body></html>
+        """
+
     return jsonify({
         "message": "Email verified successfully! Your 3 welcome credits are ready."
     }), 200
@@ -462,9 +493,10 @@ def resend_verification():
                 "expires": time.time() + 86400
             }
             _log_action("RESEND_VERIFICATION", f"Resent verification token for {email}")
+            send_verification_email(user.email, user.name, token)
 
     return jsonify({
-        "message": "If your account is pending verification, a new link has been sent."
+        "message": "If your account is pending verification, a new verification link has been sent to your email."
     }), 200
 
 
