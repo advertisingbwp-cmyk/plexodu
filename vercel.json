@@ -41,6 +41,11 @@
   ],
   "routes": [
     {
+      "src": "/(youtube-seo-tool|youtube-video-analyzer|youtube-keyword-tool|youtube-trend-analyzer|youtube-competitor-analysis)",
+      "status": 302,
+      "headers": { "Location": "/?open_auth=login" }
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
     },

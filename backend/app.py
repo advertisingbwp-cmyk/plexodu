@@ -252,11 +252,15 @@ def handle_large_file(e):
 
 @app.errorhandler(404)
 def handle_not_found(e):
-    path = request.path.lstrip("/")
-    public_seo_routes = {
+    path = request.path.lstrip("/").lower()
+    tool_redirects = {
         "youtube-seo-tool", "youtube-video-analyzer", "youtube-keyword-tool",
-        "youtube-trend-analyzer", "youtube-competitor-analysis", "blog", "privacy", "terms"
+        "youtube-trend-analyzer", "youtube-competitor-analysis"
     }
+    if path in tool_redirects:
+        return redirect("/?open_auth=login", code=302)
+
+    public_seo_routes = {"blog", "privacy", "terms", "login", "signup", "forgot-password", "reset-password", "verify-email"}
     if path in public_seo_routes or path.startswith("blog/"):
         return send_from_directory(FRONTEND_DIR, "index.html")
     return jsonify({"error": "Requested resource not found"}), 404
@@ -318,6 +322,10 @@ def serve_landing():
 @app.route("/youtube-keyword-tool")
 @app.route("/youtube-trend-analyzer")
 @app.route("/youtube-competitor-analysis")
+def redirect_private_tool():
+    return redirect("/?open_auth=login", code=302)
+
+
 @app.route("/blog")
 @app.route("/privacy")
 @app.route("/terms")
@@ -360,12 +368,18 @@ def serve_static_or_public(path):
     if os.path.isfile(file_path):
         return send_from_directory(FRONTEND_DIR, path)
     
-    seo_routes = {
+    clean_path = path.strip("/").lower()
+    tool_redirects = {
         "youtube-seo-tool", "youtube-video-analyzer", "youtube-keyword-tool",
-        "youtube-trend-analyzer", "youtube-competitor-analysis", "blog", "privacy", "terms",
+        "youtube-trend-analyzer", "youtube-competitor-analysis"
+    }
+    if clean_path in tool_redirects:
+        return redirect("/?open_auth=login", code=302)
+
+    seo_routes = {
+        "blog", "privacy", "terms",
         "login", "signup", "forgot-password", "reset-password", "verify-email"
     }
-    clean_path = path.strip("/").lower()
     if clean_path in seo_routes or clean_path.startswith("blog"):
         return send_from_directory(FRONTEND_DIR, "index.html")
 

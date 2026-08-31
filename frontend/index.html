@@ -152,61 +152,6 @@
           }
         }
       ]
-    },
-    {
-      "@type": "Service",
-      "@id": "https://plexudo.vercel.app/#service-seo-studio",
-      "name": "YouTube SEO Studio",
-      "serviceType": "Video SEO Optimization",
-      "description": "Instant 50/50 SEO score evaluation. Live title editor, description optimizer, and keyword tag manager with direct YouTube sync.",
-      "provider": {
-        "@id": "https://plexudo.vercel.app/#organization"
-      },
-      "url": "https://plexudo.vercel.app/youtube-seo-tool"
-    },
-    {
-      "@type": "Service",
-      "@id": "https://plexudo.vercel.app/#service-video-analyzer",
-      "name": "Video Virality Analyzer",
-      "serviceType": "YouTube Video Analytics",
-      "description": "Deep-dive video analytics. Calculates virality index velocity, engagement ratios, and NLP sentiment across top audience comments.",
-      "provider": {
-        "@id": "https://plexudo.vercel.app/#organization"
-      },
-      "url": "https://plexudo.vercel.app/youtube-video-analyzer"
-    },
-    {
-      "@type": "Service",
-      "@id": "https://plexudo.vercel.app/#service-keyword-tool",
-      "name": "YouTube Keyword Tool",
-      "serviceType": "Keyword Discovery & Search Intelligence",
-      "description": "Discover high-demand search terms, estimated search volume, competition difficulty, and high-CTR tag combinations in 1-click.",
-      "provider": {
-        "@id": "https://plexudo.vercel.app/#organization"
-      },
-      "url": "https://plexudo.vercel.app/youtube-keyword-tool"
-    },
-    {
-      "@type": "Service",
-      "@id": "https://plexudo.vercel.app/#service-trend-analyzer",
-      "name": "Real-Time Trend Analyzer",
-      "serviceType": "Trend Forecasting & Regional Analytics",
-      "description": "Track viral breakout topics across regions (Global, US, PK, IN, UK, AE) and ride emerging content waves before saturation.",
-      "provider": {
-        "@id": "https://plexudo.vercel.app/#organization"
-      },
-      "url": "https://plexudo.vercel.app/youtube-trend-analyzer"
-    },
-    {
-      "@type": "Service",
-      "@id": "https://plexudo.vercel.app/#service-competitor-audit",
-      "name": "Competitor Channel Audit",
-      "serviceType": "Competitor Benchmarking",
-      "description": "Analyze any competitor channel handle. View 28-day subscriber growth velocity, top performing uploads, and keyword strategies.",
-      "provider": {
-        "@id": "https://plexudo.vercel.app/#organization"
-      },
-      "url": "https://plexudo.vercel.app/youtube-competitor-analysis"
     }
   ]
 }
@@ -1334,7 +1279,7 @@ h1, h2, h3, h4 {
               Instant 50/50 SEO score evaluation. Live title editor, description optimizer, and keyword tag manager with direct YouTube sync.
             </p>
           </div>
-          <a href="/youtube-seo-tool" class="tool-link">Explore SEO Studio ➔</a>
+          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch SEO Studio ➔</button>
         </div>
 
         <!-- 2. Video Analyzer -->
@@ -1347,7 +1292,7 @@ h1, h2, h3, h4 {
               Deep-dive video analytics. Calculates virality index velocity, engagement ratios, and NLP sentiment across top audience comments.
             </p>
           </div>
-          <a href="/youtube-video-analyzer" class="tool-link">Explore Video Analyzer ➔</a>
+          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Video Analyzer ➔</button>
         </div>
 
         <!-- 3. Keyword Tool -->
@@ -1360,7 +1305,7 @@ h1, h2, h3, h4 {
               Discover high-demand search terms, estimated search volume, competition difficulty, and high-CTR tag combinations in 1-click.
             </p>
           </div>
-          <a href="/youtube-keyword-tool" class="tool-link">Explore Keyword Tool ➔</a>
+          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Keyword Tool ➔</button>
         </div>
 
         <!-- 4. Trend Analyzer -->
@@ -1373,7 +1318,7 @@ h1, h2, h3, h4 {
               Track viral breakout topics across regions (Global, US, PK, IN, UK, AE) and ride emerging content waves before saturation.
             </p>
           </div>
-          <a href="/youtube-trend-analyzer" class="tool-link">Explore Trend Analyzer ➔</a>
+          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Trend Analyzer ➔</button>
         </div>
 
         <!-- 5. Competitor Audit -->
@@ -1386,7 +1331,7 @@ h1, h2, h3, h4 {
               Analyze any competitor channel handle. View 28-day subscriber growth velocity, top performing uploads, and keyword strategies.
             </p>
           </div>
-          <a href="/youtube-competitor-analysis" class="tool-link">Explore Competitor Audit ➔</a>
+          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Competitor Audit ➔</button>
         </div>
 
         <!-- 6. AI Assistant -->
@@ -1399,8 +1344,8 @@ h1, h2, h3, h4 {
               Context-aware YouTube strategist. Generate high-CTR title variations, script hooks, community post ideas, and niche outlines.
             </p>
           </div>
-          <button onclick="openAuthModal('login')" class="tool-link" style="background:none; border:none; cursor:pointer;">
-            Try AI Strategist ➔
+          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">
+            Launch AI Strategist ➔
           </button>
         </div>
       </div>
@@ -1650,11 +1595,11 @@ h1, h2, h3, h4 {
       <div>
         <div class="footer-col-title">Creator Tools</div>
         <ul class="footer-links">
-          <li><a href="/youtube-seo-tool">YouTube SEO Studio</a></li>
-          <li><a href="/youtube-video-analyzer">Video Virality Analyzer</a></li>
-          <li><a href="/youtube-keyword-tool">YouTube Keyword Tool</a></li>
-          <li><a href="/youtube-trend-analyzer">Real-Time Trend Tracker</a></li>
-          <li><a href="/youtube-competitor-analysis">Competitor Channel Audit</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">YouTube SEO Studio</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Video Virality Analyzer</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">YouTube Keyword Tool</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Real-Time Trend Tracker</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Competitor Channel Audit</a></li>
         </ul>
       </div>
 
