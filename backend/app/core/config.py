@@ -6,46 +6,41 @@ Centralized configuration manager loading environment credentials securely.
 import os
 from pathlib import Path
 from typing import Optional
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
 
 # Determine root .env file path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 ENV_FILE = BASE_DIR / ".env"
-if not ENV_FILE.exists():
-    # Fallback to current working directory or parent directory
-    ENV_FILE = Path(".env").resolve()
+if ENV_FILE.exists():
+    load_dotenv(str(ENV_FILE))
+else:
+    load_dotenv()
 
 
-class Settings(BaseSettings):
+class Settings:
     """
     Centralized Settings Model for SMTAS / Plexudo.
-    Loads secrets securely from server-side environment (.env).
+    Loads secrets securely from environment variables.
     """
-    # Core API Credentials
-    GROQ_API_KEY: str = ""
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    YOUTUBE_API_KEY: str = ""
+    def __init__(self):
+        # Core API Credentials
+        self.GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
+        self.GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+        self.GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
+        self.YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "").strip()
 
-    # Model & AI Strategy Configurations
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+        # Model & AI Strategy Configurations
+        self.GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 
-    # Google OAuth / YouTube API Redirect URIs
-    GOOGLE_REDIRECT_URI: str = "http://127.0.0.1:5000/api/channel-seo/auth/callback"
-    YOUTUBE_CALLBACK_URL: str = "http://127.0.0.1:8000/api/v1/youtube/callback"
+        # Google OAuth / YouTube API Redirect URIs
+        self.GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "http://127.0.0.1:5000/api/channel-seo/auth/callback").strip()
+        self.YOUTUBE_CALLBACK_URL = os.environ.get("YOUTUBE_CALLBACK_URL", "http://127.0.0.1:8000/api/v1/youtube/callback").strip()
 
-    # Application & Server Defaults
-    FLASK_ENV: str = "development"
-    SECRET_KEY: str = "smtas-secure-prod-key-2026"
-    PORT: int = 5000
-    HOST: str = "127.0.0.1"
-
-    model_config = SettingsConfigDict(
-        env_file=str(ENV_FILE),
-        env_file_encoding="utf-8",
-        extra="ignore",
-        case_sensitive=True,
-    )
+        # Application & Server Defaults
+        self.FLASK_ENV = os.environ.get("FLASK_ENV", "production" if os.environ.get("VERCEL") else "development").strip()
+        self.SECRET_KEY = os.environ.get("SECRET_KEY", "smtas-secure-prod-key-2026").strip()
+        self.PORT = int(os.environ.get("PORT", 5000))
+        self.HOST = os.environ.get("HOST", "127.0.0.1").strip()
 
     def is_groq_configured(self) -> bool:
         return bool(self.GROQ_API_KEY and len(self.GROQ_API_KEY.strip()) > 0)
