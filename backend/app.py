@@ -9,9 +9,10 @@ import csv
 import io
 import time
 import secrets
-from datetime import datetime, date
+import json
+from datetime import datetime, date, timedelta
 
-from flask import Flask, request, jsonify, session, send_from_directory, Response
+from flask import Flask, request, jsonify, session, send_from_directory, Response, redirect
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
@@ -57,11 +58,118 @@ DATA_DIR = os.environ.get("DATA_DIR", "/tmp" if os.environ.get("VERCEL") else os
 os.makedirs(DATA_DIR, exist_ok=True)
 DB_PATH = os.path.join(DATA_DIR, "smtas.db")
 
+USERS_CACHE_FILE = os.path.join(DATA_DIR, "plexudo_users.json")
+TOKENS_CACHE_FILE = os.path.join(DATA_DIR, "plexudo_tokens.json")
+
+
+def _persist_user_cache(user_obj):
+    try:
+        data = {}
+        if os.path.exists(USERS_CACHE_FILE):
+            with open(USERS_CACHE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        data[user_obj.email.lower()] = {
+            "name": user_obj.name,
+            "email": user_obj.email.lower(),
+            "password_hash": user_obj.password_hash,
+            "role": user_obj.role,
+            "email_verified": bool(user_obj.email_verified),
+            "credits": user_obj.credits if user_obj.credits is not None else 3,
+            "is_locked": bool(user_obj.is_locked),
+            "login_attempts": int(user_obj.login_attempts or 0),
+            "avatar_url": user_obj.avatar_url
+        }
+        with open(USERS_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+    except Exception as e:
+        print(f"[CACHE_WARN] {e}")
+
+
+def _load_user_cache(email):
+    try:
+        if not email or not os.path.exists(USERS_CACHE_FILE):
+            return None
+        with open(USERS_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        user_dict = data.get(email.lower())
+        if not user_dict:
+            return None
+        
+        user = User.query.filter_by(email=email.lower()).first()
+        if not user:
+            user = User(
+                name=user_dict.get("name", "Creator"),
+                email=user_dict["email"],
+                password_hash=user_dict.get("password_hash", ""),
+                role=user_dict.get("role", "Creator"),
+                email_verified=user_dict.get("email_verified", False),
+                credits=user_dict.get("credits", 3),
+                is_locked=user_dict.get("is_locked", False),
+                login_attempts=user_dict.get("login_attempts", 0),
+                avatar_url=user_dict.get("avatar_url")
+            )
+            db.session.add(user)
+            db.session.commit()
+        else:
+            user.password_hash = user_dict.get("password_hash", user.password_hash)
+            user.email_verified = user_dict.get("email_verified", user.email_verified)
+            user.credits = user_dict.get("credits", user.credits)
+            db.session.commit()
+        return user
+    except Exception as e:
+        print(f"[LOAD_CACHE_WARN] {e}")
+        return None
+
+
+def _save_token_cache(token_type, token, email, expires):
+    try:
+        data = {}
+        if os.path.exists(TOKENS_CACHE_FILE):
+            with open(TOKENS_CACHE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        if token_type not in data:
+            data[token_type] = {}
+        data[token_type][token] = {"email": email.lower(), "expires": expires}
+        with open(TOKENS_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+    except Exception as e:
+        print(f"[TOKEN_CACHE_WARN] {e}")
+
+
+def _get_token_cache(token_type, token):
+    try:
+        if not token or not os.path.exists(TOKENS_CACHE_FILE):
+            return None
+        with open(TOKENS_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data.get(token_type, {}).get(token)
+    except Exception:
+        return None
+
+
+def _delete_token_cache(token_type, token):
+    try:
+        if not os.path.exists(TOKENS_CACHE_FILE):
+            return
+        with open(TOKENS_CACHE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if token_type in data and token in data[token_type]:
+            del data[token_type][token]
+            with open(TOKENS_CACHE_FILE, "w", encoding="utf-8") as f:
+                json.dump(data, f)
+    except Exception:
+        pass
+
+
 app = Flask(__name__, static_folder=None)
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
-app.secret_key = os.environ.get("SECRET_KEY", "smtas-dev-secret-change-in-production")
+app.secret_key = os.environ.get("SECRET_KEY", "plexudo-production-secret-key-2026")
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = bool(os.environ.get("VERCEL"))
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 
 CORS(app, supports_credentials=True)
 db.init_app(app)
@@ -237,15 +345,18 @@ def register():
     password = validate_password_input(data.get("password", ""))
     role = validate_user_role(data.get("role", "Creator"))
 
-    if User.query.filter_by(email=email).first():
+    existing_user = User.query.filter_by(email=email).first() or _load_user_cache(email)
+    if existing_user:
         return jsonify({"error": "An account with this email already exists"}), 409
 
     # Generate verification token (2 minutes validity)
     verify_token = secrets.token_urlsafe(32)
+    expiry_time = time.time() + 120
     EMAIL_VERIFY_TOKENS[verify_token] = {
         "email": email,
-        "expires": time.time() + 120  # 2 minutes expiry
+        "expires": expiry_time
     }
+    _save_token_cache("verify", verify_token, email, expiry_time)
 
     user = User(
         name=name,
@@ -257,6 +368,7 @@ def register():
     )
     db.session.add(user)
     db.session.commit()
+    _persist_user_cache(user)
     _log_action("REGISTER", f"New account created (pending verification): {email} role={role}")
     
     # Send transactional Verification Email with activation link in background
@@ -287,7 +399,7 @@ def login():
     if not allowed_acc:
         return jsonify({"error": f"Account temporarily rate limited. Please try again in {retry_after_acc} seconds."}), 429
 
-    user = User.query.filter_by(email=email).first()
+    user = User.query.filter_by(email=email).first() or _load_user_cache(email)
     if not user:
         rate_limiter.record_auth_failure(f"login_acc_{email}")
         return jsonify({"error": "Invalid email or password"}), 401
@@ -305,14 +417,22 @@ def login():
 
         user.login_attempts = 0
         db.session.commit()
+        _persist_user_cache(user)
+        
+        session.permanent = True
         session["user_id"] = user.id
         session["email"] = user.email
+        session["name"] = user.name
         session["role"] = user.role
+        session["credits"] = user.credits if user.credits is not None else 3
+        session["email_verified"] = user.email_verified
+        
         rate_limiter.reset_auth_failure(f"login_acc_{email}")
         _log_action("LOGIN", f"Successful login: {email}")
         return jsonify({
             "message": "Login successful",
             "user": {
+                "id": user.id,
                 "name": user.name,
                 "email": user.email,
                 "role": user.role,
@@ -327,9 +447,11 @@ def login():
         if user.login_attempts > MAX_LOGIN_ATTEMPTS:
             user.is_locked = True
             db.session.commit()
+            _persist_user_cache(user)
             _log_action("LOGIN_LOCKED", f"Account locked: {email}")
             return jsonify({"error": "Account locked after too many failed attempts"}), 403
         db.session.commit()
+        _persist_user_cache(user)
         _log_action("LOGIN_FAILED", f"Failed login attempt: {email}")
         return jsonify({"error": "Invalid email or password"}), 401
 
@@ -345,23 +467,44 @@ def logout():
 @app.route("/api/session", methods=["GET"])
 @app.route("/api/v1/auth/me", methods=["GET"])
 def get_session():
-    if "user_id" not in session:
+    user_id = session.get("user_id")
+    user_email = session.get("email")
+    if not user_id or not user_email:
         return jsonify({"authenticated": False, "user": None}), 401
-    user = db.session.get(User, session["user_id"])
+
+    user = User.query.filter_by(email=user_email.lower()).first()
     if not user:
-        session.clear()
-        return jsonify({"authenticated": False, "user": None}), 401
+        user = _load_user_cache(user_email)
+
+    if not user:
+        try:
+            user = User(
+                name=session.get("name", "Creator"),
+                email=user_email.lower(),
+                password_hash="",
+                role=session.get("role", "Creator"),
+                email_verified=session.get("email_verified", True),
+                credits=session.get("credits", 3)
+            )
+            db.session.add(user)
+            db.session.commit()
+            _persist_user_cache(user)
+        except Exception:
+            db.session.rollback()
+            user = User.query.filter_by(email=user_email.lower()).first()
+
     return jsonify({
         "authenticated": True,
         "user": {
-            "name": user.name,
-            "email": user.email,
-            "role": user.role,
-            "credits": user.credits if user.credits is not None else 3,
-            "email_verified": user.email_verified,
-            "avatar_url": user.avatar_url
+            "id": user.id if user else user_id,
+            "name": user.name if user else session.get("name", "Creator"),
+            "email": user.email if user else user_email,
+            "role": user.role if user else session.get("role", "Creator"),
+            "credits": user.credits if user and user.credits is not None else session.get("credits", 3),
+            "email_verified": user.email_verified if user else session.get("email_verified", True),
+            "avatar_url": user.avatar_url if user else None
         }
-    })
+    }), 200
 
 
 @app.route("/api/forgot-password", methods=["POST"])
@@ -376,13 +519,15 @@ def forgot_password():
     email = (data.get("email") or "").strip().lower()
 
     if email:
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email).first() or _load_user_cache(email)
         if user and not user.is_locked:
             token = secrets.token_urlsafe(32)
+            expiry_time = time.time() + 3600  # 1 hour validity
             PASSWORD_RESET_TOKENS[token] = {
                 "email": email,
-                "expires": time.time() + 3600  # 1 hour validity
+                "expires": expiry_time
             }
+            _save_token_cache("reset", token, email, expiry_time)
             _log_action("FORGOT_PASSWORD_REQUEST", f"Reset token generated for {email}")
             send_password_reset_email(user.email, token)
 
@@ -399,18 +544,19 @@ def reset_password():
     token = data.get("token", "").strip()
     new_password = data.get("new_password", "").strip()
 
-    if not token or token not in PASSWORD_RESET_TOKENS:
+    token_info = PASSWORD_RESET_TOKENS.get(token) or _get_token_cache("reset", token)
+    if not token or not token_info:
         return jsonify({"error": "Invalid or expired password reset link."}), 400
 
-    token_info = PASSWORD_RESET_TOKENS[token]
     if time.time() > token_info["expires"]:
-        del PASSWORD_RESET_TOKENS[token]
+        PASSWORD_RESET_TOKENS.pop(token, None)
+        _delete_token_cache("reset", token)
         return jsonify({"error": "This password reset link has expired. Please request a new one."}), 400
 
     if len(new_password) < 8:
         return jsonify({"error": "Password must be at least 8 characters long."}), 400
 
-    user = User.query.filter_by(email=token_info["email"]).first()
+    user = User.query.filter_by(email=token_info["email"]).first() or _load_user_cache(token_info["email"])
     if not user:
         return jsonify({"error": "User account not found."}), 404
 
@@ -418,8 +564,10 @@ def reset_password():
     user.login_attempts = 0
     user.is_locked = False
     db.session.commit()
+    _persist_user_cache(user)
 
-    del PASSWORD_RESET_TOKENS[token]
+    PASSWORD_RESET_TOKENS.pop(token, None)
+    _delete_token_cache("reset", token)
     session.clear()
     _log_action("PASSWORD_RESET_SUCCESS", f"Password reset for {user.email}")
     send_password_changed_email(user.email, user.name)
@@ -435,7 +583,8 @@ def verify_email():
     token = request.args.get("token") or (request.get_json(silent=True) or {}).get("token", "")
     token = token.strip() if token else ""
 
-    if not token or token not in EMAIL_VERIFY_TOKENS:
+    token_info = EMAIL_VERIFY_TOKENS.get(token) or _get_token_cache("verify", token)
+    if not token or not token_info:
         if request.method == "GET":
             return """
             <!DOCTYPE html><html><head><meta charset="utf-8"><title>Verification Failed — Plexudo</title>
@@ -445,9 +594,9 @@ def verify_email():
             """, 400
         return jsonify({"error": "Invalid or expired verification link."}), 400
 
-    token_info = EMAIL_VERIFY_TOKENS[token]
     if time.time() > token_info["expires"]:
-        del EMAIL_VERIFY_TOKENS[token]
+        EMAIL_VERIFY_TOKENS.pop(token, None)
+        _delete_token_cache("verify", token)
         if request.method == "GET":
             return """
             <!DOCTYPE html><html><head><meta charset="utf-8"><title>Link Expired — Plexudo</title>
@@ -457,14 +606,16 @@ def verify_email():
             """, 400
         return jsonify({"error": "This verification link has expired (2 minutes limit)."}), 400
 
-    user = User.query.filter_by(email=token_info["email"]).first()
+    user = User.query.filter_by(email=token_info["email"]).first() or _load_user_cache(token_info["email"])
     if user:
         user.email_verified = True
         user.credits = 3  # Grant 3 Welcome credits upon verification!
         db.session.commit()
+        _persist_user_cache(user)
         _log_action("EMAIL_VERIFIED", f"Email verified and 3 credits granted for {user.email}")
 
-    del EMAIL_VERIFY_TOKENS[token]
+    EMAIL_VERIFY_TOKENS.pop(token, None)
+    _delete_token_cache("verify", token)
 
     if request.method == "GET":
         return """
@@ -485,13 +636,15 @@ def resend_verification():
     data = request.get_json(force=True, silent=True) or {}
     email = (data.get("email") or "").strip().lower()
     if email:
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email).first() or _load_user_cache(email)
         if user and not user.email_verified:
             token = secrets.token_urlsafe(32)
+            expiry_time = time.time() + 120  # 2 minutes expiry
             EMAIL_VERIFY_TOKENS[token] = {
                 "email": email,
-                "expires": time.time() + 120  # 2 minutes expiry
+                "expires": expiry_time
             }
+            _save_token_cache("verify", token, email, expiry_time)
             _log_action("RESEND_VERIFICATION", f"Resent verification token for {email}")
             send_verification_email(user.email, user.name, token)
 

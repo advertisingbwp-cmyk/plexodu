@@ -46,30 +46,53 @@ if (window.location.search.includes("seo_auth=success")) {
 }
 
 // ─── Session ─────────────────────────────────────────────────────────────────
-async function checkSession() {
+async function checkSession(retry = 1) {
   const nameEl   = document.getElementById("userName");
   const roleEl   = document.getElementById("userRole");
   const avatarEl = document.getElementById("userAvatar");
   const kpiCreds = document.getElementById("kpiCreditsCount");
+
+  // Load from local storage for instant visual rendering without waiting
+  const cachedUserStr = localStorage.getItem("plexudo_user");
+  if (cachedUserStr) {
+    try {
+      const u = JSON.parse(cachedUserStr);
+      if (nameEl)   nameEl.textContent   = u.name || "Creator";
+      if (roleEl)   roleEl.textContent   = u.role || "Creator";
+      if (avatarEl) avatarEl.textContent = (u.name || "C").charAt(0).toUpperCase();
+      if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits;
+    } catch (e) {}
+  }
+
   try {
-    const res  = await fetch(`${API}/session`, { credentials: "include" });
+    const res = await fetch(`${API}/session`, { credentials: "include" });
     if (!res.ok) {
-      window.location.href = "index.html";
+      if (retry > 0) {
+        // Retry once after 600ms in case serverless container is warming up
+        setTimeout(() => checkSession(retry - 1), 600);
+        return;
+      }
+      localStorage.removeItem("plexudo_user");
+      window.location.href = "/";
       return;
     }
     const data = await res.json();
     if (!data || !data.user) {
-      window.location.href = "index.html";
+      localStorage.removeItem("plexudo_user");
+      window.location.href = "/";
       return;
     }
     const u = data.user;
-    if (nameEl)   nameEl.textContent   = u.name || "User";
+    localStorage.setItem("plexudo_user", JSON.stringify(u));
+    if (nameEl)   nameEl.textContent   = u.name || "Creator";
     if (roleEl)   roleEl.textContent   = u.role || "Creator";
-    if (avatarEl) avatarEl.textContent = (u.name || "U").charAt(0).toUpperCase();
+    if (avatarEl) avatarEl.textContent = (u.name || "C").charAt(0).toUpperCase();
     if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits;
   } catch (e) {
-    console.error("Session check error:", e);
-    window.location.href = "index.html";
+    console.warn("Session check retry/network note:", e);
+    if (retry > 0) {
+      setTimeout(() => checkSession(retry - 1), 800);
+    }
   }
 }
 
@@ -77,8 +100,9 @@ async function handleLogout() {
   try {
     await fetch(`${API}/logout`, { method: "POST", credentials: "include" });
   } catch (e) {}
+  localStorage.removeItem("plexudo_user");
   localStorage.removeItem("smtas_is_pro");
-  window.location.href = "index.html";
+  window.location.href = "/";
 }
 
 document.getElementById("logoutBtn").addEventListener("click", handleLogout);

@@ -1889,6 +1889,9 @@ async function handleAuthSubmit(e) {
       if (!res.ok) {
         throw new Error(data.error || 'Invalid email or password');
       }
+      if (data.user) {
+        localStorage.setItem('plexudo_user', JSON.stringify(data.user));
+      }
       window.location.href = '/dashboard.html';
     }
   } catch (err) {
