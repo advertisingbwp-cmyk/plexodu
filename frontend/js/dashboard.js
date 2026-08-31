@@ -155,10 +155,37 @@ function switchSection(sec) {
   const targetNav = document.getElementById(`nav${capitalize(sec)}`);
   if (targetNav) targetNav.classList.add("active");
 
-  // Show topbar search only on Dashboard
-  const topbar = document.querySelector(".topbar-hero");
-  if (topbar) {
-    topbar.style.display = (sec === "dashboard") ? "" : "none";
+  // Keep topbar & hamburger button ALWAYS visible in all sections!
+  const searchWrap = document.querySelector(".topbar-container .search-wrapper");
+  const rightActions = document.querySelector(".topbar-actions-right");
+  const sectionTitle = document.getElementById("topbarSectionTitle");
+  const sectionIcon = document.getElementById("topbarSectionIcon");
+  const sectionName = document.getElementById("topbarSectionName");
+
+  const sectionMeta = {
+    dashboard: { icon: "⚡", name: "Dashboard" },
+    comparison: { icon: "📊", name: "Keyword Comparison" },
+    chat: { icon: "✨", name: "AI Assistant" },
+    auditUrl: { icon: "🔗", name: "Competitor Analysis" },
+    videoAnalysis: { icon: "🎬", name: "Video Analysis" },
+    channelSeo: { icon: "🎬", name: "YouTube SEO Studio" },
+    history: { icon: "🕑", name: "Search History" },
+    audit: { icon: "🔍", name: "Audit Trail" }
+  };
+
+  if (sec === "dashboard") {
+    if (searchWrap) searchWrap.style.display = "";
+    if (rightActions) rightActions.style.display = "";
+    if (sectionTitle) sectionTitle.style.display = "none";
+  } else {
+    if (searchWrap) searchWrap.style.display = "none";
+    if (rightActions) rightActions.style.display = "none";
+    if (sectionTitle) {
+      sectionTitle.style.display = "flex";
+      const meta = sectionMeta[sec] || { icon: "📁", name: capitalize(sec) };
+      if (sectionIcon) sectionIcon.textContent = meta.icon;
+      if (sectionName) sectionName.textContent = meta.name;
+    }
   }
 
   if (sec === "audit")      loadAuditLog();
