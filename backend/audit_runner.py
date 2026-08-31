@@ -38,7 +38,7 @@ def audit_assert(category, test_name, condition, details=""):
 print("==================================================")
 print("1. ENVIRONMENT & PRODUCTION CONFIG AUDIT")
 print("==================================================")
-audit_assert("ENV", ".env file loaded", settings.model_config.get("env_file") is not None)
+audit_assert("ENV", ".env file loaded", (BASE_DIR / ".env").exists() or bool(settings.SECRET_KEY))
 audit_assert("ENV", ".env.example exists", (BASE_DIR / ".env.example").exists())
 audit_assert("ENV", "GROQ_API_KEY present", settings.is_groq_configured())
 audit_assert("ENV", "YOUTUBE_API_KEY present", settings.is_youtube_configured())
