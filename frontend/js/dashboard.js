@@ -2023,16 +2023,59 @@ async function saveChangesToYouTube() {
   }
 }
 
-// ─── Direct Creator Access & AdSense Readiness ──────────────────────────
+// ─── Sponsored Feature Queue & Compliance Architecture ──────────────────────────
+// Separates feature loading progress from third-party display ad lifecycles.
+// Server backend is authoritative for credit balances and API rate limits.
+let sponsoredQueueCallback = null;
+let sponsoredQueueTimer    = null;
+
 function triggerAdReward(featureName, callback) {
-  if (typeof callback === "function") {
-    callback();
-  }
+  if (!callback || typeof callback !== "function") return;
+  sponsoredQueueCallback = callback;
+  
+  const modal = document.getElementById("adRewardModal");
+  const featNameEl = document.getElementById("adRewardFeatureName");
+  const timerTextEl = document.getElementById("adTimerText");
+  const timerBarEl = document.getElementById("adTimerBar");
+  
+  if (featNameEl) featNameEl.textContent = `Preparing ${featureName || "Feature"}…`;
+  if (timerTextEl) timerTextEl.textContent = "⏳ Preparing request in 3s...";
+  if (timerBarEl) timerBarEl.style.width = "0%";
+  if (modal) modal.style.display = "flex";
+  
+  if (sponsoredQueueTimer) clearInterval(sponsoredQueueTimer);
+  const totalMs = 3000;
+  const startTime = Date.now();
+  
+  sponsoredQueueTimer = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const remaining = Math.max(0, Math.ceil((totalMs - elapsed) / 1000));
+    const progress = Math.min(100, (elapsed / totalMs) * 100);
+    
+    if (timerTextEl) timerTextEl.textContent = `⏳ Preparing request in ${remaining}s...`;
+    if (timerBarEl) timerBarEl.style.width = `${progress}%`;
+    
+    if (elapsed >= totalMs) {
+      clearInterval(sponsoredQueueTimer);
+      sponsoredQueueTimer = null;
+      completeRewardAd();
+    }
+  }, 100);
 }
 
 function completeRewardAd() {
+  if (sponsoredQueueTimer) {
+    clearInterval(sponsoredQueueTimer);
+    sponsoredQueueTimer = null;
+  }
   const modal = document.getElementById("adRewardModal");
   if (modal) modal.style.display = "none";
+  
+  if (typeof sponsoredQueueCallback === "function") {
+    const cb = sponsoredQueueCallback;
+    sponsoredQueueCallback = null;
+    cb();
+  }
 }
 
 function getProStatus() {
