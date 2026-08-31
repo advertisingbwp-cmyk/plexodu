@@ -114,11 +114,33 @@ if (userCard) {
   });
 }
 
+// ─── Mobile Sidebar Drawer ───────────────────────────────────────────────────
+function toggleMobileSidebar(forceState) {
+  const sidebar = document.getElementById("sidebar");
+  const backdrop = document.getElementById("sidebarBackdrop");
+  if (!sidebar || !backdrop) return;
+  const isOpen = forceState !== undefined ? forceState : !sidebar.classList.contains("open");
+  if (isOpen) {
+    sidebar.classList.add("open");
+    backdrop.classList.add("active");
+    document.body.style.overflow = "hidden";
+  } else {
+    sidebar.classList.remove("open");
+    backdrop.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+}
+
 // ─── Sidebar Navigation ───────────────────────────────────────────────────────
 const sections = ["dashboard", "comparison", "chat", "videoAnalysis", "auditUrl", "channelSeo", "history", "audit"];
 
 document.querySelectorAll(".nav-item").forEach((item) => {
-  item.addEventListener("click", () => switchSection(item.dataset.section));
+  item.addEventListener("click", () => {
+    switchSection(item.dataset.section);
+    if (window.innerWidth <= 900) {
+      toggleMobileSidebar(false);
+    }
+  });
 });
 
 function switchSection(sec) {

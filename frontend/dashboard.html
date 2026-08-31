@@ -18,7 +18,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
 <link rel="shortcut icon" href="/favicon.ico?v=3">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=3">
-<link rel="stylesheet" href="css/style.css?v=6.5">
+<link rel="stylesheet" href="css/style.css?v=7.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -97,6 +97,9 @@
       </button>
     </div>
   </aside>
+  
+  <!-- Backdrop for Mobile Sidebar -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar(false)"></div>
 
   <!-- ======== MAIN CONTENT ======== -->
   <div class="main-content">
@@ -104,6 +107,11 @@
     <!-- Hero Topbar Header -->
     <header class="topbar-hero">
       <div class="topbar-container">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="mobile-sidebar-toggle" id="mobileSidebarToggle" onclick="toggleMobileSidebar()" aria-label="Toggle navigation menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+
         <!-- Big Prominent Search Bar -->
         <div class="search-wrapper">
           <div class="search-bar">
@@ -863,7 +871,7 @@
   </div>
 </div>
 
-<script src="js/dashboard.js?v=6.1"></script>
+<script src="js/dashboard.js?v=7.0"></script>
 
 <!-- Social Bar Ad Unit (Right above closing body tag) -->
 <script src="https://bibleearthquake.com/0e/89/57/0e89577e43e820c87b40cc837855b0fd.js"></script>
