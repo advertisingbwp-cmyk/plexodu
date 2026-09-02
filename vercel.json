@@ -94,6 +94,10 @@
       "dest": "/frontend/privacy.html"
     },
     {
+      "src": "/ads.txt",
+      "dest": "/frontend/ads.txt"
+    },
+    {
       "src": "/robots.txt",
       "dest": "/frontend/robots.txt"
     },
