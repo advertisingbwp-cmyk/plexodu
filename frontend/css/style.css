@@ -1420,3 +1420,32 @@ table.history-table tbody tr:hover {
 @media (max-width: 480px) {
   .dashboard-grid-cols-5, .dashboard-grid-cols-4, .dashboard-grid-cols-3 { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   BLOG ARTICLE LAYOUT
+   ========================================================================== */
+.blog-main-wrapper {
+    padding-top: 60px;
+    background: var(--bg-page);
+}
+
+.content-container {
+    padding-top: 40px;
+    padding-bottom: 80px;
+    padding-inline: clamp(1rem, 5vw, 3rem); /* Responsive horizontal padding */
+    max-width: 860px;
+    margin: 40px auto;
+    background: var(--bg-card);
+    border-radius: 24px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 768px) {
+    .content-container {
+        padding-top: 24px;
+        padding-bottom: 40px;
+        margin-top: 20px;
+        border-radius: 16px;
+    }
+}
