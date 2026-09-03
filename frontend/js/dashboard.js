@@ -414,7 +414,7 @@ function renderResults(results) {
     </div>
 
     <!-- 1. Top Metrics Summary Row (Modern Floating Cards) -->
-    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:16px; margin-top:20px;">
+    <div class="dashboard-grid-auto-180">
       <!-- Card 1: Total Views -->
       <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:20px; padding:20px; box-shadow:0 8px 24px rgba(67,73,191,0.04); display:flex; flex-direction:column; justify-content:space-between;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -469,7 +469,7 @@ function renderResults(results) {
     </div>
 
     <!-- 2. SEO Opportunity Score & AI Content Strategy -->
-    <div style="display:grid; grid-template-columns: 1fr 1.3fr; gap:20px; margin-top:24px;">
+    <div class="dashboard-grid-1-1-3">
       <!-- SEO Opportunity Meter -->
       <div style="padding:24px; background:#ffffff; border:1px solid #e2e8f0; border-radius:22px; box-shadow:0 10px 30px rgba(67,73,191,0.05); display:flex; flex-direction:column; justify-content:space-between;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -524,7 +524,7 @@ function renderResults(results) {
     </div>
 
     <!-- 4. Sentiment & Audience Feedback Row (Matches Reference UI) -->
-    <div style="display:grid; grid-template-columns: 280px 1fr; gap:24px; margin-top:24px; align-items:stretch;">
+    <div class="dashboard-grid-sidebar-main">
       <!-- Comment Sentiment Donut -->
       <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:24px; padding:24px; box-shadow:0 10px 30px rgba(67,73,191,0.05); display:flex; flex-direction:column; justify-content:space-between; text-align:center;">
         <div>
@@ -804,7 +804,7 @@ function renderChannelAudit(data, tf = "28d") {
         <div style="display:flex; align-items:center; gap:10px;">
           ${v.thumbnail ? `<img src="${v.thumbnail}" alt="" style="width:80px; height:45px; border-radius:6px; object-fit:cover; flex-shrink:0;">` : '<div style="width:80px; height:45px; background:#e2e8f0; border-radius:6px; flex-shrink:0;"></div>'}
           <div>
-            <div style="font-weight:600; font-size:13px; line-height:1.4; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(v.title)}</div>
+            <div style="font-weight:600; font-size:13px; line-height:1.4; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(v.title)}</div>
             <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${v.is_short ? '🩳 Short' : '🎬 Long Video'}</div>
           </div>
         </div>
@@ -835,15 +835,15 @@ function renderChannelAudit(data, tf = "28d") {
             <span>📅 ${data.age_years} yrs old</span>
             <span>🗓 Since ${data.published_at}</span>
           </div>
-          <div style="font-size:12.5px; color:var(--text-muted); margin-top:6px; line-height:1.5; max-width:500px;">${escapeHtml(data.description || "")}</div>
+          <div style="font-size:12.5px; color:var(--text-muted); margin-top:6px; line-height:1.5; max-width:100%;">${escapeHtml(data.description || "")}</div>
         </div>
         <!-- Rank & Earnings badges -->
         <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-end;">
-          <div style="background:#0f172a; color:#ffffff; padding:14px 18px; border-radius:16px; text-align:center; min-width:160px;">
+          <div class="dark-stat-card">
             <div style="font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:700; letter-spacing:0.06em;">Country Rank</div>
             <div style="font-size:20px; font-weight:900; color:#38bdf8; margin-top:4px;">${data.country_rank}</div>
           </div>
-          <div style="background:#0f172a; color:#ffffff; padding:14px 18px; border-radius:16px; text-align:center; min-width:160px;">
+          <div class="dark-stat-card">
             <div style="font-size:10px; color:#94a3b8; text-transform:uppercase; font-weight:700; letter-spacing:0.06em;">Worldwide Rank</div>
             <div style="font-size:20px; font-weight:900; color:#34d399; margin-top:4px;">${data.worldwide_rank}</div>
           </div>
@@ -851,7 +851,7 @@ function renderChannelAudit(data, tf = "28d") {
       </div>
 
       <!-- Key Stats Row -->
-      <div class="metric-row" style="margin-top:20px; grid-template-columns: repeat(5, 1fr);">
+      <div class="metric-row dashboard-grid-cols-5">
         <div class="metric-box">
           <div class="val">${formatNum(data.subscriber_count)}</div>
           <div class="lbl">Subscribers</div>
@@ -882,7 +882,7 @@ function renderChannelAudit(data, tf = "28d") {
         <span class="panel-badge youtube">▶ VidIQ Style</span>
       </div>
 
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
+      <div class="dashboard-grid-1-1">
 
         <!-- Uploads Ring -->
         <div style="background:#f8fafc; border:1px solid var(--border); border-radius:20px; padding:24px; text-align:center;">
@@ -1405,8 +1405,8 @@ function renderVideoAnalysis(d) {
     <!-- Video Hero Card -->
     <div class="panel" style="margin-bottom:20px; overflow:hidden;">
       <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
-        ${d.thumbnail ? `<img src="${d.thumbnail}" alt="thumbnail" style="width:280px; height:158px; object-fit:cover; border-radius:14px; flex-shrink:0; box-shadow:0 8px 24px rgba(0,0,0,0.1);">` : ""}
-        <div style="flex:1; min-width:200px;">
+        ${d.thumbnail ? `<img src="${d.thumbnail}" alt="thumbnail" class="video-thumbnail-card">` : ""}
+        <div style="flex:1; min-width:0;">
           <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
             <span style="background:#ff0000; color:#fff; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">▶ YouTube</span>
             ${d.is_short ? `<span style="background:#f3e8ff; color:#7c3aed; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">📱 Short</span>` : `<span style="background:#e0f2fe; color:#0284c7; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">🎥 Long-form</span>`}
@@ -1460,7 +1460,7 @@ function renderVideoAnalysis(d) {
     </div>
 
     <!-- Sentiment + Description Row -->
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+    <div class="dashboard-grid-1-1-small">
       <!-- Sentiment -->
       <div class="panel">
         <div class="panel-header"><h3>💬 Comment Sentiment</h3></div>
