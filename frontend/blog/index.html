@@ -325,14 +325,20 @@ h1, h2, h3, h4 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--success-light);
-  color: var(--success);
-  border: 1px solid #a7f3d0;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
   padding: 8px 14px;
-  border-radius: var(--radius-full);
-  font-size: 0.82rem;
-  font-weight: 700;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm, 0.875rem);
+  font-weight: 600;
+  text-decoration: none;
   transition: all 0.2s ease;
+}
+.btn-sponsor:hover {
+  color: var(--text-main);
+  border-color: var(--border-dark);
+  background: var(--bg-hover);
 }
 
 .btn-sponsor:hover {
@@ -901,8 +907,24 @@ h1, h2, h3, h4 {
 
 @media (max-width: 768px) {
   .nav-menu, .nav-actions .btn-login, .nav-actions .btn-sponsor {
-    display: none !important;
-  }
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm, 0.875rem);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.btn-sponsor:hover {
+  color: var(--text-main);
+  border-color: var(--border-dark);
+  background: var(--bg-hover);
+}
   .nav-actions {
     gap: 8px;
   }
@@ -1038,6 +1060,44 @@ h1, h2, h3, h4 {
   border-color: var(--primary);
   background: #ffffff;
 }
+
+/* Footer Grid 5-column layout */
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+@media (max-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+}
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Push notification relocation */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 10000 !important;
+}
+
+div[style*="position: fixed"][style*="top: 0"],
+div[style*="position: fixed"][style*="top:0"],
+div[style*="position:fixed"][style*="top:0"],
+div[style*="position:fixed"][style*="top: 0"] {
+  top: auto !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  left: auto !important;
+  z-index: 999 !important;
+}
+
 </style>
 </head>
 <body>
@@ -1072,7 +1132,7 @@ h1, h2, h3, h4 {
       <!-- Nav Actions -->
       <div class="nav-actions">
         <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener" class="btn-sponsor">
-          <span>🎁</span> Sponsor Partner ↗
+          Sponsor Partner ↗
         </a>
         <button onclick="openAuthModal('login')" class="btn-login">Sign In</button>
         <button onclick="openAuthModal('register')" class="btn-primary">Start Free ➔</button>
@@ -1096,7 +1156,7 @@ h1, h2, h3, h4 {
       </ul>
       <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
         <a href="https://bibleearthquake.com/h9fgjabvra?key=afd27586e5e065ccedc5e1e9314adfc7" target="_blank" rel="noopener" class="btn-sponsor" style="justify-content:center; padding:10px 16px; font-size:0.88rem; width:100%;">
-          <span>🎁</span> Sponsor Partner ↗
+          Sponsor Partner ↗
         </a>
         <button onclick="openAuthModal('login'); toggleMobileMenu();" class="btn-login" style="width:100%; justify-content:center;">Sign In</button>
         <button onclick="openAuthModal('register'); toggleMobileMenu();" class="btn-primary" style="width:100%; justify-content:center;">Start Free ➔</button>
@@ -1334,7 +1394,7 @@ h1, h2, h3, h4 {
           The all-in-one YouTube creator SEO and channel growth platform powered by real YouTube Data API v3 and Groq AI.
         </p>
         <div style="font-size:0.8rem; color:#64748b;">
-          © 2026 Plexudo. All rights reserved.
+          © <span class="current-year"></span> Plexudo. All rights reserved.
         </div>
       </div>
 
@@ -1350,14 +1410,21 @@ h1, h2, h3, h4 {
         </ul>
       </div>
 
-      <!-- Col 4: Legal -->
+      <!-- Col 3: Legal -->
       <div>
         <div class="footer-col-title">Legal</div>
         <ul class="footer-links">
           <li><a href="/privacy.html">Privacy Policy</a></li>
           <li><a href="/terms.html">Terms of Service</a></li>
-          <li><a href="/robots.txt">robots.txt</a></li>
-          <li><a href="/sitemap.xml">sitemap.xml</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Technical -->
+      <div>
+        <div class="footer-col-title">Technical</div>
+        <ul class="footer-links">
+          <li><a href="/robots.txt">Robots.txt</a></li>
+          <li><a href="/sitemap.xml">Sitemap.xml</a></li>
         </ul>
       </div>
 
@@ -1365,18 +1432,9 @@ h1, h2, h3, h4 {
       <div>
         <div class="footer-col-title">Account</div>
         <ul class="footer-links">
-          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Sign In</a></li>
           <li><a href="javascript:void(0)" onclick="openAuthModal('register')">Create Free Account</a></li>
+          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Sign In</a></li>
         </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <div>
-        Plexudo is an independent analytics platform and is not officially affiliated with or endorsed by YouTube or Google LLC.
-      </div>
-      <div>
-        Hosted securely • Enterprise SSL
       </div>
     </div>
   </div>
@@ -1938,5 +1996,10 @@ function closeInfoModal() {
         import { reticle } from 'https://cdn.jsdelivr.net/npm/@reticlehq/browser@2.13.1/+esm';
         reticle.connect({ token: '9ce1950bf0568dbe50b7400cf264d5e80237e15b52dbedf5' });
       </script>
+<script>
+  document.querySelectorAll('.current-year').forEach(el => {
+    el.textContent = new Date().getFullYear();
+  });
+</script>
 </body>
 </html>
