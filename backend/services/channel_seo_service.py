@@ -20,11 +20,16 @@ def get_google_client_secret():
     return settings.GOOGLE_CLIENT_SECRET or os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
 
 def get_redirect_uri():
-    return (
+    uri = (
         os.environ.get("GOOGLE_REDIRECT_URI", "").strip()
         or settings.GOOGLE_REDIRECT_URI
         or "http://127.0.0.1:5000/api/channel-seo/auth/callback"
     )
+    if uri.startswith("//"):
+        uri = "https:" + uri
+    elif not uri.startswith("http://") and not uri.startswith("https://"):
+        uri = "https://" + uri
+    return uri
 
 # --------------------------------------------------------------------------
 # OAuth Routes
