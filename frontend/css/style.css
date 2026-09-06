@@ -1507,3 +1507,12 @@ div[style*="position:fixed"][style*="top: 0"] {
   border-color: var(--border-dark);
   background: var(--bg-hover);
 }
+
+/* Adsterra In-Page Push Relocation to Bottom-Right */
+iframe[id*="0e89577e43e820c87b40cc837855b0fd"],
+iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
+[id*="0e89577e43e820c87b40cc837855b0fd"] {
+  top: auto !important;
+  bottom: 24px !important;
+  right: 24px !important;
+}
