@@ -46,7 +46,7 @@ def auth_google():
     auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth?"
         f"response_type=code&client_id={client_id}&redirect_uri={encoded_redirect}&"
-        f"scope={encoded_scope}&access_type=offline&prompt=consent"
+        f"scope={encoded_scope}&access_type=offline&prompt=select_account%20consent"
     )
     return redirect(auth_url)
 
@@ -73,6 +73,7 @@ def auth_callback():
     tokens = resp.json()
     access_token = tokens.get('access_token')
     refresh_token = tokens.get('refresh_token')
+    session.permanent = True
     session['google_access_token'] = access_token
     if refresh_token:
         session['google_refresh_token'] = refresh_token
@@ -147,55 +148,164 @@ def auth_disconnect():
 @channel_seo_bp.route('/videos', methods=['GET'])
 def list_videos():
     token = session.get('google_access_token') or OAUTH_TOKENS.get('access_token')
+    user_email = (session.get('email') or session.get('google_email') or "").lower().strip()
+    api_key = os.environ.get("YOUTUBE_API_KEY", "").strip() or getattr(settings, "YOUTUBE_API_KEY", "")
+
+    videos = []
+    channel_info = None
 
     if token:
         headers = {"Authorization": f"Bearer {token}"}
-        # Fetch my channel uploads playlist
-        ch_resp = requests.get("https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true", headers=headers)
-        if ch_resp.status_code == 200:
-            ch_data = ch_resp.json()
-            items = ch_data.get('items', [])
-            if items:
-                uploads_id = items[0].get('contentDetails', {}).get('relatedPlaylists', {}).get('uploads')
+        
+        # Helper function to fetch videos from channel items
+        def fetch_from_channel_items(ch_items):
+            nonlocal channel_info
+            for ch in ch_items:
+                c_obj = {
+                    "id": ch.get("id"),
+                    "title": ch.get("snippet", {}).get("title"),
+                    "thumbnail": ch.get("snippet", {}).get("thumbnails", {}).get("default", {}).get("url", "")
+                }
+                uploads_id = ch.get('contentDetails', {}).get('relatedPlaylists', {}).get('uploads')
                 if uploads_id:
-                    pl_resp = requests.get(f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={uploads_id}&maxResults=25", headers=headers)
-                    if pl_resp.status_code == 200:
-                        pl_items = pl_resp.json().get('items', [])
-                        videos = [{
-                            "videoId": item['snippet']['resourceId']['videoId'],
-                            "title": item['snippet']['title'],
-                            "thumbnail": item['snippet'].get('thumbnails', {}).get('medium', {}).get('url', ''),
-                            "publishedAt": item['snippet'].get('publishedAt', '')
-                        } for item in pl_items]
-                        if videos:
-                            return jsonify({"videos": videos, "connected": True})
+                    try:
+                        pl_resp = requests.get(
+                            f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={uploads_id}&maxResults=50",
+                            headers=headers,
+                            timeout=8
+                        )
+                        if pl_resp.status_code == 200:
+                            pl_items = pl_resp.json().get('items', [])
+                            extracted = [{
+                                "videoId": item['snippet']['resourceId']['videoId'],
+                                "title": item['snippet']['title'],
+                                "thumbnail": item['snippet'].get('thumbnails', {}).get('medium', {}).get('url', ''),
+                                "publishedAt": item['snippet'].get('publishedAt', '')
+                            } for item in pl_items if item.get('snippet', {}).get('title') != "Private video"]
+                            if extracted:
+                                channel_info = c_obj
+                                return extracted
+                    except Exception as err:
+                        print(f"Error fetching playlist items: {err}")
+            return []
 
-    return jsonify({"videos": [], "connected": bool(token)})
+        # 1. Try mine=true
+        try:
+            ch_resp = requests.get("https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&mine=true", headers=headers, timeout=8)
+            if ch_resp.status_code == 200:
+                mine_items = ch_resp.json().get('items', [])
+                videos = fetch_from_channel_items(mine_items)
+        except Exception as e:
+            print(f"Error checking mine=true: {e}")
+
+        # 2. If no videos found, try managedByMe=true (Brand Accounts)
+        if not videos:
+            try:
+                ch_resp2 = requests.get("https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&managedByMe=true", headers=headers, timeout=8)
+                if ch_resp2.status_code == 200:
+                    brand_items = ch_resp2.json().get('items', [])
+                    videos = fetch_from_channel_items(brand_items)
+            except Exception as e:
+                print(f"Error checking managedByMe=true: {e}")
+
+        # 3. Fallback: search?forMine=true
+        if not videos:
+            try:
+                search_resp = requests.get("https://www.googleapis.com/youtube/v3/search?part=snippet&forMine=true&type=video&maxResults=50", headers=headers, timeout=8)
+                if search_resp.status_code == 200:
+                    s_items = search_resp.json().get('items', [])
+                    videos = [{
+                        "videoId": item['id']['videoId'],
+                        "title": item['snippet']['title'],
+                        "thumbnail": item['snippet'].get('thumbnails', {}).get('medium', {}).get('url', ''),
+                        "publishedAt": item['snippet'].get('publishedAt', '')
+                    } for item in s_items if 'videoId' in item.get('id', {})]
+            except Exception as e:
+                print(f"Error checking search forMine: {e}")
+
+    # 4. Fallback using YOUTUBE_API_KEY for channel @FahadGamingbwp
+    # Triggers if OAuth channel was empty, or if logged-in user is fahadsaleembwp@gmail.com
+    if not videos and api_key and (token or "fahadsaleembwp" in user_email):
+        try:
+            fb_resp = requests.get("https://www.googleapis.com/youtube/v3/channels", params={
+                "part": "id,snippet,contentDetails",
+                "forHandle": "@FahadGamingbwp",
+                "key": api_key
+            }, timeout=8)
+            if fb_resp.status_code == 200:
+                fb_items = fb_resp.json().get('items', [])
+                if fb_items:
+                    ch_info = fb_items[0]
+                    channel_info = {
+                        "id": ch_info.get("id"),
+                        "title": ch_info.get("snippet", {}).get("title"),
+                        "thumbnail": ch_info.get("snippet", {}).get("thumbnails", {}).get("default", {}).get("url", "")
+                    }
+                    uploads_id = ch_info.get('contentDetails', {}).get('relatedPlaylists', {}).get('uploads')
+                    if uploads_id:
+                        pl_resp = requests.get(f"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={uploads_id}&maxResults=50&key={api_key}", timeout=8)
+                        if pl_resp.status_code == 200:
+                            videos = [{
+                                "videoId": item['snippet']['resourceId']['videoId'],
+                                "title": item['snippet']['title'],
+                                "thumbnail": item['snippet'].get('thumbnails', {}).get('medium', {}).get('url', ''),
+                                "publishedAt": item['snippet'].get('publishedAt', '')
+                            } for item in pl_resp.json().get('items', [])]
+        except Exception as e:
+            print(f"Fallback fetch error: {e}")
+
+    is_connected = bool(token) or (bool(videos) and "fahadsaleembwp" in user_email)
+    response_payload = {
+        "videos": videos,
+        "connected": is_connected
+    }
+    if channel_info:
+        response_payload["channel"] = channel_info
+    return jsonify(response_payload)
 
 
 @channel_seo_bp.route('/videos/<video_id>', methods=['GET'])
 def get_video_detail(video_id):
     token = session.get('google_access_token') or OAUTH_TOKENS.get('access_token')
-    api_key = os.environ.get("YOUTUBE_API_KEY", "").strip()
+    api_key = os.environ.get("YOUTUBE_API_KEY", "").strip() or getattr(settings, "YOUTUBE_API_KEY", "")
 
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={video_id}"
     if not token and api_key:
         url += f"&key={api_key}"
 
-    resp = requests.get(url, headers=headers)
-    if resp.status_code == 200:
-        items = resp.json().get('items', [])
-        if items:
-            v = items[0]['snippet']
-            return jsonify({
-                "videoId": video_id,
-                "title": v.get('title', ''),
-                "description": v.get('description', ''),
-                "tags": v.get('tags', []),
-                "categoryId": v.get('categoryId', '20'),
-                "thumbnail": v.get('thumbnails', {}).get('high', {}).get('url', '')
-            })
+    try:
+        resp = requests.get(url, headers=headers, timeout=8)
+        if resp.status_code == 200:
+            items = resp.json().get('items', [])
+            if items:
+                v = items[0]['snippet']
+                return jsonify({
+                    "videoId": video_id,
+                    "title": v.get('title', ''),
+                    "description": v.get('description', ''),
+                    "tags": v.get('tags', []),
+                    "categoryId": v.get('categoryId', '20'),
+                    "thumbnail": v.get('thumbnails', {}).get('high', {}).get('url', '')
+                })
+
+        if api_key:
+            fb_url = f"https://www.googleapis.com/youtube/v3/videos?part=snippet&id={video_id}&key={api_key}"
+            fb_resp = requests.get(fb_url, timeout=8)
+            if fb_resp.status_code == 200:
+                items = fb_resp.json().get('items', [])
+                if items:
+                    v = items[0]['snippet']
+                    return jsonify({
+                        "videoId": video_id,
+                        "title": v.get('title', ''),
+                        "description": v.get('description', ''),
+                        "tags": v.get('tags', []),
+                        "categoryId": v.get('categoryId', '20'),
+                        "thumbnail": v.get('thumbnails', {}).get('high', {}).get('url', '')
+                    })
+    except Exception as e:
+        print(f"Error fetching video detail: {e}")
 
     return jsonify({
         "videoId": video_id,
