@@ -34,7 +34,6 @@ from services.trend_engine import (
 )
 from services.report_generator import generate_pdf_report
 from services.groq_service import chat_with_groq          # Groq AI Service (Llama 3.3 70B)
-from services.channel_seo_service import channel_seo_bp  # My Channel SEO Subsystem
 
 from services.security_guard import (
     rate_limiter,
@@ -214,16 +213,13 @@ app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 
 CORS(app, supports_credentials=True)
 db.init_app(app)
-app.register_blueprint(channel_seo_bp)
 
-from services.channel_seo_service import auth_callback
 from services.title_intelligence import generate_context_aware_titles
 from services.email_service import (
     send_verification_email,
     send_password_changed_email,
     send_password_reset_email,
 )
-app.add_url_rule('/auth/google/callback', 'auth_google_callback', auth_callback)
 
 
 @app.after_request
