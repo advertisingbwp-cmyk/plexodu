@@ -1178,8 +1178,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
 
       <!-- Nav Actions -->
       <div class="nav-actions">
-        <button onclick="openAuthModal('login')" class="btn-login">Sign In</button>
-        <button onclick="openAuthModal('register')" class="btn-primary">Start Free ➔</button>
+        <a href="/dashboard.html" class="btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">Open Dashboard ⚡</a>
         <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
@@ -1199,8 +1198,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
         <li><a href="#faq" class="nav-link" onclick="toggleMobileMenu()">FAQ</a></li>
       </ul>
       <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-        <button onclick="openAuthModal('login'); toggleMobileMenu();" class="btn-login" style="width:100%; justify-content:center;">Sign In</button>
-        <button onclick="openAuthModal('register'); toggleMobileMenu();" class="btn-primary" style="width:100%; justify-content:center;">Start Free ➔</button>
+        <a href="/dashboard.html" class="btn-primary" style="width:100%; justify-content:center; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">Open Dashboard ⚡</a>
       </div>
     </div>
   </nav>
@@ -1220,17 +1218,17 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
       </p>
       
       <div class="hero-cta-group">
-        <button onclick="openAuthModal('register')" class="btn-primary" style="padding:14px 32px; font-size:1rem;">
-          Start Free Today ➔
-        </button>
-        <a href="#tools" class="btn-login" style="padding:14px 28px; font-size:1rem;">
+        <a href="/dashboard.html" class="btn-primary" style="padding:14px 32px; font-size:1rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+          Open Free Dashboard ⚡
+        </a>
+        <a href="#tools" class="btn-login" style="padding:14px 28px; font-size:1rem; text-decoration:none;">
           Explore Tools ↓
         </a>
       </div>
 
       <div class="hero-trust-row">
-        <div class="hero-trust-item"><span>✓</span> 3 Welcome Credits</div>
-        <div class="hero-trust-item"><span>✓</span> No Credit Card Required</div>
+        <div class="hero-trust-item"><span>✓</span> 100% Free Public Access</div>
+        <div class="hero-trust-item"><span>✓</span> No Login Required</div>
         <div class="hero-trust-item"><span>✓</span> Real YouTube Data API v3</div>
         <div class="hero-trust-item"><span>✓</span> Groq AI Optimization</div>
       </div>
@@ -1388,7 +1386,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
               Instant 50/50 SEO score evaluation. Live title analysis, description depth audit, and keyword tag diagnostics for any public video URL.
             </p>
           </div>
-          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Video Audit ➔</button>
+          <a href="/dashboard.html#auditUrl" class="tool-link" style="text-decoration:none;">Launch Video Audit ➔</a>
         </div>
 
         <!-- 2. Video Analyzer -->
@@ -1401,7 +1399,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
               Deep-dive video analytics. Calculates virality index velocity, engagement ratios, and NLP sentiment across top audience comments.
             </p>
           </div>
-          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Video Analyzer ➔</button>
+          <a href="/dashboard.html#videoAnalysis" class="tool-link" style="text-decoration:none;">Launch Video Analyzer ➔</a>
         </div>
 
         <!-- 3. Keyword Tool -->
@@ -1414,7 +1412,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
               Discover high-demand search terms, estimated search volume, competition difficulty, and high-CTR tag combinations in 1-click.
             </p>
           </div>
-          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Keyword Tool ➔</button>
+          <a href="/dashboard.html#comparison" class="tool-link" style="text-decoration:none;">Launch Keyword Tool ➔</a>
         </div>
 
         <!-- 4. Trend Analyzer -->
@@ -1427,7 +1425,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
               Track viral breakout topics across regions (Global, US, PK, IN, UK, AE) and ride emerging content waves before saturation.
             </p>
           </div>
-          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Trend Analyzer ➔</button>
+          <a href="/dashboard.html" class="tool-link" style="text-decoration:none;">Launch Trend Analyzer ➔</a>
         </div>
 
         <!-- 5. Competitor Audit -->
@@ -1440,7 +1438,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
               Analyze any competitor channel handle. View 28-day subscriber growth velocity, top performing uploads, and keyword strategies.
             </p>
           </div>
-          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">Launch Competitor Audit ➔</button>
+          <a href="/dashboard.html#auditUrl" class="tool-link" style="text-decoration:none;">Launch Competitor Audit ➔</a>
         </div>
 
         <!-- 6. AI Assistant -->
@@ -1453,9 +1451,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
               Context-aware YouTube strategist. Generate high-CTR title variations, script hooks, community post ideas, and niche outlines.
             </p>
           </div>
-          <button onclick="openAuthModal('register')" class="tool-link" style="background:none; border:none; cursor:pointer; font-family:inherit; font-size:inherit;">
-            Launch AI Strategist ➔
-          </button>
+          <a href="/dashboard.html#chat" class="tool-link" style="text-decoration:none;">Launch AI Strategist ➔</a>
         </div>
       </div>
     </div>
@@ -1676,15 +1672,12 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
       <div class="cta-box">
         <h2 style="font-size:clamp(1.85rem, 3.5vw, 2.5rem); margin-bottom:12px;">Ready to Optimize Your Next YouTube Video?</h2>
         <p style="font-size:1.05rem; color:var(--text-muted); margin-bottom:28px;">
-          Create your free account today and start optimizing with your welcome credits.
+          Instant access to all YouTube analytics, viral keyword tools, and AI strategists with zero signup required.
         </p>
         <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
-          <button onclick="openAuthModal('register')" class="btn-primary" style="padding:14px 32px; font-size:1rem;">
-            Start Free Today ➔
-          </button>
-          <button onclick="openAuthModal('login')" class="btn-login" style="padding:14px 28px; font-size:1rem;">
-            Sign In to Dashboard
-          </button>
+          <a href="/dashboard.html" class="btn-primary" style="padding:14px 32px; font-size:1rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+            Open Free Dashboard ➔
+          </a>
         </div>
       </div>
     </div>
@@ -1745,10 +1738,12 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
 
       <!-- Col 5: Account -->
       <div>
-        <div class="footer-col-title">Account</div>
+        <div class="footer-col-title">Platform</div>
         <ul class="footer-links">
-          <li><a href="javascript:void(0)" onclick="openAuthModal('register')">Create Free Account</a></li>
-          <li><a href="javascript:void(0)" onclick="openAuthModal('login')">Sign In</a></li>
+          <li><a href="/dashboard.html">Open Dashboard</a></li>
+          <li><a href="/dashboard.html#videoAnalysis">Video Virality Analyzer</a></li>
+          <li><a href="/dashboard.html#comparison">Keyword Research</a></li>
+          <li><a href="/dashboard.html#chat">AI Strategist</a></li>
         </ul>
       </div>
     </div>

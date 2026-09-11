@@ -290,7 +290,7 @@ def _log_action(action: str, details: str = ""):
 
 
 def login_required():
-    return "user_id" in session
+    return True
 
 
 
@@ -531,7 +531,19 @@ def get_session():
     user_id = session.get("user_id")
     user_email = session.get("email")
     if not user_id or not user_email:
-        return jsonify({"authenticated": False, "user": None}), 401
+        return jsonify({
+            "authenticated": True,
+            "is_guest": True,
+            "user": {
+                "id": 0,
+                "name": "Creator",
+                "email": "creator@plexudo.com",
+                "role": "Public Access",
+                "credits": 999,
+                "email_verified": True,
+                "avatar_url": None
+            }
+        }), 200
 
     user = User.query.filter_by(email=user_email.lower()).first()
     if not user:
@@ -899,10 +911,12 @@ def _process_platform(keyword, platform_name, fetch_fn):
 # --------------------------------------------------------------------------
 @app.route("/api/trends", methods=["GET"])
 def list_trends():
-    if not login_required():
-        return jsonify({"error": "Authentication required"}), 401
+    user_id = session.get("user_id")
+    if user_id:
+        trends = Trend.query.filter_by(created_by=user_id).order_by(Trend.timestamp.desc()).limit(50).all()
+    else:
+        trends = Trend.query.order_by(Trend.timestamp.desc()).limit(50).all()
 
-    trends = Trend.query.filter_by(created_by=session["user_id"]).order_by(Trend.timestamp.desc()).limit(50).all()
     output = []
     for t in trends:
         sentiment = Sentiment.query.filter_by(trend_id=t.trend_id).first()
@@ -928,19 +942,23 @@ def list_trends():
 # --------------------------------------------------------------------------
 @app.route("/api/compare-keywords", methods=["GET"])
 def compare_keywords():
-    if not login_required():
-        return jsonify({"error": "Authentication required"}), 401
-
+    user_id = session.get("user_id")
     ids_param = request.args.get("ids", "")
     if ids_param:
         try:
             ids = [int(i) for i in ids_param.split(",") if i.strip()]
-            trends = Trend.query.filter(Trend.trend_id.in_(ids), Trend.created_by == session["user_id"]).all()
+            if user_id:
+                trends = Trend.query.filter(Trend.trend_id.in_(ids), Trend.created_by == user_id).all()
+            else:
+                trends = Trend.query.filter(Trend.trend_id.in_(ids)).all()
         except ValueError:
             trends = []
     else:
         # Default: latest 6 unique keywords
-        trends = Trend.query.filter_by(created_by=session["user_id"]).order_by(Trend.timestamp.desc()).limit(6).all()
+        if user_id:
+            trends = Trend.query.filter_by(created_by=user_id).order_by(Trend.timestamp.desc()).limit(6).all()
+        else:
+            trends = Trend.query.order_by(Trend.timestamp.desc()).limit(6).all()
 
     comparison_data = []
     for t in trends:
@@ -999,11 +1017,14 @@ def generate_report(trend_id):
     }
     stage = classify_trend_stage(trend.growth_rate)
 
+    user_email = session.get("email", "creator@plexudo.com")
+    user_id = session.get("user_id")
+
     filename, file_path = generate_pdf_report(
-        trend_dict, sentiment_dict, trend.growth_rate, trend.virality_score, stage, session["email"]
+        trend_dict, sentiment_dict, trend.growth_rate, trend.virality_score, stage, user_email
     )
 
-    report = Report(trend_id=trend_id, generated_by=session["user_id"], format="PDF", file_path=file_path)
+    report = Report(trend_id=trend_id, generated_by=user_id, format="PDF", file_path=file_path)
     db.session.add(report)
     db.session.commit()
     _log_action("EXPORT_PDF", f"trend_id={trend_id} keyword={trend.keyword}")
@@ -1246,16 +1267,22 @@ def video_analysis():
 # --------------------------------------------------------------------------
 @app.route("/api/audit-log", methods=["GET"])
 def get_audit_log():
-    if not login_required():
-        return jsonify({"error": "Authentication required"}), 401
-
-    logs = (
-        AuditLog.query
-        .filter_by(user_id=session["user_id"])
-        .order_by(AuditLog.timestamp.desc())
-        .limit(100)
-        .all()
-    )
+    user_id = session.get("user_id")
+    if user_id:
+        logs = (
+            AuditLog.query
+            .filter_by(user_id=user_id)
+            .order_by(AuditLog.timestamp.desc())
+            .limit(100)
+            .all()
+        )
+    else:
+        logs = (
+            AuditLog.query
+            .order_by(AuditLog.timestamp.desc())
+            .limit(50)
+            .all()
+        )
     output = []
     for log in logs:
         output.append({

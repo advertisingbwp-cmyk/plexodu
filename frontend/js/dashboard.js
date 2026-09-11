@@ -51,41 +51,31 @@ async function checkSession(retry = 1) {
     try {
       const u = JSON.parse(cachedUserStr);
       if (nameEl)   nameEl.textContent   = u.name || "Creator";
-      if (roleEl)   roleEl.textContent   = u.role || "Creator";
-      if (avatarEl) avatarEl.textContent = (u.name || "C").charAt(0).toUpperCase();
-      if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits;
+      if (roleEl)   roleEl.textContent   = u.role || "Public Access";
+      if (avatarEl) avatarEl.textContent = (u.name || "P").charAt(0).toUpperCase();
+      if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits === 999 ? "∞" : u.credits;
     } catch (e) {}
+  } else {
+    if (nameEl)   nameEl.textContent   = "Creator";
+    if (roleEl)   roleEl.textContent   = "Public Access";
+    if (avatarEl) avatarEl.textContent = "P";
+    if (kpiCreds) kpiCreds.textContent = "∞";
   }
 
   try {
     const res = await fetch(`${API}/session`, { credentials: "include" });
     if (!res.ok) {
-      if (retry > 0) {
-        // Retry once after 600ms in case serverless container is warming up
-        setTimeout(() => checkSession(retry - 1), 600);
-        return;
-      }
-      localStorage.removeItem("plexudo_user");
-      window.location.href = "/";
       return;
     }
     const data = await res.json();
-    if (!data || !data.user) {
-      localStorage.removeItem("plexudo_user");
-      window.location.href = "/";
-      return;
-    }
-    const u = data.user;
+    const u = (data && data.user) ? data.user : { name: "Creator", role: "Public Access", credits: 999 };
     localStorage.setItem("plexudo_user", JSON.stringify(u));
     if (nameEl)   nameEl.textContent   = u.name || "Creator";
-    if (roleEl)   roleEl.textContent   = u.role || "Creator";
-    if (avatarEl) avatarEl.textContent = (u.name || "C").charAt(0).toUpperCase();
-    if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits;
+    if (roleEl)   roleEl.textContent   = u.role || "Public Access";
+    if (avatarEl) avatarEl.textContent = (u.name || "P").charAt(0).toUpperCase();
+    if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits === 999 ? "∞" : u.credits;
   } catch (e) {
-    console.warn("Session check retry/network note:", e);
-    if (retry > 0) {
-      setTimeout(() => checkSession(retry - 1), 800);
-    }
+    console.warn("Session check note:", e);
   }
 }
 
@@ -184,6 +174,16 @@ function switchSection(sec) {
   if (sec === "history")    loadHistory();
   if (sec === "comparison") loadKeywordComparison();
 }
+
+// ─── Hash Routing for Direct Deep-Links ──────────────────────────────────────
+function handleHashRoute() {
+  const hash = window.location.hash.replace("#", "").trim();
+  if (hash && sections.includes(hash)) {
+    switchSection(hash);
+  }
+}
+window.addEventListener("hashchange", handleHashRoute);
+setTimeout(handleHashRoute, 50);
 
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
