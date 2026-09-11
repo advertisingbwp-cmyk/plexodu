@@ -1646,30 +1646,6 @@ async function openProfileModal() {
           unverifiedBox.style.display = "none";
         }
       }
-
-      // Channel sync info
-      const channelTitleEl = document.getElementById("modalChannelTitle");
-      const channelStatusEl = document.getElementById("modalChannelStatus");
-      const channelActionEl = document.getElementById("modalChannelAction");
-      if (channelTitleEl && channelStatusEl && channelActionEl) {
-        if (isYouTubeConnected) {
-          channelTitleEl.textContent = channelProfile.title || "YouTube Channel Connected";
-          channelStatusEl.textContent = `Sync Active (${channelProfile.subscriberCount || 'Live'} subscribers)`;
-          channelActionEl.innerHTML = `
-            <button onclick="handleDisconnectYouTube()" style="padding:7px 14px; background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.15s;">
-              Disconnect
-            </button>
-          `;
-        } else {
-          channelTitleEl.textContent = "YouTube Data API v3";
-          channelStatusEl.textContent = "Connect to sync channel videos & tags";
-          channelActionEl.innerHTML = `
-            <button onclick="connectYouTubeChannel()" style="padding:7px 14px; background:#4f46e5; color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all 0.15s;">
-              Connect YouTube
-            </button>
-          `;
-        }
-      }
     }
   } catch (e) {
     console.error("Error loading profile:", e);
@@ -1765,12 +1741,6 @@ async function resendAccountVerification() {
   }
 }
 
-function handleDisconnectYouTube() {
-  if (confirm("Are you sure you want to disconnect your YouTube channel?")) {
-    toggleYouTubeConnection(true);
-    openProfileModal();
-  }
-}
 
 async function promptDeleteAccount() {
   const pwd = prompt("⚠️ WARNING: This will permanently delete your Plexudo account and all associated data.\n\nPlease enter your password to confirm:");
