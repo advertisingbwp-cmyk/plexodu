@@ -8,10 +8,9 @@ from flask import Blueprint, request, jsonify, session, redirect
 
 channel_seo_bp = Blueprint('channel_seo', __name__, url_prefix='/api/channel-seo')
 
+import secrets
+import hmac
 from app.core.config import settings
-
-# Store OAuth tokens in session or simple dict for demo
-OAUTH_TOKENS = {}
 
 def get_google_client_id():
     return settings.GOOGLE_CLIENT_ID or os.environ.get("GOOGLE_CLIENT_ID", "").strip()
@@ -43,19 +42,28 @@ def auth_google():
     encoded_redirect = urllib.parse.quote(redirect_uri, safe='')
     encoded_scope = urllib.parse.quote("openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl", safe='')
 
+    state = secrets.token_urlsafe(32)
+    session['oauth_state'] = state
+    encoded_state = urllib.parse.quote(state, safe='')
+
     auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth?"
         f"response_type=code&client_id={client_id}&redirect_uri={encoded_redirect}&"
-        f"scope={encoded_scope}&access_type=offline&prompt=select_account%20consent"
+        f"scope={encoded_scope}&state={encoded_state}&access_type=offline&prompt=select_account%20consent"
     )
     return redirect(auth_url)
 
 
 @channel_seo_bp.route('/auth/callback', methods=['GET'])
 def auth_callback():
+    received_state = request.args.get('state')
+    expected_state = session.pop('oauth_state', None)
+    if not received_state or not expected_state or not hmac.compare_digest(received_state, expected_state):
+        return jsonify({"error": "Invalid, expired, or missing OAuth state parameter"}), 400
+
     code = request.args.get('code')
     if not code:
-        return "Missing auth code", 400
+        return jsonify({"error": "Missing auth code"}), 400
 
     token_url = "https://oauth2.googleapis.com/token"
     payload = {
@@ -77,7 +85,6 @@ def auth_callback():
     session['google_access_token'] = access_token
     if refresh_token:
         session['google_refresh_token'] = refresh_token
-    OAUTH_TOKENS['access_token'] = access_token
 
     # Fetch Google User Identity and login or create user
     try:
@@ -130,7 +137,7 @@ def auth_callback():
 
 @channel_seo_bp.route('/auth/status', methods=['GET'])
 def auth_status():
-    token = session.get('google_access_token') or OAUTH_TOKENS.get('access_token')
+    token = session.get('google_access_token')
     return jsonify({"authenticated": bool(token)})
 
 
@@ -138,7 +145,6 @@ def auth_status():
 def auth_disconnect():
     session.pop('google_access_token', None)
     session.pop('google_refresh_token', None)
-    OAUTH_TOKENS.clear()
     return jsonify({"success": True, "connected": False, "message": "Successfully disconnected YouTube channel."})
 
 
@@ -147,7 +153,7 @@ def auth_disconnect():
 # --------------------------------------------------------------------------
 @channel_seo_bp.route('/videos', methods=['GET'])
 def list_videos():
-    token = session.get('google_access_token') or OAUTH_TOKENS.get('access_token')
+    token = session.get('google_access_token')
     user_email = (session.get('email') or session.get('google_email') or "").lower().strip()
     api_key = os.environ.get("YOUTUBE_API_KEY", "").strip() or getattr(settings, "YOUTUBE_API_KEY", "")
 
@@ -266,7 +272,7 @@ def list_videos():
 
 @channel_seo_bp.route('/videos/<video_id>', methods=['GET'])
 def get_video_detail(video_id):
-    token = session.get('google_access_token') or OAUTH_TOKENS.get('access_token')
+    token = session.get('google_access_token')
     api_key = os.environ.get("YOUTUBE_API_KEY", "").strip() or getattr(settings, "YOUTUBE_API_KEY", "")
 
     headers = {"Authorization": f"Bearer {token}"} if token else {}
@@ -319,7 +325,7 @@ def get_video_detail(video_id):
 
 @channel_seo_bp.route('/videos/<video_id>', methods=['PUT'])
 def update_video_detail(video_id):
-    token = session.get('google_access_token') or OAUTH_TOKENS.get('access_token')
+    token = session.get('google_access_token')
     if not token:
         return jsonify({"error": "Google YouTube OAuth connection required to update video on YouTube. Please click 'Connect YouTube Channel'!"}), 401
 

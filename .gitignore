@@ -1,6 +1,34 @@
+# Environment and secrets
 .env
-backend/smtas.db
+.env.*
+!.env.example
+
+# Local SQLite databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/*.db
+backend/*.sqlite3
+
+# Runtime user and token caches
+backend/*tokens*.json
+backend/*users*.json
+*tokens*.json
+*users*.json
+
+# Generated exports and reports
 backend/exports/*.pdf
+backend/reports/
+reports/
+
+# Python cache and bytecode
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# OS artifacts
 .DS_Store
+Thumbs.db
+

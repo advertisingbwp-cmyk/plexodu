@@ -7,6 +7,53 @@
 
 const API = "/api";
 
+// ─── Security & Network Utilities ──────────────────────────────────────────
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  const d = document.createElement("div");
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
+function escapeAttr(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function sanitizeUrl(url) {
+  if (!url || typeof url !== "string") return "";
+  const trimmed = url.trim();
+  if (/^(?:javascript|data|vbscript):/i.test(trimmed)) {
+    return "";
+  }
+  return trimmed;
+}
+
+async function fetchWithTimeout(resource, options = {}, timeoutMs = 15000) {
+  const { timeout: _, ...fetchOptions } = options;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(resource, {
+      ...fetchOptions,
+      signal: controller.signal
+    });
+    return response;
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error(`Request timed out after ${timeoutMs / 1000}s`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 // ─── State ──────────────────────────────────────────────────────────────────
 let activeCharts          = [];
 let viralityCompareChartInst = null;
@@ -63,7 +110,7 @@ async function checkSession(retry = 1) {
   }
 
   try {
-    const res = await fetch(`${API}/session`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API}/session`, { credentials: "include" }, 8000);
     if (!res.ok) {
       return;
     }
@@ -72,7 +119,14 @@ async function checkSession(retry = 1) {
     localStorage.setItem("plexudo_user", JSON.stringify(u));
     if (nameEl)   nameEl.textContent   = u.name || "Creator";
     if (roleEl)   roleEl.textContent   = u.role || "Public Access";
-    if (avatarEl) avatarEl.textContent = (u.name || "P").charAt(0).toUpperCase();
+    if (avatarEl) {
+      const safeAvatar = sanitizeUrl(u.avatar_url);
+      if (safeAvatar) {
+        avatarEl.innerHTML = `<img src="${escapeAttr(safeAvatar)}" style="width:100%; height:100%; border-radius:14px; object-fit:cover;">`;
+      } else {
+        avatarEl.textContent = (u.name || "P").charAt(0).toUpperCase();
+      }
+    }
     if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits === 999 ? "∞" : u.credits;
   } catch (e) {
     console.warn("Session check note:", e);
@@ -81,7 +135,7 @@ async function checkSession(retry = 1) {
 
 async function handleLogout() {
   try {
-    await fetch(`${API}/logout`, { method: "POST", credentials: "include" });
+    await fetchWithTimeout(`${API}/logout`, { method: "POST", credentials: "include" }, 5000);
   } catch (e) {}
   localStorage.removeItem("plexudo_user");
   localStorage.removeItem("smtas_is_pro");
@@ -257,7 +311,7 @@ function updateHighlight(items) {
 
 async function fetchSuggestions(q) {
   try {
-    const res  = await fetch(`${API}/suggest?q=${encodeURIComponent(q)}`, { credentials: "include" });
+    const res  = await fetchWithTimeout(`${API}/suggest?q=${encodeURIComponent(q)}`, { credentials: "include" }, 5000);
     const data = await res.json();
     renderSuggestions(data.suggestions || []);
   } catch { closeSuggestions(); }
@@ -267,7 +321,7 @@ function renderSuggestions(list) {
   if (!list.length) { closeSuggestions(); return; }
   highlightedSuggestion = -1;
   suggestionsDropdown.innerHTML = list.map((s, i) => `
-    <div class="suggestion-item" data-value="${escapeHtml(s)}" data-index="${i}">
+    <div class="suggestion-item" data-value="${escapeAttr(s)}" data-index="${i}">
       <span class="sugg-icon">🔥</span>
       <span class="sugg-text">${escapeHtml(s)}</span>
       <span class="sugg-trending">TRENDING</span>
@@ -318,12 +372,12 @@ async function runAnalysis() {
   showStatus(`Fetching live YouTube Data API v3 for "${keyword}"…`);
 
   try {
-    const res  = await fetch(`${API}/search`, {
+    const res  = await fetchWithTimeout(`${API}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ keyword }),
-    });
+    }, 15000);
     const data = await res.json();
     if (!res.ok) { showStatus(data.error || "Something went wrong.", true); return; }
 
@@ -332,7 +386,7 @@ async function runAnalysis() {
     renderResults(data.results);
     loadHistory();
   } catch (err) {
-    showStatus("Network error while contacting the backend.", true);
+    showStatus(err.message || "Network error while contacting the backend.", true);
   } finally {
     analyzeBtn.classList.remove("loading");
     analyzeBtn.textContent = "Analyze Trend";
@@ -376,7 +430,7 @@ function renderResults(results) {
     div.className = "panel";
     div.innerHTML = `
       <div class="panel-header"><h3>YouTube API Error</h3></div>
-      <p style="color:var(--red); font-size:13.5px;">⚠ ${yt.message}</p>`;
+      <p style="color:var(--red); font-size:13.5px;">⚠ ${escapeHtml(yt.message || "An error occurred.")}</p>`;
     platformCards.appendChild(div);
     return;
   }
@@ -397,8 +451,8 @@ function renderResults(results) {
       </div>
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div class="export-btn-group">
-          <button class="export-btn pdf" onclick="exportReport(${yt.trend_id})">📄 Export PDF</button>
-          <button class="export-btn csv" onclick="exportCSV(${yt.trend_id})">📊 Export CSV</button>
+          <button class="export-btn pdf" onclick="exportReport(${Number(yt.trend_id) || 0})">📄 Export PDF</button>
+          <button class="export-btn csv" onclick="exportCSV(${Number(yt.trend_id) || 0})">📊 Export CSV</button>
         </div>
         <span class="panel-badge youtube">▶ LIVE YOUTUBE DATA</span>
       </div>
@@ -493,7 +547,7 @@ function renderResults(results) {
           ${(yt.seo_title_ideas || []).map(title => `
             <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-size:13px; color:#0f172a; font-weight:600; transition:all 0.15s ease;">
               <span style="flex:1; margin-right:10px; line-height:1.4;">${escapeHtml(title)}</span>
-              <button onclick="copyToClipboard('${escapeHtml(title)}')" style="background:#ffffff; border:1px solid #cbd5e1; color:#6366f1; cursor:pointer; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.04); white-space:nowrap;">Copy</button>
+              <button data-copy="${escapeAttr(title)}" onclick="copyToClipboard(this.dataset.copy)" style="background:#ffffff; border:1px solid #cbd5e1; color:#6366f1; cursor:pointer; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.04); white-space:nowrap;">Copy</button>
             </div>
           `).join("")}
         </div>
@@ -580,7 +634,7 @@ function renderResults(results) {
           <h3 style="font-size:15px; margin:0;">🏷️ Copyable YouTube Upload Tags &amp; Hashtags</h3>
           <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">Formatted for 1-click copy into YouTube Studio tag box</div>
         </div>
-        <button class="export-btn default" onclick="copyToClipboard('${escapeHtml(tagsString)}')" style="background:var(--primary); color:#ffffff; border:none; padding:9px 18px;">
+        <button class="export-btn default" data-copy="${escapeAttr(tagsString)}" onclick="copyToClipboard(this.dataset.copy)" style="background:var(--primary); color:#ffffff; border:none; padding:9px 18px;">
           📋 Copy All Tags
         </button>
       </div>
@@ -600,7 +654,7 @@ function renderResults(results) {
     relatedCard.className = "panel";
     relatedCard.style.marginTop = "20px";
     const relChipsHtml = relatedList.map(kw => `
-      <button class="toggle-chip" style="cursor:pointer; background:rgba(2,132,199,0.08); border-color:rgba(2,132,199,0.2); color:var(--cyan); font-size:12.5px; padding:8px 16px;" onclick="searchRelatedKeyword('${escapeHtml(kw)}')">
+      <button class="toggle-chip" style="cursor:pointer; background:rgba(2,132,199,0.08); border-color:rgba(2,132,199,0.2); color:var(--cyan); font-size:12.5px; padding:8px 16px;" data-kw="${escapeAttr(kw)}" onclick="searchRelatedKeyword(this.dataset.kw)">
         🔥 ${escapeHtml(kw)}
       </button>
     `).join("");
@@ -618,60 +672,75 @@ function renderResults(results) {
 
   // Line Chart — views over time (Smooth Spline Curve with Gradient Fill)
   const lineCanvas = document.getElementById(lineId);
-  const lineCtx = lineCanvas.getContext("2d");
-  
-  // Create beautiful gradient fill matching reference image
-  const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 240);
-  lineGradient.addColorStop(0, "rgba(99, 102, 241, 0.28)");
-  lineGradient.addColorStop(1, "rgba(99, 102, 241, 0.0)");
+  if (!lineCanvas) return;
 
-  activeCharts.push(new Chart(lineCtx, {
-    type: "line",
-    data: {
-      labels: yt.daily_metrics.map((d) => d.date),
-      datasets: [{
-        label: "Views",
-        data: yt.daily_metrics.map((d) => d.views),
-        borderColor: "#6366f1",
-        backgroundColor: lineGradient,
-        fill: true,
-        tension: 0.45,
-        borderWidth: 3,
-        pointRadius: 5,
-        pointHoverRadius: 8,
-        pointBackgroundColor: "#ffffff",
-        pointBorderColor: "#6366f1",
-        pointBorderWidth: 3,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "#1e1b4b",
-          titleColor: "#ffffff",
-          bodyColor: "#c7d2fe",
-          borderColor: "#4338ca",
-          borderWidth: 1,
-          padding: 12,
-          cornerRadius: 10,
-          displayColors: false
-        }
+  if (!yt.daily_metrics || yt.daily_metrics.length < 2) {
+    const chartWrap = lineCanvas.parentElement;
+    if (chartWrap) {
+      chartWrap.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; padding:20px; background:#f8fafc; border-radius:16px; border:1px dashed #cbd5e1;">
+          <div style="font-size:28px; margin-bottom:8px;">📊</div>
+          <div style="font-size:14px; font-weight:700; color:#1e293b;">Live Snapshot Recorded (${formatNum(yt.total_views)} Views)</div>
+          <div style="font-size:12px; color:#64748b; max-width:440px; margin-top:4px; line-height:1.5;">
+            Multi-day velocity series requires at least 2 authentic snapshots. Plexudo tracks authentic metrics rather than synthesizing fake historical data. Future recorded snapshots will map velocity curves over time.
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    const lineCtx = lineCanvas.getContext("2d");
+    const lineGradient = lineCtx.createLinearGradient(0, 0, 0, 240);
+    lineGradient.addColorStop(0, "rgba(99, 102, 241, 0.28)");
+    lineGradient.addColorStop(1, "rgba(99, 102, 241, 0.0)");
+
+    activeCharts.push(new Chart(lineCtx, {
+      type: "line",
+      data: {
+        labels: yt.daily_metrics.map((d) => d.date),
+        datasets: [{
+          label: "Views",
+          data: yt.daily_metrics.map((d) => d.views),
+          borderColor: "#6366f1",
+          backgroundColor: lineGradient,
+          fill: true,
+          tension: 0.45,
+          borderWidth: 3,
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          pointBackgroundColor: "#ffffff",
+          pointBorderColor: "#6366f1",
+          pointBorderWidth: 3,
+        }],
       },
-      scales: {
-        x: {
-          ticks: { color: "#64748b", font: { size: 11, weight: "600" } },
-          grid: { color: "#f1f5f9", drawBorder: false }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#1e1b4b",
+            titleColor: "#ffffff",
+            bodyColor: "#c7d2fe",
+            borderColor: "#4338ca",
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 10,
+            displayColors: false
+          }
         },
-        y: {
-          ticks: { color: "#64748b", font: { size: 11, weight: "600" }, callback: (v) => formatNum(v) },
-          grid: { color: "#f1f5f9", drawBorder: false }
+        scales: {
+          x: {
+            ticks: { color: "#64748b", font: { size: 11, weight: "600" } },
+            grid: { color: "#f1f5f9", drawBorder: false }
+          },
+          y: {
+            ticks: { color: "#64748b", font: { size: 11, weight: "600" }, callback: (v) => formatNum(v) },
+            grid: { color: "#f1f5f9", drawBorder: false }
+          },
         },
       },
-    },
-  }));
+    }));
+  }
 
   // Sentiment Doughnut Chart (Matching Reference Donut UI)
   const pieCtx = document.getElementById(pieId).getContext("2d");
@@ -738,12 +807,12 @@ async function executeChannelAudit() {
   resultsEl.style.display = "none";
 
   try {
-    const res  = await fetch(`${API}/audit-channel`, {
+    const res  = await fetchWithTimeout(`${API}/audit-channel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ identifier }),
-    });
+    }, 15000);
     const data = await res.json();
 
     if (!res.ok || data.error) {
@@ -760,8 +829,9 @@ async function executeChannelAudit() {
     renderChannelAudit(data, "28d");
 
   } catch (err) {
-    statusEl.textContent = "Network error while contacting the backend.";
+    statusEl.textContent = err.message || "Network error while contacting the backend.";
     statusEl.className   = "status-bar error";
+    emptyEl.style.display = "block";
   } finally {
     btn.textContent = "🔍 Audit Channel";
     btn.disabled    = false;
@@ -780,20 +850,24 @@ function renderChannelAudit(data, tf = "28d") {
   const earnMax = formatNum(data.earn_max_monthly);
 
   // Avatar HTML
-  const avatarHtml = data.avatar_url
-    ? `<img src="${data.avatar_url}" alt="${escapeHtml(data.channel_name)}" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #38bdf8;">`
-    : `<div style="width:72px; height:72px; border-radius:50%; background:#38bdf8; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900;">${(data.channel_name || "C").charAt(0)}</div>`;
+  const safeAvatar = sanitizeUrl(data.avatar_url);
+  const avatarHtml = safeAvatar
+    ? `<img src="${escapeAttr(safeAvatar)}" alt="${escapeHtml(data.channel_name)}" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #38bdf8;">`
+    : `<div style="width:72px; height:72px; border-radius:50%; background:#38bdf8; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:900;">${escapeHtml((data.channel_name || "C").charAt(0))}</div>`;
 
   // Country flag (basic mapping)
   const flagMap = { US:"🇺🇸", GB:"🇬🇧", PK:"🇵🇰", IN:"🇮🇳", CA:"🇨🇦", AU:"🇦🇺", DE:"🇩🇪", FR:"🇫🇷", BR:"🇧🇷", JP:"🇯🇵", KR:"🇰🇷", MX:"🇲🇽" };
   const flag = flagMap[data.country] || "🌍";
 
   // Top Videos Table
-  const topVideosHtml = (data.top_videos || []).map(v => `
-    <tr onclick="window.open('https://youtube.com/watch?v=${v.video_id}', '_blank')" style="cursor:pointer;">
+  const topVideosHtml = (data.top_videos || []).map(v => {
+    const safeThumb = sanitizeUrl(v.thumbnail);
+    const videoUrl = `https://youtube.com/watch?v=${encodeURIComponent(v.video_id || "")}`;
+    return `
+    <tr data-url="${escapeAttr(videoUrl)}" onclick="window.open(this.dataset.url, '_blank')" style="cursor:pointer;">
       <td>
         <div style="display:flex; align-items:center; gap:10px;">
-          ${v.thumbnail ? `<img src="${v.thumbnail}" alt="" style="width:80px; height:45px; border-radius:6px; object-fit:cover; flex-shrink:0;">` : '<div style="width:80px; height:45px; background:#e2e8f0; border-radius:6px; flex-shrink:0;"></div>'}
+          ${safeThumb ? `<img src="${escapeAttr(safeThumb)}" alt="" style="width:80px; height:45px; border-radius:6px; object-fit:cover; flex-shrink:0;">` : '<div style="width:80px; height:45px; background:#e2e8f0; border-radius:6px; flex-shrink:0;"></div>'}
           <div>
             <div style="font-weight:600; font-size:13px; line-height:1.4; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(v.title)}</div>
             <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${v.is_short ? '🩳 Short' : '🎬 Long Video'}</div>
@@ -803,7 +877,8 @@ function renderChannelAudit(data, tf = "28d") {
       <td><strong>${formatNum(v.views)}</strong></td>
       <td style="color:var(--green);">${formatNum(v.vph)}/hr</td>
     </tr>
-  `).join("");
+  `;
+  }).join("");
 
   // Content ring charts (SVG donut rings)
   const longformUploadPct = data.longform_pct || 0;
@@ -970,9 +1045,24 @@ function renderChannelAudit(data, tf = "28d") {
   `;
 
   // Render channel growth line chart
-  if (typeof Chart !== "undefined" && growthSeries && growthSeries.length) {
-    if (channelGrowthChart) { channelGrowthChart.destroy(); channelGrowthChart = null; }
-    const ctx = document.getElementById("channelGrowthChart").getContext("2d");
+  const growthCanvas = document.getElementById("channelGrowthChart");
+  if (channelGrowthChart) { channelGrowthChart.destroy(); channelGrowthChart = null; }
+
+  if (!growthSeries || growthSeries.length < 2) {
+    const chartWrap = growthCanvas?.parentElement;
+    if (chartWrap) {
+      chartWrap.innerHTML = `
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; text-align:center; padding:20px; background:#f8fafc; border-radius:16px; border:1px dashed #cbd5e1;">
+          <div style="font-size:24px; margin-bottom:6px;">📈</div>
+          <div style="font-size:13.5px; font-weight:700; color:#1e293b;">Public Snapshot Recorded (${formatNum(data.total_views)} Total Views)</div>
+          <div style="font-size:12px; color:#64748b; max-width:440px; margin-top:4px; line-height:1.5;">
+            Third-party daily channel progression requires channel owner YouTube Analytics OAuth access. Plexudo does not synthesize artificial view curves. Live cumulative totals and top videos are actively tracked.
+          </div>
+        </div>
+      `;
+    }
+  } else if (typeof Chart !== "undefined" && growthCanvas) {
+    const ctx = growthCanvas.getContext("2d");
     channelGrowthChart = new Chart(ctx, {
       type: "line",
       data: {
@@ -989,7 +1079,7 @@ function renderChannelAudit(data, tf = "28d") {
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1e293b", borderColor: "#e2e8f0", borderWidth: 1 } },
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: "#1e1b4b", borderColor: "#e2e8f0", borderWidth: 1 } },
         scales: {
           x: { ticks: { color: "#64748b", font: { size: 10 }, maxTicksLimit: 10 }, grid: { color: "#f1f5f9" } },
           y: { ticks: { color: "#64748b", font: { size: 10 } }, grid: { color: "#f1f5f9" } },
@@ -1012,7 +1102,7 @@ async function loadKeywordComparison() {
   const tableBody = document.getElementById("comparisonTableBody");
 
   try {
-    const res  = await fetch(`${API}/compare-keywords`, { credentials: "include" });
+    const res  = await fetchWithTimeout(`${API}/compare-keywords`, { credentials: "include" }, 8000);
     const data = await res.json();
 
     if (!data.comparison || data.comparison.length < 2) {
@@ -1063,8 +1153,8 @@ async function loadKeywordComparison() {
         <td>${formatNum(c.total_views)}</td>
         <td>${c.growth_rate}%</td>
         <td><strong style="color:var(--cyan);">${c.virality_score}/100</strong></td>
-        <td><span class="badge ${c.stage === 'Rising' ? 'positive' : 'neutral'}">${c.stage}</span></td>
-        <td><span class="badge ${c.dominant_sentiment === 'positive' ? 'positive' : 'negative'}">${c.dominant_sentiment}</span></td>
+        <td><span class="badge ${c.stage === 'Rising' ? 'positive' : 'neutral'}">${escapeHtml(c.stage)}</span></td>
+        <td><span class="badge ${c.dominant_sentiment === 'positive' ? 'positive' : 'negative'}">${escapeHtml(c.dominant_sentiment)}</span></td>
       </tr>
     `).join("");
 
@@ -1077,7 +1167,7 @@ async function loadKeywordComparison() {
 // ─── History ─────────────────────────────────────────────────────────────────
 async function loadHistory() {
   try {
-    const res  = await fetch(`${API}/trends`, { credentials: "include" });
+    const res  = await fetchWithTimeout(`${API}/trends`, { credentials: "include" }, 8000);
     if (!res.ok) return;
     const data = await res.json();
     historyBody.innerHTML = "";
@@ -1095,12 +1185,12 @@ async function loadHistory() {
         <td>${formatNum(t.total_views)}</td>
         <td>${t.growth_rate}%</td>
         <td><strong style="color:var(--cyan);">${t.virality_score}</strong></td>
-        <td><span class="badge ${sentClass}">${t.dominant_sentiment}</span></td>
-        <td class="text-muted">${t.timestamp}</td>
+        <td><span class="badge ${sentClass}">${escapeHtml(t.dominant_sentiment)}</span></td>
+        <td class="text-muted">${escapeHtml(t.timestamp)}</td>
         <td>
           <div class="export-btn-group">
-            <button class="export-btn pdf" onclick="exportReport(${t.trend_id})" title="Download PDF">PDF</button>
-            <button class="export-btn csv" onclick="exportCSV(${t.trend_id})"    title="Download CSV">CSV</button>
+            <button class="export-btn pdf" onclick="exportReport(${Number(t.trend_id) || 0})" title="Download PDF">PDF</button>
+            <button class="export-btn csv" onclick="exportCSV(${Number(t.trend_id) || 0})"    title="Download CSV">CSV</button>
           </div>
         </td>`;
       historyBody.appendChild(row);
@@ -1154,18 +1244,18 @@ async function sendChatMessage() {
   chatSendBtn.disabled = true;
 
   try {
-    const res  = await fetch(`${API}/chat`, {
+    const res  = await fetchWithTimeout(`${API}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ message, context: chatContext }),
-    });
+    }, 15000);
     const data = await res.json();
     removeTyping(typingId);
     appendChatMessage("ai", data.reply || "⚠ No response received.");
   } catch (err) {
     removeTyping(typingId);
-    appendChatMessage("ai", "❌ Could not reach the backend server.");
+    appendChatMessage("ai", `❌ ${err.message || "Could not reach the backend server."}`);
   } finally {
     chatSendBtn.disabled = false;
   }
@@ -1224,7 +1314,7 @@ function formatChatText(text) {
 async function loadAuditLog() {
   auditTimeline.innerHTML = `<div class="text-muted" style="padding:20px; text-align:center;">Loading…</div>`;
   try {
-    const res  = await fetch(`${API}/audit-log`, { credentials: "include" });
+    const res  = await fetchWithTimeout(`${API}/audit-log`, { credentials: "include" }, 8000);
     const data = await res.json();
 
     if (!data.logs || !data.logs.length) {
@@ -1244,11 +1334,11 @@ async function loadAuditLog() {
         <div class="audit-entry">
           <div class="audit-dot ${log.action}" style="background:${col};"></div>
           <div class="audit-body">
-            <div class="audit-action ${log.action}">${log.action.replace("_", " ")}</div>
+            <div class="audit-action ${log.action}">${escapeHtml(log.action.replace("_", " "))}</div>
             <div class="audit-details">${escapeHtml(log.details) || "—"}</div>
             <div class="audit-meta">
-              <span>🕐 ${log.timestamp}</span>
-              <span>🌐 ${log.ip_address}</span>
+              <span>🕐 ${escapeHtml(log.timestamp)}</span>
+              <span>🌐 ${escapeHtml(log.ip_address)}</span>
             </div>
           </div>
         </div>`;
@@ -1286,13 +1376,6 @@ function formatNum(n) {
   return String(n);
 }
 
-function escapeHtml(str) {
-  if (typeof str !== "string") return str;
-  const d = document.createElement("div");
-  d.textContent = str;
-  return d.innerHTML;
-}
-
 // ─── Video Analysis ───────────────────────────────────────────────────────────
 function runVideoAnalysis() {
   const input = document.getElementById("videoAnalysisInput");
@@ -1328,16 +1411,16 @@ async function executeVideoAnalysis() {
   resultsEl.style.display = "none";
 
   try {
-    const res  = await fetch(`${API}/video-analysis`, {
+    const res  = await fetchWithTimeout(`${API}/video-analysis`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ url }),
-    });
+    }, 15000);
     const data = await res.json();
 
-    if (data.error || data.message) {
-      statusEl.textContent = `⚠ ${data.message || "Analysis failed."}`;
+    if (!res.ok || data.error || data.message) {
+      statusEl.textContent = `⚠ ${data.message || data.error || "Analysis failed."}`;
       statusEl.className   = "status-bar error";
       emptyEl.style.display = "";
       return;
@@ -1349,7 +1432,7 @@ async function executeVideoAnalysis() {
     resultsEl.style.display = "";
 
   } catch (e) {
-    statusEl.textContent = `⚠ Network error: ${e.message}`;
+    statusEl.textContent = `⚠ Network error: ${e.message || "Failed to contact backend."}`;
     statusEl.className   = "status-bar error";
     emptyEl.style.display = "";
   } finally {
@@ -1380,40 +1463,44 @@ function renderVideoAnalysis(d) {
     <div style="background:var(--bg-panel-2); border-radius:12px; padding:12px 14px; margin-bottom:10px; border:1px solid var(--border);">
       <div style="font-size:12px; font-weight:700; color:var(--cyan); margin-bottom:4px;">👤 ${escapeHtml(c.author || "Anonymous")}</div>
       <div style="font-size:13px; color:var(--text); line-height:1.5;">${escapeHtml((c.text || "").substring(0, 200))}</div>
-      ${c.likes > 0 ? `<div style="font-size:11px; color:var(--text-muted); margin-top:6px;">👍 ${c.likes} likes</div>` : ""}
+      ${c.likes > 0 ? `<div style="font-size:11px; color:var(--text-muted); margin-top:6px;">👍 ${Number(c.likes) || 0} likes</div>` : ""}
     </div>`).join("") || "<div style='color:var(--text-muted);font-size:13px;padding:12px 0;'>No comments available.</div>";
 
   const sampleComments = (sent.sample_comments || []).map(sc => {
     const col = sc.sentiment === "positive" ? "#059669" : sc.sentiment === "negative" ? "#e11d48" : "#0284c7";
     const em  = sc.sentiment === "positive" ? "😊" : sc.sentiment === "negative" ? "😠" : "😐";
     return `<div style="background:var(--bg-panel-2); border-radius:12px; padding:12px 14px; margin-bottom:8px; border-left:3px solid ${col};">
-      <span style="font-size:11px;font-weight:700;color:${col};text-transform:uppercase;">${em} ${sc.sentiment}</span>
+      <span style="font-size:11px;font-weight:700;color:${col};text-transform:uppercase;">${em} ${escapeHtml(sc.sentiment)}</span>
       <div style="font-size:13px;color:var(--text);margin-top:4px;line-height:1.5;">${escapeHtml((sc.text||"").substring(0,200))}</div>
     </div>`;
   }).join("");
+
+  const safeThumb = sanitizeUrl(d.thumbnail);
+  const safeChannelId = encodeURIComponent(d.channel_id || "");
+  const safeVideoId = encodeURIComponent(d.video_id || "");
 
   resultsEl.innerHTML = `
     <!-- Video Hero Card -->
     <div class="panel" style="margin-bottom:20px; overflow:hidden;">
       <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;">
-        ${d.thumbnail ? `<img src="${d.thumbnail}" alt="thumbnail" class="video-thumbnail-card">` : ""}
+        ${safeThumb ? `<img src="${escapeAttr(safeThumb)}" alt="thumbnail" class="video-thumbnail-card">` : ""}
         <div style="flex:1; min-width:0;">
           <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
             <span style="background:#ff0000; color:#fff; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">▶ YouTube</span>
             ${d.is_short ? `<span style="background:#f3e8ff; color:#7c3aed; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">📱 Short</span>` : `<span style="background:#e0f2fe; color:#0284c7; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700;">🎥 Long-form</span>`}
           </div>
           <h2 style="font-size:17px; font-weight:700; color:var(--text); margin-bottom:10px; line-height:1.4;">${escapeHtml(d.title)}</h2>
-          <a href="https://www.youtube.com/channel/${d.channel_id}" target="_blank"
+          <a href="https://www.youtube.com/channel/${safeChannelId}" target="_blank" rel="noopener noreferrer"
              style="font-size:13px; color:var(--cyan); font-weight:600; text-decoration:none;">
             📺 ${escapeHtml(d.channel_name)}
           </a>
           <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:12px; color:var(--text-muted);">
-            <span>📅 ${d.upload_date}</span>
-            <span>⏱ ${d.duration}</span>
+            <span>📅 ${escapeHtml(d.upload_date)}</span>
+            <span>⏱ ${escapeHtml(d.duration)}</span>
             <span>👥 ${formatNum(d.subscriber_count)} subscribers</span>
           </div>
           <div style="margin-top:12px;">
-            <a href="https://www.youtube.com/watch?v=${d.video_id}" target="_blank"
+            <a href="https://www.youtube.com/watch?v=${safeVideoId}" target="_blank" rel="noopener noreferrer"
                style="display:inline-block; padding:8px 18px; background:#ff0000; color:#fff; border-radius:10px; font-size:13px; font-weight:700; text-decoration:none;">
               ▶ Watch on YouTube
             </a>
@@ -1614,7 +1701,7 @@ async function openProfileModal() {
   const modal = document.getElementById("profileModal");
   if (!modal) return;
   try {
-    const res = await fetch(`${API}/session`, { credentials: "include" });
+    const res = await fetchWithTimeout(`${API}/session`, { credentials: "include" }, 8000);
     const data = await res.json();
     if (data && data.user) {
       currentProfileUser = data.user;
@@ -1629,8 +1716,9 @@ async function openProfileModal() {
       if (nameEl) nameEl.textContent = u.name || "Creator";
       if (emailEl) emailEl.textContent = u.email || "user@example.com";
       if (avatarEl) {
-        if (u.avatar_url) {
-          avatarEl.innerHTML = `<img src="${u.avatar_url}" style="width:100%; height:100%; border-radius:14px; object-fit:cover;">`;
+        const safeAvatar = sanitizeUrl(u.avatar_url);
+        if (safeAvatar) {
+          avatarEl.innerHTML = `<img src="${escapeAttr(safeAvatar)}" style="width:100%; height:100%; border-radius:14px; object-fit:cover;">`;
         } else {
           avatarEl.textContent = (u.name || "U").charAt(0).toUpperCase();
         }
@@ -1700,12 +1788,12 @@ async function handlePasswordChange(e) {
   feedback.textContent = "Updating password...";
 
   try {
-    const res = await fetch(`${API}/change-password`, {
+    const res = await fetchWithTimeout(`${API}/change-password`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
-    });
+    }, 10000);
     const data = await res.json();
     if (res.ok) {
       feedback.style.background = "#ecfdf5";
@@ -1723,36 +1811,35 @@ async function handlePasswordChange(e) {
   } catch (err) {
     feedback.style.background = "#fef2f2";
     feedback.style.color = "#dc2626";
-    feedback.textContent = "Network error. Please try again.";
+    feedback.textContent = err.message || "Network error. Please try again.";
   }
 }
 
 async function resendAccountVerification() {
   if (!currentProfileUser || !currentProfileUser.email) return;
   try {
-    const res = await fetch(`${API}/v1/auth/resend-verification`, {
+    const res = await fetchWithTimeout(`${API}/v1/auth/resend-verification`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: currentProfileUser.email })
-    });
+    }, 10000);
     alert("✉️ If your email is pending verification, a new verification link has been sent.");
   } catch (e) {
     alert("❌ Error sending verification email. Please try again.");
   }
 }
 
-
 async function promptDeleteAccount() {
   const pwd = prompt("⚠️ WARNING: This will permanently delete your Plexudo account and all associated data.\n\nPlease enter your password to confirm:");
   if (!pwd) return;
 
   try {
-    const res = await fetch(`${API}/delete-account`, {
+    const res = await fetchWithTimeout(`${API}/delete-account`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ password: pwd })
-    });
+    }, 10000);
     const data = await res.json();
     if (res.ok) {
       alert("✅ Your account has been deleted.");

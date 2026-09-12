@@ -13,9 +13,10 @@ import json
 import uuid
 from datetime import datetime, date, timedelta
 
-from flask import Flask, request, jsonify, session, send_from_directory, Response, redirect
+from flask import Flask, request, jsonify, session, send_from_directory, send_file, Response, redirect
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 
 sys.path.append(os.path.dirname(__file__))
@@ -32,7 +33,8 @@ from services.trend_engine import (
     classify_trend_stage,
     total_views,
 )
-from services.report_generator import generate_pdf_report
+from services.report_generator import generate_pdf_report, generate_pdf_report_buffer
+from services.channel_seo_service import channel_seo_bp
 from services.groq_service import chat_with_groq          # Groq AI Service (Llama 3.3 70B)
 
 from services.security_guard import (
@@ -202,17 +204,41 @@ def _grant_credits_authoritative(user, amount, provider, reward_type, session_id
 
 
 app = Flask(__name__, static_folder=None)
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+
+# ProxyFix for secure reverse-proxy deployments (e.g. Vercel, Nginx, Render)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# Database Configuration (PostgreSQL with pooling when DATABASE_URL is set, SQLite fallback)
+database_uri = settings.DATABASE_URL if settings.DATABASE_URL else f"sqlite:///{DB_PATH}"
+app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+if database_uri.startswith("postgresql"):
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 30,
+        "pool_recycle": 1800,
+        "pool_pre_ping": True,
+    }
+else:
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+    }
+
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
-app.secret_key = os.environ.get("SECRET_KEY", "plexudo-production-secret-key-2026")
+app.secret_key = settings.SECRET_KEY
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = bool(os.environ.get("VERCEL"))
+app.config["SESSION_COOKIE_SECURE"] = settings.IS_PRODUCTION
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 
-CORS(app, supports_credentials=True)
+_CORS_ORIGINS = [o.strip() for o in os.environ.get(
+    "CORS_ALLOWED_ORIGINS",
+    "https://plexudo.vercel.app,http://localhost:5000,http://127.0.0.1:5000,http://localhost:5173"
+).split(",") if o.strip()]
+CORS(app, supports_credentials=True, origins=_CORS_ORIGINS)
 db.init_app(app)
+app.register_blueprint(channel_seo_bp)
 
 from services.title_intelligence import generate_context_aware_titles
 from services.email_service import (
@@ -289,8 +315,58 @@ def _log_action(action: str, details: str = ""):
         pass
 
 
-def login_required():
-    return True
+def login_required() -> bool:
+    """Validate that the current request has an authenticated session."""
+    return bool(session.get("user_id"))
+
+
+def _deduct_credits_atomic(user_id: int, amount: int = 1) -> tuple[bool, str]:
+    """
+    Atomically deduct credits using SQL-level WHERE clause to guarantee no race condition
+    and prevent negative balance:
+    UPDATE users SET credits = credits - amount WHERE id = :user_id AND credits >= :amount;
+    Returns (True, "") on success, (False, error_msg) on failure.
+    """
+    if not user_id or amount <= 0:
+        return False, "Invalid credit deduction parameters"
+    try:
+        updated_rows = User.query.filter(
+            User.id == user_id,
+            User.credits >= amount
+        ).update(
+            {User.credits: User.credits - amount},
+            synchronize_session="fetch"
+        )
+        db.session.commit()
+        if updated_rows == 0:
+            return False, "Insufficient credits"
+        _log_action("CREDIT_DEDUCTED", f"User {user_id} spent {amount} credit(s)")
+        return True, ""
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Credit deduction error: {str(e)}"
+
+
+def _refund_credits_atomic(user_id: int, amount: int = 1, reason: str = "") -> tuple[bool, str]:
+    """
+    Atomically refund credits using SQL-level increment:
+    UPDATE users SET credits = credits + amount WHERE id = :user_id;
+    """
+    if not user_id or amount <= 0:
+        return False, "Invalid credit refund parameters"
+    try:
+        updated_rows = User.query.filter(User.id == user_id).update(
+            {User.credits: User.credits + amount},
+            synchronize_session="fetch"
+        )
+        db.session.commit()
+        if updated_rows == 0:
+            return False, "User not found for refund"
+        _log_action("CREDIT_REFUNDED", f"Refunded {amount} credit(s) to user {user_id}. Reason: {reason}")
+        return True, ""
+    except Exception as e:
+        db.session.rollback()
+        return False, f"Credit refund error: {str(e)}"
 
 
 
@@ -439,8 +515,13 @@ def register():
         "message": "Account created! We've sent a verification link to your email. Please verify your email to activate your account and claim your 3 free credits.",
         "requires_verification": True,
         "email": email,
-        "verification_token": verify_token,
-        "user": {"name": user.name, "email": user.email, "role": user.role, "email_verified": False}
+        "user": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "email_verified": False
+        }
     }), 201
 
 
@@ -532,50 +613,33 @@ def get_session():
     user_email = session.get("email")
     if not user_id or not user_email:
         return jsonify({
-            "authenticated": True,
-            "is_guest": True,
-            "user": {
-                "id": 0,
-                "name": "Creator",
-                "email": "creator@plexudo.com",
-                "role": "Public Access",
-                "credits": 999,
-                "email_verified": True,
-                "avatar_url": None
-            }
+            "authenticated": False,
+            "user": None
         }), 200
 
-    user = User.query.filter_by(email=user_email.lower()).first()
+    user = db.session.get(User, user_id)
+    if not user:
+        user = User.query.filter_by(email=user_email.lower()).first()
     if not user:
         user = _load_user_cache(user_email)
 
     if not user:
-        try:
-            user = User(
-                name=session.get("name", "Creator"),
-                email=user_email.lower(),
-                password_hash="",
-                role=session.get("role", "Creator"),
-                email_verified=session.get("email_verified", True),
-                credits=session.get("credits", 3)
-            )
-            db.session.add(user)
-            db.session.commit()
-            _persist_user_cache(user)
-        except Exception:
-            db.session.rollback()
-            user = User.query.filter_by(email=user_email.lower()).first()
+        session.clear()
+        return jsonify({
+            "authenticated": False,
+            "user": None
+        }), 200
 
     return jsonify({
         "authenticated": True,
         "user": {
-            "id": user.id if user else user_id,
-            "name": user.name if user else session.get("name", "Creator"),
-            "email": user.email if user else user_email,
-            "role": user.role if user else session.get("role", "Creator"),
-            "credits": user.credits if user and user.credits is not None else session.get("credits", 3),
-            "email_verified": user.email_verified if user else session.get("email_verified", True),
-            "avatar_url": user.avatar_url if user else None
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "credits": user.credits if user.credits is not None else 0,
+            "email_verified": user.email_verified,
+            "avatar_url": user.avatar_url
         }
     }), 200
 
@@ -812,8 +876,22 @@ def search_trend():
 
     keyword = validate_keyword_input(data.get("keyword", ""))
 
+    user_id = session.get("user_id")
+    deducted, err = _deduct_credits_atomic(user_id, amount=1)
+    if not deducted:
+        return jsonify({"error": "Insufficient credits to perform trend search. Please recharge.", "insufficient_credits": True}), 402
+
     results = {}
-    results["YouTube"] = _process_platform(keyword, "YouTube", fetch_youtube_data)
+    search_result = _process_platform(keyword, "YouTube", fetch_youtube_data)
+    results["YouTube"] = search_result
+
+    if search_result.get("error"):
+        _refund_credits_atomic(user_id, amount=1, reason=f"YouTube search failed for {keyword}")
+        if search_result.get("status") == 429 or search_result.get("quota_exceeded"):
+            return jsonify({
+                "error": search_result.get("message", "YouTube API daily quota reached. Please try again later."),
+                "quota_exceeded": True
+            }), 429
 
     _log_action("SEARCH", f"keyword={keyword} platform=YouTube")
     return jsonify({"keyword": keyword, "results": results})
@@ -827,7 +905,12 @@ def _process_platform(keyword, platform_name, fetch_fn):
         return {"error": True, "message": f"Could not fetch {platform_name} data: {str(e)}"}
 
     if raw.get("status") != 200:
-        return {"error": True, "message": raw.get("error", f"{platform_name} API request failed.")}
+        return {
+            "error": True,
+            "message": raw.get("error", f"{platform_name} API request failed."),
+            "status": raw.get("status"),
+            "quota_exceeded": raw.get("quota_exceeded", False)
+        }
 
     growth_rate = calculate_growth_rate(raw["daily_metrics"])
     virality = calculate_virality_index(raw["daily_metrics"])
@@ -912,18 +995,15 @@ def _process_platform(keyword, platform_name, fetch_fn):
 @app.route("/api/trends", methods=["GET"])
 def list_trends():
     user_id = session.get("user_id")
-    if user_id:
-        trends = Trend.query.filter_by(created_by=user_id).order_by(Trend.timestamp.desc()).limit(50).all()
-    else:
-        trends = Trend.query.order_by(Trend.timestamp.desc()).limit(50).all()
+    if not user_id:
+        return jsonify({"trends": []})
+
+    trends = Trend.query.filter_by(created_by=user_id).order_by(Trend.timestamp.desc()).limit(50).all()
 
     output = []
     for t in trends:
         sentiment = Sentiment.query.filter_by(trend_id=t.trend_id).first()
         growth = t.growth_rate
-        if abs(growth - 21.85) < 0.01:
-            kw_hash = (sum(ord(c) for c in t.keyword) * 17 + t.trend_id * 31) % 45
-            growth = round(12.5 + kw_hash * 0.85, 2)
         output.append({
             "trend_id": t.trend_id,
             "keyword": t.keyword,
@@ -943,22 +1023,19 @@ def list_trends():
 @app.route("/api/compare-keywords", methods=["GET"])
 def compare_keywords():
     user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"comparison": []})
+
     ids_param = request.args.get("ids", "")
     if ids_param:
         try:
             ids = [int(i) for i in ids_param.split(",") if i.strip()]
-            if user_id:
-                trends = Trend.query.filter(Trend.trend_id.in_(ids), Trend.created_by == user_id).all()
-            else:
-                trends = Trend.query.filter(Trend.trend_id.in_(ids)).all()
+            trends = Trend.query.filter(Trend.trend_id.in_(ids), Trend.created_by == user_id).all()
         except ValueError:
             trends = []
     else:
-        # Default: latest 6 unique keywords
-        if user_id:
-            trends = Trend.query.filter_by(created_by=user_id).order_by(Trend.timestamp.desc()).limit(6).all()
-        else:
-            trends = Trend.query.order_by(Trend.timestamp.desc()).limit(6).all()
+        # Default: latest 6 unique keywords for current user
+        trends = Trend.query.filter_by(created_by=user_id).order_by(Trend.timestamp.desc()).limit(6).all()
 
     comparison_data = []
     for t in trends:
@@ -969,12 +1046,8 @@ def compare_keywords():
         virality = t.virality_score
         if metrics and len(metrics) >= 2:
             d_metrics = [{"views": m.views, "likes": m.likes, "shares": m.shares, "comments_count": m.comments_count} for m in metrics]
-            calc_g = calculate_growth_rate(d_metrics)
-            if abs(calc_g - 21.85) < 0.01:
-                kw_hash = (sum(ord(c) for c in t.keyword) * 17 + t.trend_id * 31) % 45
-                growth = round(12.5 + kw_hash * 0.85, 2)
-            else:
-                growth = calc_g
+            growth = calculate_growth_rate(d_metrics)
+            virality = calculate_virality_index(d_metrics)
 
         comparison_data.append({
             "trend_id": t.trend_id,
@@ -998,39 +1071,53 @@ def generate_report(trend_id):
     if not login_required():
         return jsonify({"error": "Authentication required"}), 401
 
-    trend = db.session.get(Trend, trend_id)
-    if not trend:
-        return jsonify({"error": "Trend not found"}), 404
-
-    sentiment = Sentiment.query.filter_by(trend_id=trend_id).first()
-    sentiment_dict = {
-        "positive_score": sentiment.positive_score,
-        "negative_score": sentiment.negative_score,
-        "neutral_score": sentiment.neutral_score,
-        "dominant_sentiment": sentiment.dominant_sentiment,
-    } if sentiment else {"positive_score": 0, "negative_score": 0, "neutral_score": 0, "dominant_sentiment": "n/a"}
-
-    trend_dict = {
-        "keyword": trend.keyword,
-        "platform": trend.platform,
-        "total_views": trend.total_views,
-    }
-    stage = classify_trend_stage(trend.growth_rate)
-
-    user_email = session.get("email", "creator@plexudo.com")
     user_id = session.get("user_id")
+    trend = Trend.query.filter_by(trend_id=trend_id, created_by=user_id).first()
+    if not trend:
+        return jsonify({"error": "Trend report not found"}), 404
 
-    filename, file_path = generate_pdf_report(
-        trend_dict, sentiment_dict, trend.growth_rate, trend.virality_score, stage, user_email
-    )
+    # Atomic credit deduction for report export
+    deducted, err = _deduct_credits_atomic(user_id, amount=1)
+    if not deducted:
+        return jsonify({"error": "Insufficient credits to generate report. Please upgrade or earn credits.", "insufficient_credits": True}), 402
 
-    report = Report(trend_id=trend_id, generated_by=user_id, format="PDF", file_path=file_path)
-    db.session.add(report)
-    db.session.commit()
-    _log_action("EXPORT_PDF", f"trend_id={trend_id} keyword={trend.keyword}")
+    try:
+        sentiment = Sentiment.query.filter_by(trend_id=trend_id).first()
+        sentiment_dict = {
+            "positive_score": sentiment.positive_score,
+            "negative_score": sentiment.negative_score,
+            "neutral_score": sentiment.neutral_score,
+            "dominant_sentiment": sentiment.dominant_sentiment,
+        } if sentiment else {"positive_score": 0, "negative_score": 0, "neutral_score": 0, "dominant_sentiment": "n/a"}
 
-    exports_dir = os.path.join(DATA_DIR, "exports")
-    return send_from_directory(exports_dir, filename, as_attachment=True)
+        trend_dict = {
+            "keyword": trend.keyword,
+            "platform": trend.platform,
+            "total_views": trend.total_views,
+        }
+        stage = classify_trend_stage(trend.growth_rate)
+
+        user_email = session.get("email", "creator@plexudo.com")
+
+        filename, buffer = generate_pdf_report_buffer(
+            trend_dict, sentiment_dict, trend.growth_rate, trend.virality_score, stage, user_email
+        )
+
+        report = Report(trend_id=trend_id, generated_by=user_id, format="PDF", file_path=f"memory://{filename}")
+        db.session.add(report)
+        db.session.commit()
+        _log_action("EXPORT_PDF", f"trend_id={trend_id} keyword={trend.keyword}")
+
+        return send_file(
+            buffer,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=filename,
+        )
+    except Exception as e:
+        _refund_credits_atomic(user_id, amount=1, reason=f"PDF generation failed: {str(e)}")
+        app.logger.error(f"Failed to generate PDF report: {e}")
+        return jsonify({"error": "Failed to generate report"}), 500
 
 
 @app.route("/api/export-csv/<int:trend_id>", methods=["GET"])
@@ -1038,9 +1125,10 @@ def export_csv(trend_id):
     if not login_required():
         return jsonify({"error": "Authentication required"}), 401
 
-    trend = db.session.get(Trend, trend_id)
+    user_id = session.get("user_id")
+    trend = Trend.query.filter_by(trend_id=trend_id, created_by=user_id).first()
     if not trend:
-        return jsonify({"error": "Trend not found"}), 404
+        return jsonify({"error": "Trend report not found"}), 404
 
     sentiment = Sentiment.query.filter_by(trend_id=trend_id).first()
     metrics = Metric.query.filter_by(trend_id=trend_id).order_by(Metric.recorded_date).all()
@@ -1114,7 +1202,15 @@ def ai_chat():
     if len(message) > 1000:
         return jsonify({"error": "Message exceeds maximum length (1,000 characters)"}), 400
 
+    user_id = session.get("user_id")
+    deducted, err = _deduct_credits_atomic(user_id, amount=1)
+    if not deducted:
+        return jsonify({"error": "Insufficient credits for AI analysis. Please recharge.", "insufficient_credits": True}), 402
+
     result = chat_with_groq(message, trend_context)
+    if result.get("error"):
+        _refund_credits_atomic(user_id, amount=1, reason="Groq AI call failed")
+
     _log_action("CHAT", f"msg_preview={message[:80]}")
     return jsonify(result)
 
@@ -1268,21 +1364,16 @@ def video_analysis():
 @app.route("/api/audit-log", methods=["GET"])
 def get_audit_log():
     user_id = session.get("user_id")
-    if user_id:
-        logs = (
-            AuditLog.query
-            .filter_by(user_id=user_id)
-            .order_by(AuditLog.timestamp.desc())
-            .limit(100)
-            .all()
-        )
-    else:
-        logs = (
-            AuditLog.query
-            .order_by(AuditLog.timestamp.desc())
-            .limit(50)
-            .all()
-        )
+    if not user_id:
+        return jsonify({"logs": []})
+
+    logs = (
+        AuditLog.query
+        .filter_by(user_id=user_id)
+        .order_by(AuditLog.timestamp.desc())
+        .limit(100)
+        .all()
+    )
     output = []
     for log in logs:
         output.append({
@@ -1301,15 +1392,9 @@ def get_audit_log():
 def create_tables():
     with app.app_context():
         db.create_all()
-        if not User.query.filter_by(email="fahad@smtas.com").first():
-            default = User(
-                name="Fahad Saleem",
-                email="fahad@smtas.com",
-                password_hash=generate_password_hash("smtas2024"),
-                role="Digital Marketer",
-            )
-            db.session.add(default)
-            db.session.commit()
+        # NOTE: No default accounts are seeded. All user accounts must be
+        # created through the normal registration flow or via environment
+        # variable-controlled seed scripts in controlled deployment pipelines.
 
 
 create_tables()

@@ -14,26 +14,38 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
 SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
-SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "advertisingbwp@gmail.com")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "kehkdtrtkolwebup")
+SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "").strip()
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "").strip()
 SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
-EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS", "advertisingbwp@gmail.com")
-EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "Plexudo")
-BASE_URL = os.environ.get("BASE_URL", "https://plexudo.vercel.app")
+EMAIL_FROM_ADDRESS = os.environ.get("EMAIL_FROM_ADDRESS", "").strip()
+EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "Plexudo").strip()
+BASE_URL = os.environ.get("BASE_URL", "https://plexudo.vercel.app").strip()
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@plexudo.com").strip()
 
 
 def send_email(to_email: str, subject: str, html_content: str, text_content: str = "") -> bool:
     """Dispatches email safely with full UTF-8 and serverless compatibility."""
-    if not SMTP_USERNAME or not SMTP_PASSWORD:
-        print("[EMAIL_WARN] SMTP credentials not configured.")
+    smtp_user = os.environ.get("SMTP_USERNAME", "").strip()
+    smtp_pass = os.environ.get("SMTP_PASSWORD", "").strip()
+    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com").strip()
+    try:
+        smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    except (ValueError, TypeError):
+        smtp_port = 587
+    use_tls = os.environ.get("SMTP_USE_TLS", "true").lower() == "true"
+    from_addr = os.environ.get("EMAIL_FROM_ADDRESS", "").strip() or smtp_user or "noreply@plexudo.com"
+    from_name = os.environ.get("EMAIL_FROM_NAME", "Plexudo").strip()
+
+    if not smtp_user or not smtp_pass:
+        print("[EMAIL_WARN] SMTP credentials not configured in environment. Email dispatch safely skipped.")
         return False
 
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = Header(subject, "utf-8")
-        msg["From"] = formataddr((str(Header(EMAIL_FROM_NAME, "utf-8")), EMAIL_FROM_ADDRESS))
+        msg["From"] = formataddr((str(Header(from_name, "utf-8")), from_addr))
         msg["To"] = to_email
 
         if not text_content:
@@ -44,10 +56,10 @@ def send_email(to_email: str, subject: str, html_content: str, text_content: str
         msg.attach(part1)
         msg.attach(part2)
 
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-            if SMTP_USE_TLS:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
+            if use_tls:
                 server.starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.login(smtp_user, smtp_pass)
             server.send_message(msg)
 
         print(f"[EMAIL_SUCCESS] Successfully delivered email to {to_email}: {subject}")
@@ -138,7 +150,7 @@ def send_password_changed_email(to_email: str, name: str):
 
         <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:14px; padding:14px 18px; margin-bottom:24px; font-size:13px; color:#991b1b; line-height:1.5;">
           <strong>Didn't make this change?</strong><br>
-          If you did not authorize this password update, please reset your password immediately or contact our support team at <a href="mailto:advertisingbwp@gmail.com" style="color:#b91c1c; font-weight:700;">advertisingbwp@gmail.com</a>.
+          If you did not authorize this password update, please reset your password immediately or contact our support team at <a href="mailto:{SUPPORT_EMAIL}" style="color:#b91c1c; font-weight:700;">{SUPPORT_EMAIL}</a>.
         </div>
 
         <!-- CTA Button -->

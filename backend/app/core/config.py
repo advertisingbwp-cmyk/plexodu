@@ -37,8 +37,36 @@ class Settings:
         self.YOUTUBE_CALLBACK_URL = os.environ.get("YOUTUBE_CALLBACK_URL", "http://127.0.0.1:8000/api/v1/youtube/callback").strip()
 
         # Application & Server Defaults
-        self.FLASK_ENV = os.environ.get("FLASK_ENV", "production" if os.environ.get("VERCEL") else "development").strip()
-        self.SECRET_KEY = os.environ.get("SECRET_KEY", "smtas-secure-prod-key-2026").strip()
+        self.FLASK_ENV = os.environ.get("FLASK_ENV", "production" if os.environ.get("VERCEL") else "development").strip().lower()
+        is_production = self.FLASK_ENV == "production" or bool(os.environ.get("VERCEL"))
+
+        insecure_keys = {
+            "smtas-secure-prod-key-2026",
+            "plexudo-production-secret-key-2026",
+            "dev_secret_key_change_in_production",
+            "dev-insecure-secret-key-local-only",
+            "change-me-secret-key-32-chars-long-plexudo-development-key",
+        }
+        raw_secret_key = os.environ.get("SECRET_KEY", "").strip()
+        if not raw_secret_key or (is_production and raw_secret_key in insecure_keys):
+            if is_production:
+                raise RuntimeError(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: SECRET_KEY environment variable is missing, empty, or insecure in production/Vercel."
+                )
+            import secrets
+            self.SECRET_KEY = f"dev-{secrets.token_hex(24)}"
+        else:
+            self.SECRET_KEY = raw_secret_key
+
+        # Database Persistence Architecture
+        db_url = os.environ.get("DATABASE_URL", "").strip()
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        if "+aiosqlite" in db_url:
+            db_url = db_url.replace("+aiosqlite", "")
+        self.DATABASE_URL = db_url
+        self.IS_PRODUCTION = is_production
+
         self.PORT = int(os.environ.get("PORT", 5000))
         self.HOST = os.environ.get("HOST", "127.0.0.1").strip()
 

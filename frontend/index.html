@@ -1936,6 +1936,13 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
 // ==========================================================================
 let currentAuthTab = 'login';
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
 function toggleMobileMenu() {
   const drawer = document.getElementById('mobileDrawer');
   if (drawer) drawer.classList.toggle('active');
@@ -2043,7 +2050,7 @@ async function handleAuthSubmit(e) {
       const desc = document.getElementById('verifyStatusDesc');
       const feedback = document.getElementById('verifyFeedback');
       title.textContent = 'Verification Email Sent! 📬';
-      desc.innerHTML = `We have sent a 2-minute activation link to <strong>${email}</strong>.<br><br>Please open your email inbox and click the verification link to activate your account and claim your <strong>3 Free Welcome Credits</strong> before signing in.`;
+      desc.innerHTML = `We have sent a 2-minute activation link to <strong>${escapeHtml(email)}</strong>.<br><br>Please open your email inbox and click the verification link to activate your account and claim your <strong>3 Free Welcome Credits</strong> before signing in.`;
       feedback.style.display = 'block';
       feedback.style.background = '#ecfdf5';
       feedback.style.color = '#059669';
@@ -2307,9 +2314,6 @@ function closeInfoModal() {
   if (modal) modal.classList.remove('active');
 }
 </script>
-
-<!-- Social Bar Ad Unit (Right above closing body tag) -->
-<script src="https://bibleearthquake.com/0e/89/57/0e89577e43e820c87b40cc837855b0fd.js"></script>
 
       <script type="module">
         import { reticle } from 'https://cdn.jsdelivr.net/npm/@reticlehq/browser@2.13.1/+esm';

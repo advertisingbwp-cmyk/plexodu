@@ -7,16 +7,74 @@ using the YouTube Data API v3.
 
 import os
 import math
+import time
+import re
+import urllib.parse
 import requests
 from datetime import datetime, timedelta
 from app.core.config import settings
 
-YOUTUBE_API_KEY = settings.YOUTUBE_API_KEY or os.environ.get("YOUTUBE_API_KEY", "").strip()
+def get_yt_api_key():
+    return (settings.YOUTUBE_API_KEY or os.environ.get("YOUTUBE_API_KEY", "")).strip()
+
+YOUTUBE_API_KEY = get_yt_api_key()
 SEARCH_URL   = "https://www.googleapis.com/youtube/v3/search"
 VIDEOS_URL   = "https://www.googleapis.com/youtube/v3/videos"
 CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
 COMMENTS_URL = "https://www.googleapis.com/youtube/v3/commentThreads"
 PLAYLIST_URL = "https://www.googleapis.com/youtube/v3/playlistItems"
+
+# Thread-safe in-memory TTL caching to prevent quota exhaustion
+_YT_CACHE = {}
+_CACHE_TTL_SECONDS = 900  # 15 minutes
+
+
+def _get_from_cache(cache_key: str):
+    cached = _YT_CACHE.get(cache_key)
+    if cached:
+        timestamp, data = cached
+        if time.time() - timestamp < _CACHE_TTL_SECONDS:
+            return data
+        try:
+            del _YT_CACHE[cache_key]
+        except KeyError:
+            pass
+    return None
+
+
+def _save_to_cache(cache_key: str, data: dict):
+    if isinstance(data, dict) and (data.get("status") == 200 or data.get("error") is False):
+        _YT_CACHE[cache_key] = (time.time(), data)
+
+
+def _is_quota_error(res) -> bool:
+    try:
+        if res.status_code == 403:
+            body = res.json()
+            errors = body.get("error", {}).get("errors", [])
+            for err in errors:
+                if err.get("reason") in ["quotaExceeded", "dailyLimitExceeded", "rateLimitExceeded"]:
+                    return True
+            if "quota" in str(body).lower():
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _build_authentic_snapshot(total_views: int, total_likes: int, total_comments: int, upload_date_str: str = None) -> list:
+    """
+    Returns authentic recorded snapshot for today.
+    Never fabricates synthetic historical decay curves or imaginary past daily points.
+    """
+    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    return [{
+        "date": today_str,
+        "views": int(total_views or 0),
+        "likes": int(total_likes or 0),
+        "shares": 0,
+        "comments_count": int(total_comments or 0),
+    }]
 
 
 class YouTubeAPIError(Exception):
@@ -66,59 +124,37 @@ def _fetch_related_keywords(keyword: str) -> list:
     return related[:10]
 
 
-# ─── Daily Series Estimator ──────────────────────────────────────────────────
-def _estimate_daily_series(total_views, total_likes, total_comments, upload_date_str, days_window=10):
-    try:
-        upload_date = datetime.strptime(upload_date_str[:10], "%Y-%m-%d")
-    except ValueError:
-        upload_date = datetime.utcnow() - timedelta(days=days_window)
-
-    age_days = max(1, (datetime.utcnow() - upload_date).days)
-    window   = min(days_window, age_days)
-
-    # Dynamic decay rate based on video age, view count, and deterministic metric seed
-    base_decay = min(0.35, max(0.06, 1.8 / math.sqrt(age_days + 1)))
-    variance   = ((total_views * 7 + total_likes * 13 + total_comments * 29) % 120) / 1000.0
-    decay_rate = round(base_decay + variance, 3)
-
-    weights    = [math.exp(-decay_rate * (window - i)) for i in range(window)]
-    weight_sum = sum(weights)
-
-    series = []
-    cumulative_views = 0
-    for i, w in enumerate(weights):
-        share = w / weight_sum
-        day_views = int(total_views * share)
-        cumulative_views += day_views
-        date = (datetime.utcnow() - timedelta(days=window - i)).strftime("%Y-%m-%d")
-        series.append({
-            "date": date,
-            "views": max(cumulative_views, 1),
-            "likes": int(total_likes * (cumulative_views / max(total_views, 1))),
-            "shares": int(total_comments * 0.3 * (cumulative_views / max(total_views, 1))),
-            "comments_count": int(total_comments * (cumulative_views / max(total_views, 1))),
-        })
-
-    series[-1]["views"]         = total_views
-    series[-1]["likes"]         = total_likes
-    series[-1]["comments_count"] = total_comments
-    return series
-
-
 # ─── Keyword Trend Fetch ─────────────────────────────────────────────────────
 def fetch_youtube_data(keyword: str):
-    if not YOUTUBE_API_KEY:
+    api_key = get_yt_api_key()
+    if not api_key:
         raise YouTubeAPIError("YOUTUBE_API_KEY is not set. Add it to your .env file.")
 
-    search_res = requests.get(SEARCH_URL, params={
-        "part": "snippet", "q": keyword, "type": "video",
-        "order": "viewCount", "maxResults": 1, "key": YOUTUBE_API_KEY,
-    }, timeout=10)
+    keyword = (keyword or "").strip()
+    if not keyword:
+        return {"status": 400, "platform": "YouTube", "error": "Search keyword cannot be empty."}
 
+    cache_key = f"kw_{keyword.lower()}"
+    cached = _get_from_cache(cache_key)
+    if cached:
+        return cached
+
+    try:
+        search_res = requests.get(SEARCH_URL, params={
+            "part": "snippet", "q": keyword, "type": "video",
+            "order": "viewCount", "maxResults": 1, "key": api_key,
+        }, timeout=8)
+    except requests.Timeout:
+        return {"status": 504, "platform": "YouTube", "error": "YouTube API request timed out. Please try again."}
+    except requests.RequestException:
+        return {"status": 502, "platform": "YouTube", "error": "Failed to connect to YouTube service."}
+
+    if _is_quota_error(search_res):
+        return {"status": 429, "platform": "YouTube", "error": "YouTube API daily quota reached. Trend analytics are temporarily paused. Please try again later.", "quota_exceeded": True}
     if search_res.status_code == 403:
-        return {"status": 403, "platform": "YouTube", "error": "Invalid YouTube API key or quota exceeded."}
+        return {"status": 403, "platform": "YouTube", "error": "YouTube API access forbidden. Check API configuration."}
     if search_res.status_code != 200:
-        return {"status": search_res.status_code, "platform": "YouTube", "error": search_res.text[:200]}
+        return {"status": search_res.status_code, "platform": "YouTube", "error": "YouTube API request failed."}
 
     items = search_res.json().get("items", [])
     if not items:
@@ -127,28 +163,38 @@ def fetch_youtube_data(keyword: str):
     video_id = items[0]["id"]["videoId"]
     snippet  = items[0]["snippet"]
 
-    stats_res   = requests.get(VIDEOS_URL, params={"part": "statistics,snippet", "id": video_id, "key": YOUTUBE_API_KEY}, timeout=10)
+    try:
+        stats_res = requests.get(VIDEOS_URL, params={"part": "statistics,snippet", "id": video_id, "key": api_key}, timeout=8)
+    except requests.Timeout:
+        return {"status": 504, "platform": "YouTube", "error": "YouTube video statistics request timed out."}
+    except requests.RequestException:
+        return {"status": 502, "platform": "YouTube", "error": "Failed to retrieve video statistics from YouTube."}
+
+    if _is_quota_error(stats_res):
+        return {"status": 429, "platform": "YouTube", "error": "YouTube API daily quota reached. Please try again later.", "quota_exceeded": True}
+
     stats_items = stats_res.json().get("items", [])
     if not stats_items:
         return {"status": 404, "platform": "YouTube", "error": "Video statistics unavailable."}
 
-    stats         = stats_items[0]["statistics"]
-    total_views   = int(stats.get("viewCount", 0))
-    total_likes   = int(stats.get("likeCount", 0))
+    stats          = stats_items[0].get("statistics", {})
+    total_views    = int(stats.get("viewCount", 0))
+    total_likes    = int(stats.get("likeCount", 0))
     total_comments = int(stats.get("commentCount", 0))
-    upload_date   = snippet["publishedAt"]
+    upload_date    = snippet.get("publishedAt", "")
 
     comments = []
     try:
         comments_res = requests.get(COMMENTS_URL, params={
             "part": "snippet", "videoId": video_id,
-            "maxResults": 50, "order": "relevance", "key": YOUTUBE_API_KEY,
-        }, timeout=10)
+            "maxResults": 50, "order": "relevance", "key": api_key,
+        }, timeout=8)
         if comments_res.status_code == 200:
             for item in comments_res.json().get("items", []):
-                text = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
-                comments.append(text)
-    except requests.RequestException:
+                text = item.get("snippet", {}).get("topLevelComment", {}).get("snippet", {}).get("textDisplay", "")
+                if text:
+                    comments.append(text)
+    except Exception:
         pass
 
     if not comments:
@@ -156,15 +202,39 @@ def fetch_youtube_data(keyword: str):
 
     related_keywords = _fetch_related_keywords(keyword)
 
-    return {
+    result = {
         "status": 200, "platform": "YouTube",
         "keyword": keyword, "video_id": video_id,
         "title": snippet.get("title", keyword),
         "upload_date": upload_date,
-        "daily_metrics": _estimate_daily_series(total_views, total_likes, total_comments, upload_date),
+        "daily_metrics": _build_authentic_snapshot(total_views, total_likes, total_comments, upload_date),
         "comments": comments,
         "related_keywords": related_keywords,
     }
+    _save_to_cache(cache_key, result)
+    return result
+
+
+def extract_video_id(url: str) -> str | None:
+    """Safely extracts a YouTube video ID, rejecting SSRF or non-YouTube formats."""
+    if not url or not isinstance(url, str):
+        return None
+    url = url.strip()
+    if url.startswith(("http://", "https://")):
+        parsed = urllib.parse.urlparse(url)
+        hostname = (parsed.hostname or "").lower()
+        if hostname not in ("youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"):
+            return None
+    patterns = [
+        r"(?:v=|youtu\.be/|/shorts/|/embed/|/v/)([A-Za-z0-9_-]{11})",
+    ]
+    for p in patterns:
+        m = re.search(p, url)
+        if m:
+            return m.group(1)
+    if re.match(r"^[A-Za-z0-9_-]{11}$", url):
+        return url
+    return None
 
 
 # ─── YouTube Video Analysis ───────────────────────────────────────────────────
@@ -178,36 +248,31 @@ def analyze_youtube_video(url: str):
     if not api_key:
         return {"error": True, "message": "YOUTUBE_API_KEY is not set."}
 
-    import re
-
-    # Extract video ID from various URL formats
-    video_id = None
-    patterns = [
-        r"(?:v=|youtu\.be/|/shorts/|/embed/|/v/)([A-Za-z0-9_-]{11})",
-    ]
-    for p in patterns:
-        m = re.search(p, url)
-        if m:
-            video_id = m.group(1)
-            break
-
+    video_id = extract_video_id(url)
     if not video_id:
-        # Maybe raw video ID was passed
-        if re.match(r"^[A-Za-z0-9_-]{11}$", url.strip()):
-            video_id = url.strip()
-        else:
-            return {"error": True, "message": "Could not extract video ID from URL. Please paste a valid YouTube video link."}
+        return {"error": True, "message": "Could not extract video ID from URL. Please paste a valid YouTube video link."}
+
+    cache_key = f"vid_{video_id}"
+    cached = _get_from_cache(cache_key)
+    if cached:
+        return cached
 
     # Fetch video details
-    vid_res = requests.get(VIDEOS_URL, params={
-        "part": "snippet,statistics,contentDetails",
-        "id": video_id,
-        "key": api_key,
-    }, timeout=10)
+    try:
+        vid_res = requests.get(VIDEOS_URL, params={
+            "part": "snippet,statistics,contentDetails",
+            "id": video_id,
+            "key": api_key,
+        }, timeout=8)
+    except requests.Timeout:
+        return {"error": True, "message": "YouTube API request timed out."}
+    except requests.RequestException:
+        return {"error": True, "message": "Failed to connect to YouTube service."}
 
+    if _is_quota_error(vid_res):
+        return {"error": True, "message": "YouTube API daily quota reached. Please try again later.", "quota_exceeded": True}
     if vid_res.status_code == 429:
-        err = vid_res.json()
-        return {"error": True, "message": f"YouTube API Error: {err}"}
+        return {"error": True, "message": "YouTube API rate limit reached. Please wait a moment."}
     if vid_res.status_code != 200:
         return {"error": True, "message": f"YouTube API error: {vid_res.status_code}"}
 
@@ -260,8 +325,8 @@ def analyze_youtube_video(url: str):
             "videoId": video_id,
             "maxResults": 50,
             "order": "relevance",
-            "key": YOUTUBE_API_KEY,
-        }, timeout=10)
+            "key": api_key,
+        }, timeout=8)
         if cm_res.status_code == 200:
             for c in cm_res.json().get("items", []):
                 text = c["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
@@ -273,25 +338,26 @@ def analyze_youtube_video(url: str):
 
     comment_texts = [c["text"] for c in comments_raw] if comments_raw else ["No comments available."]
 
-    # Daily metrics estimate
-    daily_metrics = _estimate_daily_series(view_count, like_count, comment_count, upload_date)
+    # Authentic single-point snapshot
+    daily_metrics = _build_authentic_snapshot(view_count, like_count, comment_count, upload_date)
 
     # Channel subscriber count (quick fetch)
     subscriber_count = 0
-    try:
-        ch_res = requests.get(CHANNELS_URL, params={
-            "part": "statistics",
-            "id": channel_id,
-            "key": YOUTUBE_API_KEY,
-        }, timeout=8)
-        if ch_res.status_code == 200:
-            ch_items = ch_res.json().get("items", [])
-            if ch_items:
-                subscriber_count = int(ch_items[0]["statistics"].get("subscriberCount", 0))
-    except Exception:
-        pass
+    if channel_id:
+        try:
+            ch_res = requests.get(CHANNELS_URL, params={
+                "part": "statistics",
+                "id": channel_id,
+                "key": api_key,
+            }, timeout=8)
+            if ch_res.status_code == 200:
+                ch_items = ch_res.json().get("items", [])
+                if ch_items:
+                    subscriber_count = int(ch_items[0]["statistics"].get("subscriberCount", 0))
+        except Exception:
+            pass
 
-    return {
+    result = {
         "error": False,
         "video_id":         video_id,
         "title":            title,
@@ -299,7 +365,7 @@ def analyze_youtube_video(url: str):
         "description":      description,
         "channel_name":     channel_name,
         "channel_id":       channel_id,
-        "channel_url":      f"https://www.youtube.com/channel/{channel_id}",
+        "channel_url":      f"https://www.youtube.com/channel/{channel_id}" if channel_id else "",
         "subscriber_count": subscriber_count,
         "upload_date":      upload_date[:10] if upload_date else "—",
         "duration":         duration_fmt,
@@ -315,34 +381,44 @@ def analyze_youtube_video(url: str):
         "comments":         comment_texts,
         "top_comments":     comments_raw[:10],
     }
+    _save_to_cache(cache_key, result)
+    return result
 
 
 # ─── Channel Audit ───────────────────────────────────────────────────────────
-def get_yt_api_key():
-    return (settings.YOUTUBE_API_KEY or os.environ.get("YOUTUBE_API_KEY", "")).strip()
-
 def audit_youtube_channel(identifier: str, is_handle: bool = True) -> dict:
     """
     Comprehensive YouTube channel audit.
     Fetches real stats, subscriber count, total views, top 10 videos,
-    view velocity, 28-day growth curve, and SocialBlade-style earnings.
+    view velocity, and SocialBlade-style earnings.
     """
     api_key = get_yt_api_key()
     if not api_key:
         return {"error": True, "message": "YOUTUBE_API_KEY is not set."}
 
+    clean_id = (identifier or "").strip()
+    if not clean_id:
+        return {"error": True, "message": "Channel identifier is required."}
+
+    cache_key = f"ch_{clean_id.lower()}"
+    cached = _get_from_cache(cache_key)
+    if cached:
+        return cached
+
     channel_id = None
 
     # 1. Resolve channel ID from handle or URL
     if is_handle:
-        handle = identifier.lstrip("@")
+        handle = clean_id.lstrip("@")
         # Try with @ prefix
         try:
             res = requests.get(CHANNELS_URL, params={
                 "part": "id,snippet,statistics,brandingSettings",
                 "forHandle": f"@{handle}",
                 "key": api_key,
-            }, timeout=10)
+            }, timeout=8)
+            if _is_quota_error(res):
+                return {"error": True, "message": "YouTube API daily quota reached. Please try again later.", "quota_exceeded": True}
             if res.status_code == 200:
                 items = res.json().get("items", [])
                 if items:
@@ -539,25 +615,14 @@ def audit_youtube_channel(identifier: str, is_handle: bool = True) -> dict:
     # Sort top videos by views
     top_videos = sorted(top_videos, key=lambda x: x["views"], reverse=True)[:10]
 
-    # 4. 28-day growth series (estimated from total views)
-    avg_daily = total_views_ch / max(1, age_years * 365)
+    # 4. Authentic channel timeline (never fabricate artificial sine-wave curves)
     growth_28d = []
-    for i in range(28, 0, -1):
-        day = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
-        variation = 1.0 + (math.sin(i * 0.7) * 0.3)
-        growth_28d.append({"date": day, "views": int(avg_daily * variation)})
-
-    # 7-day and 3-month series
-    growth_7d  = growth_28d[-7:]
-    avg_daily_3m = avg_daily * 0.85
+    growth_7d  = []
     growth_3m  = []
-    for i in range(90, 0, -1):
-        day = (datetime.utcnow() - timedelta(days=i)).strftime("%Y-%m-%d")
-        variation = 1.0 + (math.sin(i * 0.4) * 0.25)
-        growth_3m.append({"date": day, "views": int(avg_daily_3m * variation)})
 
     # 5. SocialBlade-style earnings estimate
     # YouTube pays ~$1–$3 CPM on avg (varies heavily)
+    avg_daily = total_views_ch / max(1, age_years * 365)
     monthly_views    = int(avg_daily * 30)
     earn_min_monthly = round(monthly_views / 1000 * 1.0, 0)
     earn_max_monthly = round(monthly_views / 1000 * 5.0, 0)
@@ -572,7 +637,7 @@ def audit_youtube_channel(identifier: str, is_handle: bool = True) -> dict:
     longform_views_pct = round(longform_views / max(1, longform_views + shorts_views) * 100)
     shorts_views_pct   = 100 - longform_views_pct
 
-    return {
+    result = {
         "error": False,
         "channel_id":       channel_id,
         "channel_name":     channel_name,
@@ -602,9 +667,13 @@ def audit_youtube_channel(identifier: str, is_handle: bool = True) -> dict:
         "growth_7d":  growth_7d,
         "growth_28d": growth_28d,
         "growth_3m":  growth_3m,
+        "historical_growth_available": False,
+        "historical_notice": "Historical view curve requires continuous snapshot tracking or channel owner OAuth authorization.",
         # Top videos
         "top_videos": top_videos,
     }
+    _save_to_cache(cache_key, result)
+    return result
 
 
 def _parse_duration(iso_duration: str) -> int:

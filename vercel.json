@@ -12,6 +12,27 @@
   ],
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
       "source": "/dashboard.html",
       "headers": [
         {
@@ -42,7 +63,7 @@
   "routes": [
     {
       "src": "/(youtube-seo-tool|youtube-video-analyzer|youtube-keyword-tool|youtube-trend-analyzer|youtube-competitor-analysis)",
-      "status": 302,
+      "status": 301,
       "headers": { "Location": "/?open_auth=login" }
     },
     {
@@ -104,6 +125,24 @@
     {
       "src": "/sitemap.xml",
       "dest": "/frontend/sitemap.xml"
+    },
+    {
+      "src": "/blog/",
+      "dest": "/frontend/blog/index.html"
+    },
+    {
+      "src": "/blog",
+      "status": 301,
+      "headers": { "Location": "/blog/" }
+    },
+    {
+      "src": "/blog/([^/]+)/",
+      "dest": "/frontend/blog/$1/index.html"
+    },
+    {
+      "src": "/blog/([^/]+)",
+      "status": 301,
+      "headers": { "Location": "/blog/$1/" }
     },
     {
       "src": "/",

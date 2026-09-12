@@ -13,21 +13,26 @@ from dotenv import load_dotenv
 from app.core.config import settings
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODELS = [
-    settings.GROQ_MODEL,
-    "openai/gpt-oss-120b",
-    "openai/gpt-oss-20b",
-    "qwen/qwen3.6-27b",
+
+# Modern, officially supported Groq model list (active Llama 3 models)
+DEPRECATED_MODELS = {"openai/gpt-oss-120b", "mixtral-8x7b-32768"}
+configured_model = (settings.GROQ_MODEL or os.environ.get("GROQ_MODEL", "")).strip()
+if not configured_model or configured_model in DEPRECATED_MODELS:
+    configured_model = "llama-3.3-70b-versatile"
+
+SUPPORTED_MODELS = [
+    configured_model,
     "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768",
 ]
+MODELS = [m for m in dict.fromkeys(SUPPORTED_MODELS) if m not in DEPRECATED_MODELS]
 
 
 def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
     """
     Sends user message + optional YouTube trend context to Groq API.
     Dynamically loads GROQ_API_KEY from environment/settings.
+    Enforces strict prompt isolation and strips sensitive user data.
     """
     groq_key = settings.GROQ_API_KEY or os.environ.get("GROQ_API_KEY", "").strip()
 
@@ -53,14 +58,19 @@ def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
 
     messages = [{"role": "system", "content": system_prompt}]
 
-    if trend_context:
-        ctx_str = json.dumps(trend_context, indent=2)
-        messages.append({
-            "role": "system",
-            "content": f"Optional background reference data (only use if relevant to user's question):\n{ctx_str}"
-        })
+    # Filter context to non-sensitive analytics only; never send emails, user IDs, or credentials
+    if trend_context and isinstance(trend_context, dict):
+        allowed_keys = {"keyword", "platform", "total_views", "growth_rate", "virality_score", "stage", "dominant_sentiment"}
+        safe_context = {k: trend_context[k] for k in allowed_keys if k in trend_context}
+        if safe_context:
+            ctx_str = json.dumps(safe_context, indent=2)
+            messages.append({
+                "role": "system",
+                "content": f"Optional background reference data (only use if relevant to user's question):\n{ctx_str}"
+            })
 
-    messages.append({"role": "user", "content": user_message})
+    # User message is strictly isolated in user role to prevent prompt injection
+    messages.append({"role": "user", "content": str(user_message)})
 
     headers = {
         "Authorization": f"Bearer {groq_key}",
@@ -78,20 +88,24 @@ def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
         }
 
         try:
-            res = requests.post(GROQ_URL, headers=headers, json=payload, timeout=20)
+            res = requests.post(GROQ_URL, headers=headers, json=payload, timeout=12)
             if res.status_code == 200:
                 data = res.json()
-                reply = data["choices"][0]["message"]["content"]
-                if reply:
-                    reply = re.sub(r'<think>.*?</think>', '', reply, flags=re.DOTALL).strip()
-                if reply:
-                    return {"reply": reply, "error": False}
+                choices = data.get("choices", [])
+                if choices and "message" in choices[0]:
+                    reply = choices[0]["message"].get("content", "")
+                    if reply:
+                        reply = re.sub(r'<think>.*?</think>', '', reply, flags=re.DOTALL).strip()
+                    if reply:
+                        return {"reply": reply, "error": False}
             elif res.status_code == 401:
                 return generate_smart_youtube_fallback(user_message, trend_context)
             elif res.status_code == 429:
                 last_error = "⏳ Groq API rate limit reached. Please wait a few seconds and try again."
+            elif res.status_code >= 500:
+                last_error = f"❌ Groq service temporarily unavailable (HTTP {res.status_code})."
             else:
-                last_error = f"❌ Groq API error ({res.status_code}): {res.text[:200]}"
+                last_error = f"❌ Groq API error ({res.status_code})"
         except requests.Timeout:
             last_error = "⏱ Request timed out. Please try again."
         except Exception as e:
