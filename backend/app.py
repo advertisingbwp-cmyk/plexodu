@@ -12,9 +12,9 @@ import time
 import secrets
 import json
 import uuid
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
-from flask import Flask, request, jsonify, session, send_from_directory, send_file, Response, redirect
+from flask import Flask, request, jsonify, send_from_directory, send_file, Response, redirect
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
@@ -34,7 +34,6 @@ from services.trend_engine import (
     total_views,
 )
 from services.report_generator import generate_pdf_report, generate_pdf_report_buffer
-from services.channel_seo_service import channel_seo_bp
 from services.groq_service import chat_with_groq          # Groq AI Service (Llama 3.3 70B)
 
 from services.security_guard import (
@@ -98,26 +97,26 @@ else:
 
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
 app.secret_key = settings.SECRET_KEY
+IS_PRODUCTION = settings.IS_PRODUCTION
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = settings.IS_PRODUCTION
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
+app.config["SESSION_COOKIE_SECURE"] = IS_PRODUCTION
+
 
 _CORS_ORIGINS = [o.strip() for o in os.environ.get(
     "CORS_ALLOWED_ORIGINS",
     "https://plexudo.vercel.app,http://localhost:5000,http://127.0.0.1:5000,http://localhost:5173"
 ).split(",") if o.strip()]
-CORS(app, supports_credentials=True, origins=_CORS_ORIGINS)
+CORS(app, supports_credentials=False, origins=_CORS_ORIGINS)
 db.init_app(app)
-app.register_blueprint(channel_seo_bp)
 
 from services.title_intelligence import generate_context_aware_titles
 
 
 @app.after_request
 def add_security_and_robots_headers(response):
-    # Send X-Robots-Tag for private/authenticated dashboard and api routes
-    if request.path in ["/dashboard.html", "/dashboard"] or request.path.startswith("/api/"):
+    # Send X-Robots-Tag for private API routes
+    if request.path.startswith("/api/"):
         response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     return response
 
@@ -156,15 +155,10 @@ def handle_rate_limit(e):
 
 @app.errorhandler(404)
 def handle_not_found(e):
+    if request.path.startswith("/api/"):
+        return jsonify({"error": "Requested API resource not found"}), 404
     path = request.path.lstrip("/").lower()
-    tool_redirects = {
-        "youtube-seo-tool", "youtube-video-analyzer", "youtube-keyword-tool",
-        "youtube-trend-analyzer", "youtube-competitor-analysis"
-    }
-    if path in tool_redirects:
-        return redirect("/dashboard.html", code=301)
-
-    public_seo_routes = {"blog", "privacy", "terms", "login", "signup", "forgot-password", "reset-password", "verify-email"}
+    public_seo_routes = {"blog", "privacy", "terms"}
     if path in public_seo_routes or path.startswith("blog/"):
         return send_from_directory(FRONTEND_DIR, "index.html")
     return jsonify({"error": "Requested resource not found"}), 404
@@ -180,32 +174,15 @@ def handle_generic_exception(e):
 
 
 # --------------------------------------------------------------------------
-# Helpers
-# --------------------------------------------------------------------------
-def login_required() -> bool:
-    """In public mode, all requests are authorized."""
-    return True
-
-
-def _deduct_credits_atomic(user_id: int = None, amount: int = 1) -> tuple[bool, str]:
-    """In public mode, all tools have unlimited public access."""
-    return True, ""
-
-
-def _refund_credits_atomic(user_id: int = None, amount: int = 1, reason: str = "") -> tuple[bool, str]:
-    """In public mode, no-op."""
-    return True, ""
-
-
-
-# --------------------------------------------------------------------------
-# No-cache headers for development
+# Cache Policy
 # --------------------------------------------------------------------------
 @app.after_request
-def add_no_cache_headers(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"]        = "no-cache"
-    response.headers["Expires"]       = "0"
+def apply_cache_control(response):
+    # Dynamic API responses should not be cached in ways that leak or cross-contaminate
+    if request.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        response.headers["Pragma"]        = "no-cache"
+        response.headers["Expires"]       = "0"
     return response
 
 
@@ -217,23 +194,24 @@ def serve_landing():
     return send_from_directory(FRONTEND_DIR, "index.html")
 
 
-@app.route("/youtube-seo-tool")
-@app.route("/youtube-video-analyzer")
-@app.route("/youtube-keyword-tool")
-@app.route("/youtube-trend-analyzer")
-@app.route("/youtube-competitor-analysis")
-def redirect_private_tool():
-    return redirect("/dashboard.html", code=301)
+@app.route("/tools")
+@app.route("/tools/")
+def serve_tools_index():
+    return send_from_directory(os.path.join(FRONTEND_DIR, "tools"), "index.html")
+
+
+@app.route("/tools/<path:tool_name>")
+def serve_standalone_tool(tool_name):
+    clean_name = tool_name.replace(".html", "")
+    target = os.path.join(FRONTEND_DIR, "tools", f"{clean_name}.html")
+    if os.path.isfile(target):
+        return send_from_directory(os.path.join(FRONTEND_DIR, "tools"), f"{clean_name}.html")
+    return jsonify({"error": "Tool not found"}), 404
 
 
 @app.route("/blog")
 @app.route("/privacy")
 @app.route("/terms")
-@app.route("/login")
-@app.route("/signup")
-@app.route("/forgot-password")
-@app.route("/reset-password")
-@app.route("/verify-email")
 def serve_seo_pages():
     return send_from_directory(FRONTEND_DIR, "index.html")
 
@@ -254,93 +232,26 @@ def serve_favicon_png():
     return send_from_directory(FRONTEND_DIR, "favicon.png", mimetype="image/png")
 
 
-@app.route("/dashboard.html")
-@app.route("/dashboard")
-def serve_dashboard():
-    response = send_from_directory(FRONTEND_DIR, "dashboard.html")
-    response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
-    return response
-
-
 @app.route("/<path:path>")
 def serve_static_or_public(path):
     file_path = os.path.join(FRONTEND_DIR, path)
     if os.path.isfile(file_path):
         return send_from_directory(FRONTEND_DIR, path)
-    
-    clean_path = path.strip("/").lower()
-    tool_redirects = {
-        "youtube-seo-tool", "youtube-video-analyzer", "youtube-keyword-tool",
-        "youtube-trend-analyzer", "youtube-competitor-analysis"
-    }
-    if clean_path in tool_redirects:
-        return redirect("/dashboard.html", code=301)
 
-    seo_routes = {
-        "blog", "privacy", "terms",
-        "login", "signup", "forgot-password", "reset-password", "verify-email"
-    }
+    clean_path = path.strip("/").lower()
+    if clean_path == "tools":
+        return send_from_directory(os.path.join(FRONTEND_DIR, "tools"), "index.html")
+    if clean_path.startswith("tools/"):
+        tool_sub = clean_path[len("tools/"):].replace(".html", "")
+        tool_file = os.path.join(FRONTEND_DIR, "tools", f"{tool_sub}.html")
+        if os.path.isfile(tool_file):
+            return send_from_directory(os.path.join(FRONTEND_DIR, "tools"), f"{tool_sub}.html")
+
+    seo_routes = {"blog", "privacy", "terms"}
     if clean_path in seo_routes or clean_path.startswith("blog"):
         return send_from_directory(FRONTEND_DIR, "index.html")
 
     return jsonify({"error": "Requested resource not found"}), 404
-
-
-# --------------------------------------------------------------------------
-# Public Session & Identity Subsystem (No-Login Mode)
-# --------------------------------------------------------------------------
-@app.route("/api/session", methods=["GET"])
-@app.route("/api/v1/auth/me", methods=["GET"])
-def get_session():
-    """Returns a public creator session state for unrestricted client usage."""
-    return jsonify({
-        "authenticated": True,
-        "public_mode": True,
-        "user": {
-            "id": 1,
-            "name": "Creator",
-            "email": "creator@plexudo.com",
-            "role": "Public Access",
-            "credits": 999,
-            "email_verified": True,
-            "avatar_url": None
-        }
-    }), 200
-
-
-@app.route("/api/logout", methods=["POST"])
-@app.route("/api/v1/auth/logout", methods=["POST"])
-def logout():
-    session.clear()
-    return jsonify({"message": "Logged out successfully", "public_mode": True}), 200
-
-
-@app.route("/api/register", methods=["POST"])
-@app.route("/api/v1/auth/signup", methods=["POST"])
-def register():
-    return jsonify({
-        "message": "Plexudo operates in 100% free public mode. No registration required.",
-        "public_mode": True,
-        "user": {
-            "name": "Creator",
-            "role": "Public Access",
-            "credits": 999
-        }
-    }), 200
-
-
-@app.route("/api/login", methods=["POST"])
-@app.route("/api/v1/auth/login", methods=["POST"])
-def login():
-    return jsonify({
-        "message": "Plexudo operates in 100% free public mode. No login required.",
-        "public_mode": True,
-        "user": {
-            "name": "Creator",
-            "role": "Public Access",
-            "credits": 999
-        }
-    }), 200
 
 
 
@@ -423,7 +334,7 @@ def _process_platform(keyword, platform_name, fetch_fn):
         total_views=views_sum,
         growth_rate=growth_rate,
         virality_score=virality,
-        peak_date=datetime.now(),
+        peak_date=datetime.now(timezone.utc),
         created_by=None,
     )
     db.session.add(trend)
@@ -582,7 +493,7 @@ def generate_report(trend_id):
         }
         stage = classify_trend_stage(trend.growth_rate)
 
-        user_email = session.get("email", "creator@plexudo.com")
+        user_email = "anonymous_creator@plexudo.com"
 
         filename, buffer = generate_pdf_report_buffer(
             trend_dict, sentiment_dict, trend.growth_rate, trend.virality_score, stage, user_email
@@ -622,8 +533,8 @@ def export_csv(trend_id):
     writer = csv.writer(output)
 
     writer.writerow(["SMTAS - YouTube Trend Analysis CSV Export"])
-    writer.writerow(["Generated By", session.get("email", "creator@plexudo.com")])
-    writer.writerow(["Generated On", datetime.now().strftime("%Y-%m-%d %H:%M UTC")])
+    writer.writerow(["Generated By", "anonymous_creator@plexudo.com"])
+    writer.writerow(["Generated On", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")])
     writer.writerow([])
 
     writer.writerow(["Keyword", "Platform", "Total Views", "Growth Rate (%)", "Virality Score", "Trend Stage", "Timestamp"])

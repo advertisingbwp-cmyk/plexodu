@@ -97,11 +97,11 @@ class TestSeoAndSchemaCompliance(unittest.TestCase):
             self.assertNotIn("127.0.0.1", text, f"Local IP found in {fpath}")
 
     def test_dashboard_indexing_protection(self):
-        """Ensures dashboard.html has strict noindex, nofollow, noarchive."""
-        with open(self.dashboard_path, "r", encoding="utf-8") as f:
-            text = f.read()
-        self.assertIn('name="robots" content="noindex, nofollow, noarchive"', text)
-        self.assertIn('name="googlebot" content="noindex, nofollow, noarchive"', text)
+        """Ensures dashboard.html is purged and tools hub exists."""
+        self.assertFalse(os.path.exists(self.dashboard_path), "dashboard.html must be completely purged")
+        tools_path = os.path.join(FRONTEND_DIR, "tools", "index.html")
+        self.assertTrue(os.path.exists(tools_path), "tools/index.html must exist")
+
 
     def test_sitemap_contains_only_public_pages(self):
         """Ensures sitemap.xml does NOT contain private routes."""

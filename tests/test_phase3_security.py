@@ -79,9 +79,7 @@ def test_flask_search_route_honors_quota_error():
             sess["user_name"] = "Tester"
             sess["user_role"] = "creator"
 
-        with patch("main_flask_app._deduct_credits_atomic", return_value=(True, None)), \
-             patch("main_flask_app._refund_credits_atomic", return_value=True), \
-             patch("main_flask_app.fetch_youtube_data", return_value={
+        with patch("main_flask_app.fetch_youtube_data", return_value={
                  "status": 429,
                  "error": "YouTube API daily quota limit exceeded. Live metrics temporarily unavailable; please try again later.",
                  "quota_exceeded": True
@@ -90,6 +88,7 @@ def test_flask_search_route_honors_quota_error():
             assert resp.status_code == 429, f"Expected 429 for quota exhaustion, got {resp.status_code}"
             data = resp.get_json()
             assert "quota" in data.get("error", "").lower()
+
 
 
 # ─── 2. YOUTUBE TIMEOUT HANDLING ────────────────────────────────────────────
@@ -268,24 +267,18 @@ def test_synthetic_metrics_completely_eliminated():
 # ─── 7. FRONTEND DOM XSS REMEDIATION ────────────────────────────────────────
 
 def test_frontend_security_utilities_present():
-    """Verify frontend/js/dashboard.js defines escapeHtml, escapeAttr, sanitizeUrl, and fetchWithTimeout."""
-    dashboard_js = (FRONTEND_DIR / "js" / "dashboard.js").read_text(encoding="utf-8")
+    """Verify frontend/js/tools/common.js defines escapeHtml, escapeAttr, sanitizeUrl, and fetchWithTimeout."""
+    common_js = (FRONTEND_DIR / "js" / "tools" / "common.js").read_text(encoding="utf-8")
 
-    assert "function escapeHtml" in dashboard_js
-    assert "function escapeAttr" in dashboard_js
-    assert "function sanitizeUrl" in dashboard_js
-    assert "async function fetchWithTimeout" in dashboard_js
+    assert "function escapeHtml" in common_js
+    assert "function escapeAttr" in common_js
+    assert "function sanitizeUrl" in common_js
+    assert "async function fetchWithTimeout" in common_js
 
-    # Verify no raw fetch calls remain in dashboard.js (except the one inside fetchWithTimeout)
-    fetch_calls = [m.start() for m in re.finditer(r"\bfetch\(", dashboard_js)]
+    # Verify no raw fetch calls remain (except inside fetchWithTimeout)
+    fetch_calls = [m.start() for m in re.finditer(r"\bfetch\(", common_js)]
     assert len(fetch_calls) == 1, f"Expected exactly 1 raw fetch( inside fetchWithTimeout, found {len(fetch_calls)}"
 
-    # Verify inline event breakout prevention in tags & titles
-    assert "data-copy=" in dashboard_js
-    assert "data-kw=" in dashboard_js
-
-    # Verify that raw onclick="copyToClipboard('${escapeHtml(tagsString)}') is removed
-    assert "onclick=\"copyToClipboard('${escapeHtml(tagsString)}')\"" not in dashboard_js
 
 
 def test_index_html_email_interpolation_escaped():

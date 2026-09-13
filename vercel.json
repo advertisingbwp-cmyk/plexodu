@@ -33,24 +33,6 @@
       ]
     },
     {
-      "source": "/dashboard.html",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow, noarchive"
-        }
-      ]
-    },
-    {
-      "source": "/dashboard",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow, noarchive"
-        }
-      ]
-    },
-    {
       "source": "/api/(.*)",
       "headers": [
         {
@@ -62,16 +44,7 @@
   ],
   "routes": [
     {
-      "src": "/(youtube-seo-tool|youtube-video-analyzer|youtube-keyword-tool|youtube-trend-analyzer|youtube-competitor-analysis)",
-      "status": 301,
-      "headers": { "Location": "/dashboard.html" }
-    },
-    {
       "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/auth/(.*)",
       "dest": "/api/index.py"
     },
     {
@@ -103,12 +76,32 @@
       "dest": "/frontend/assets/$1"
     },
     {
-      "src": "/dashboard",
-      "dest": "/frontend/dashboard.html"
+      "src": "/tools/?",
+      "dest": "/frontend/tools/index.html"
     },
     {
-      "src": "/dashboard.html",
-      "dest": "/frontend/dashboard.html"
+      "src": "/tools/trend-analyzer/?",
+      "dest": "/frontend/tools/trend-analyzer.html"
+    },
+    {
+      "src": "/tools/video-analyzer/?",
+      "dest": "/frontend/tools/video-analyzer.html"
+    },
+    {
+      "src": "/tools/keyword-tool/?",
+      "dest": "/frontend/tools/keyword-tool.html"
+    },
+    {
+      "src": "/tools/competitor-audit/?",
+      "dest": "/frontend/tools/competitor-audit.html"
+    },
+    {
+      "src": "/tools/ai-strategist/?",
+      "dest": "/frontend/tools/ai-strategist.html"
+    },
+    {
+      "src": "/tools/([^/]+)/?",
+      "dest": "/frontend/tools/$1.html"
     },
     {
       "src": "/terms",

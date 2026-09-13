@@ -42,14 +42,14 @@ def get_flask_app():
 # ─── 1. ANONYMOUS REQUEST SUCCESS ─────────────────────────────────────────────
 
 def test_anonymous_api_requests_succeed():
-    """Verify core endpoints work without login or user sessions."""
+    """Verify core endpoints work without login or user sessions, and legacy session returns 404."""
     app = get_flask_app()
     app.config["TESTING"] = True
     with app.test_client() as client:
-        # Public session
+        # Legacy session is purged
         res = client.get("/api/session")
-        assert res.status_code == 200
-        assert res.get_json()["public_mode"] is True
+        assert res.status_code == 404
+
 
         # Public trends
         res = client.get("/api/trends")

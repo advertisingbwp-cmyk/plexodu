@@ -48,11 +48,24 @@ class TestFrontendMarkup:
         self.index_html_path = self.root / "frontend" / "index.html"
         self.dashboard_js_path = self.root / "frontend" / "js" / "dashboard.js"
         self.style_css_path = self.root / "frontend" / "css" / "style.css"
+        self.tools_dir = self.root / "frontend" / "tools"
+        self.common_js_path = self.root / "frontend" / "js" / "tools" / "common.js"
 
-    def test_dashboard_html_no_auth_modals_or_profile_ui(self):
-        with open(self.dashboard_html_path, "r", encoding="utf-8") as f:
-            html = f.read()
+    def test_dashboard_files_purged(self):
+        """dashboard.html and dashboard.js must be completely deleted."""
+        assert not self.dashboard_html_path.exists(), "frontend/dashboard.html still exists!"
+        assert not self.dashboard_js_path.exists(), "frontend/js/dashboard.js still exists!"
 
+    def test_standalone_tools_pages_exist_and_no_auth_ui(self):
+        """Standalone tool pages must exist and have zero auth or profile UI."""
+        tool_pages = [
+            "trend-analyzer.html",
+            "video-analyzer.html",
+            "keyword-tool.html",
+            "competitor-audit.html",
+            "ai-strategist.html",
+            "index.html",
+        ]
         prohibited_ids = [
             "authModal",
             "loginModal",
@@ -65,53 +78,32 @@ class TestFrontendMarkup:
             "userCredits",
             "kpiCreditsCount",
         ]
-        for pid in prohibited_ids:
-            assert f'id="{pid}"' not in html, f"Prohibited ID '{pid}' found in dashboard.html"
+        for page in tool_pages:
+            path = self.tools_dir / page
+            assert path.exists(), f"Tool page {page} is missing!"
+            content = path.read_text(encoding="utf-8")
+            for pid in prohibited_ids:
+                assert f'id="{pid}"' not in content, f"Prohibited ID '{pid}' in {page}"
 
-    def test_dashboard_html_contains_all_creator_tools(self):
-        with open(self.dashboard_html_path, "r", encoding="utf-8") as f:
-            html = f.read()
+    def test_tools_hub_contains_all_5_creator_tools(self):
+        """frontend/tools/index.html must link to the 5 standalone creator tools."""
+        hub_html = (self.tools_dir / "index.html").read_text(encoding="utf-8")
+        assert "/tools/trend-analyzer" in hub_html
+        assert "/tools/video-analyzer" in hub_html
+        assert "/tools/keyword-tool" in hub_html
+        assert "/tools/competitor-audit" in hub_html
+        assert "/tools/ai-strategist" in hub_html
 
-        required_sections = [
-            "sectionDashboard",
-            "sectionComparison",
-            "sectionChat",
-            "sectionAuditUrl",
-            "sectionVideoAnalysis",
-            "sectionHistory",
-            "sectionAudit",
-        ]
-        for sec in required_sections:
-            assert f'id="{sec}"' in html, f"Required tool section '{sec}' missing in dashboard.html"
-
-    def test_dashboard_html_no_inline_layout_styles_in_sidebar_footer(self):
-        with open(self.dashboard_html_path, "r", encoding="utf-8") as f:
-            html = f.read()
-
-        footer_match = re.search(r'<div class="sidebar-footer">(.*?)</div>', html, re.DOTALL)
-        assert footer_match is not None, "sidebar-footer block missing in dashboard.html"
-        footer_content = footer_match.group(1)
-        assert "style=" not in footer_content, "Inline style found in sidebar-footer violating GEMINI.md responsive rules"
-        assert "sidebar-back-btn" in footer_content
-
-    def test_dashboard_js_no_auth_endpoints_called(self):
-        with open(self.dashboard_js_path, "r", encoding="utf-8") as f:
-            js = f.read()
-
+    def test_common_js_has_no_auth_endpoints_and_has_xss_protection(self):
+        """common.js must have zero auth endpoints and provide XSS sanitizers."""
+        assert self.common_js_path.exists()
+        js = self.common_js_path.read_text(encoding="utf-8")
         assert "/session" not in js
         assert "checkSession" not in js
-        assert "triggerAdReward" not in js
-        assert "completeRewardAd" not in js
-        assert "adRewardModal" not in js
-
-    def test_dashboard_js_has_xss_protection_utilities(self):
-        with open(self.dashboard_js_path, "r", encoding="utf-8") as f:
-            js = f.read()
-
         assert "function escapeHtml" in js
         assert "function escapeAttr" in js
         assert "function sanitizeUrl" in js
-        assert "function fetchWithTimeout" in js
+        assert "async function fetchWithTimeout" in js
 
     def test_index_html_no_auth_modals_and_declares_free_access(self):
         with open(self.index_html_path, "r", encoding="utf-8") as f:
@@ -119,8 +111,8 @@ class TestFrontendMarkup:
 
         assert 'id="authModal"' not in html
         assert 'id="loginModal"' not in html
-        assert "No Login Required" in html
-        assert "100% Free Public Access" in html
+        assert 'href="/tools"' in html
+
 
 
 class TestAnonymousBrowserFlow:

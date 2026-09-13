@@ -105,7 +105,7 @@ def test_development_secret_key_fallback():
 # ─── B. REGISTRATION RESPONSE SANITIZATION TESTS ─────────────────────────────
 
 def test_registration_response_excludes_secrets():
-    """Verify POST /api/register never leaks verification tokens, password hashes, or internal fields."""
+    """Verify POST /api/register is purged and returns 404, never leaking tokens or secrets."""
     import secrets
     import time
     import importlib.util
@@ -129,23 +129,12 @@ def test_registration_response_excludes_secrets():
     }
 
     res = client.post("/api/register", json=payload)
-    assert res.status_code == 200, f"Expected 200, got {res.status_code}: {res.data}"
-    data = res.get_json()
+    assert res.status_code in (404, 405), f"Expected 404/405 (purged), got {res.status_code}: {res.data}"
 
-    # Assert verification_token is NOT exposed in the response
-    assert "verification_token" not in data, "CRITICAL: verification_token leaked in registration response!"
+    data = res.get_json() or {}
+    for forbidden in ["password", "password_hash", "reset_token", "secret", "tokens", "verification_token"]:
+        assert forbidden not in data, f"CRITICAL: '{forbidden}' found in response!"
 
-    # Assert no password or hashes leaked anywhere in top-level JSON
-    for forbidden in ["password", "password_hash", "reset_token", "secret", "tokens"]:
-        assert forbidden not in data, f"CRITICAL: '{forbidden}' found in registration response!"
-
-    # Assert user sub-dictionary contains only whitelisted public fields
-    user_data = data.get("user", {})
-    allowed_fields = {"id", "name", "email", "role", "credits", "email_verified", "avatar_url"}
-    extra_fields = set(user_data.keys()) - allowed_fields
-    assert len(extra_fields) == 0, f"CRITICAL: Non-whitelisted user fields exposed: {extra_fields}"
-
-    assert data.get("public_mode") is True
 
 
 # ─── C. UNTRUSTED AD SCRIPT EXCLUSION TESTS ──────────────────────────────────

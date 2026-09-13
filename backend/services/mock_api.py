@@ -24,7 +24,7 @@ No other file needs to change - this is the whole point of the
 """
 
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 SAMPLE_COMMENTS_POOL = [
     "This is absolutely amazing, best trend ever!",
@@ -52,7 +52,7 @@ def _generate_daily_series(base_views, days=10):
     for i in range(days):
         change = random.uniform(-0.05, 0.35)  # mostly upward, viral bias
         current = max(1000, int(current * (1 + change)))
-        date = (datetime.utcnow() - timedelta(days=days - i)).strftime("%Y-%m-%d")
+        date = (datetime.now(timezone.utc) - timedelta(days=days - i)).strftime("%Y-%m-%d")
         series.append({
             "date": date,
             "views": current,
@@ -76,7 +76,7 @@ def fetch_youtube_data(keyword: str):
         "keyword": keyword,
         "video_id": f"yt_{random.randint(10000,99999)}",
         "title": f"{keyword} - Trending Now",
-        "upload_date": (datetime.utcnow() - timedelta(days=random.randint(1, 20))).strftime("%Y-%m-%d"),
+        "upload_date": (datetime.now(timezone.utc) - timedelta(days=random.randint(1, 20))).strftime("%Y-%m-%d"),
         "daily_metrics": _generate_daily_series(base_views),
         "comments": _sample_comments(30),
     }
@@ -91,7 +91,7 @@ def fetch_tiktok_data(keyword: str):
         "keyword": keyword,
         "video_id": f"tt_{random.randint(10000,99999)}",
         "caption": f"#{keyword.replace(' ', '')} is everywhere right now",
-        "upload_date": (datetime.utcnow() - timedelta(days=random.randint(1, 15))).strftime("%Y-%m-%d"),
+        "upload_date": (datetime.now(timezone.utc) - timedelta(days=random.randint(1, 15))).strftime("%Y-%m-%d"),
         "daily_metrics": _generate_daily_series(base_views),
         "comments": _sample_comments(30),
     }

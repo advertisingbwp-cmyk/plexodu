@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="index, follow">
+<title>AI Creator Strategist — Plexudo</title>
+<meta name="description" content="AI YouTube Creator Strategist powered by Groq. Multi-turn conversation memory, Roman Urdu comprehension, and high-CTR title suggestions. 100% free.">
+<link rel="canonical" href="https://plexudo.vercel.app/tools/ai-strategist">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
+<link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
+<link rel="stylesheet" href="/css/style.css?v=10.0">
+</head>
+<body>
+
+<header>
+  <nav class="navbar">
+    <div class="container nav-wrap">
+      <a href="/" class="brand-logo">
+        <svg width="30" height="30" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="42" width="14" height="14" rx="2.5" fill="#0B192C"/>
+          <rect x="16" y="28" width="14" height="14" rx="2.5" fill="#0B192C"/>
+          <path d="M30 14 H40 C44 14 46 16 46 20 V56 H36 V28 H30 V14 Z" fill="#0B192C"/>
+          <path d="M26 14 C26 7.5 30.5 3 36 3 H46 C55.941 3 64 11.059 64 21 C64 30.941 55.941 39 46 39 H40 C34.477 39 30 43.477 30 49 V56" stroke="#0B192C" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>PLEXUDO</span>
+      </a>
+
+      <ul class="nav-menu">
+        <li><a href="/" class="nav-link">Home</a></li>
+        <li><a href="/tools" class="nav-link active">Tools</a></li>
+        <li><a href="/#analytics" class="nav-link">Creator Intelligence</a></li>
+        <li><a href="/#workflow" class="nav-link">Workflow</a></li>
+        <li><a href="/blog/" class="nav-link">Articles</a></li>
+        <li><a href="/#faq" class="nav-link">FAQ</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="/tools" class="btn-primary" style="text-decoration:none;">Explore Tools ➔</a>
+        <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-drawer" id="mobileDrawer">
+      <ul class="mobile-drawer-links">
+        <li><a href="/" class="nav-link" onclick="toggleMobileMenu()">Home</a></li>
+        <li><a href="/tools" class="nav-link" onclick="toggleMobileMenu()">Tools</a></li>
+        <li><a href="/#analytics" class="nav-link" onclick="toggleMobileMenu()">Creator Intelligence</a></li>
+        <li><a href="/#workflow" class="nav-link" onclick="toggleMobileMenu()">Workflow</a></li>
+        <li><a href="/blog/" class="nav-link" onclick="toggleMobileMenu()">Articles</a></li>
+        <li><a href="/#faq" class="nav-link" onclick="toggleMobileMenu()">FAQ</a></li>
+      </ul>
+      <div>
+        <a href="/tools" class="btn-primary" class="nav-mobile-cta">Explore Tools ➔</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main class="tool-page-main">
+  <div class="tool-hero">
+    <div class="tool-badge">⚡ Groq AI Cloud</div>
+    <h1 class="tool-title">AI Creator Strategist</h1>
+    <p class="tool-desc">
+      Your personal YouTube analytics advisor. Get high-CTR title variations, retention hooks, and audience growth tactics with multi-turn conversation memory and Roman Urdu support.
+    </p>
+  </div>
+
+  <div class="tool-results-panel tool-panel-chat">
+    <!-- Chat Messages Scroll Area -->
+    <div id="chatMessages" class="chat-messages chat-messages-box">
+      <!-- Welcome message -->
+      <div class="chat-message ai">
+        <div class="chat-avatar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
+        </div>
+        <div>
+          <div class="chat-bubble">
+            👋 Hello! I am <strong>Plexudo AI Strategist</strong> — your YouTube analytics advisor.<br><br>
+            Ask me anything about YouTube content strategy, high-CTR titles, viewer retention hooks, or keyword opportunities! (Aap Roman Urdu mein bhi pooch saktay hain 🚀)
+          </div>
+          <div class="chat-timestamp">Just now</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proactive Suggestion Chips -->
+    <div id="chatChips" class="chat-chips-wrap">
+      <button class="tool-secondary-btn chat-chip-btn" onclick="sendChipPrompt('How can I increase CTR on my gaming videos?')">🎮 Gaming CTR Tips</button>
+      <button class="tool-secondary-btn chat-chip-btn" onclick="sendChipPrompt('Give me 5 high-converting YouTube title hooks for tech reviews')">📱 Tech Title Hooks</button>
+      <button class="tool-secondary-btn chat-chip-btn" onclick="sendChipPrompt('How do I structure the first 30 seconds of a tutorial video?')">⏳ First 30s Hook</button>
+      <button class="tool-secondary-btn chat-chip-btn" onclick="clearChat()">🗑️ Clear Conversation</button>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="chat-input-area chat-input-row">
+      <textarea id="chatInput" class="chat-input-textarea" placeholder="Ask anything about YouTube strategy… (e.g. 'How can I increase views on my tutorial videos?')" rows="1"></textarea>
+      <button id="chatSendBtn" class="tool-primary-btn">Send ➤</button>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand-header">
+          <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="42" width="14" height="14" rx="2.5" fill="#38BDF8"/>
+            <rect x="16" y="28" width="14" height="14" rx="2.5" fill="#38BDF8"/>
+            <path d="M30 14 H40 C44 14 46 16 46 20 V56 H36 V28 H30 V14 Z" fill="#38BDF8"/>
+            <path d="M26 14 C26 7.5 30.5 3 36 3 H46 C55.941 3 64 11.059 64 21 C64 30.941 55.941 39 46 39 H40 C34.477 39 30 43.477 30 49 V56" stroke="#38BDF8" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>PLEXUDO</span>
+        </div>
+        <p class="footer-tagline">
+          The all-in-one YouTube creator utilities platform powered by real YouTube Data API v3 and Groq AI. 100% anonymous &amp; free.
+        </p>
+        <div class="footer-copyright">
+          &copy; 2026 Plexudo. All rights reserved.
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Creator Utilities</div>
+        <ul class="footer-links">
+          <li><a href="/tools/trend-analyzer">Trend Analyzer</a></li>
+          <li><a href="/tools/video-analyzer">Video Analyzer</a></li>
+          <li><a href="/tools/keyword-tool">Keyword Tool</a></li>
+          <li><a href="/tools/competitor-audit">Competitor Audit</a></li>
+          <li><a href="/tools/ai-strategist">AI Strategist</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Resources</div>
+        <ul class="footer-links">
+          <li><a href="/tools">All Tools Directory</a></li>
+          <li><a href="/#analytics">Creator Intelligence</a></li>
+          <li><a href="/blog/">Articles &amp; Guides</a></li>
+          <li><a href="/#faq">Frequently Asked Questions</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <ul class="footer-links">
+          <li><a href="/privacy.html">Privacy Policy</a></li>
+          <li><a href="/terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Technical</div>
+        <ul class="footer-links">
+          <li><a href="/robots.txt">Robots.txt</a></li>
+          <li><a href="/sitemap.xml">Sitemap.xml</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div>
+        Plexudo is an independent analytics platform and is not officially affiliated with or endorsed by YouTube or Google LLC.
+      </div>
+      <div>
+        Hosted securely &bull; Enterprise SSL
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="/js/tools/common.js?v=10.0"></script>
+<script src="/js/tools/ai-strategist.js?v=10.0"></script>
+</body>
+</html>

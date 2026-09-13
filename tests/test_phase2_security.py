@@ -57,18 +57,13 @@ def test_public_mode_report_access():
 
 
 def test_public_mode_session_and_trends():
-    """Verify /api/session returns public mode access and /api/trends works publicly."""
+    """Verify /api/session is purged (404) and /api/trends & /api/compare-keywords work publicly."""
     app = get_flask_app()
     app.config["TESTING"] = True
     with app.test_client() as client:
-        # Session endpoint
+        # Session endpoint is purged
         res_session = client.get("/api/session")
-        assert res_session.status_code == 200
-        data = res_session.get_json()
-        assert data.get("authenticated") is True, "Public mode session must return authenticated: True"
-        assert data.get("public_mode") is True, "Public mode session must return public_mode: True"
-        assert data.get("user") is not None, "Public mode session must provide public user profile"
-        assert data["user"].get("name") == "Creator"
+        assert res_session.status_code == 404, "Legacy /api/session must return 404"
 
         # Trends endpoint is publicly accessible
         res_trends = client.get("/api/trends")
@@ -79,6 +74,7 @@ def test_public_mode_session_and_trends():
         res_comp = client.get("/api/compare-keywords")
         assert res_comp.status_code == 200
         assert isinstance(res_comp.get_json().get("comparison"), list)
+
 
 
 # ─── 2. PUBLIC REPORT ACCESS ───────────────────────────────────────────────
@@ -149,21 +145,11 @@ def test_session_cookie_attributes_and_proxyfix():
 # ─── 5. PUBLIC MODE UNLIMITED CREDITS ───────────────────────────────────────
 
 def test_public_mode_unlimited_credits():
-    """Verify in public mode credits are 100% free and deductions never fail."""
-    app = get_flask_app()
+    """Verify credits system is completely purged and free public access is enforced."""
     main_mod = sys.modules["main_flask_app"]
-    _deduct_credits_atomic = main_mod._deduct_credits_atomic
-    _refund_credits_atomic = main_mod._refund_credits_atomic
+    assert not hasattr(main_mod, "_deduct_credits_atomic"), "_deduct_credits_atomic should be purged"
+    assert not hasattr(main_mod, "_refund_credits_atomic"), "_refund_credits_atomic should be purged"
 
-    # In public mode, any deduction succeeds without error
-    success, err = _deduct_credits_atomic(None, amount=100)
-    assert success is True
-    assert err == ""
-
-    # Refund succeeds without error
-    ref_ok, ref_err = _refund_credits_atomic(None, amount=100, reason="Public mode test")
-    assert ref_ok is True
-    assert ref_err == ""
 
 
 # ─── 6. IN-MEMORY REPORTLAB GENERATION (NO DISK WRITES) ─────────────────────

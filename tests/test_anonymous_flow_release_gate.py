@@ -70,19 +70,24 @@ class TestAuthAcceptance:
     """Verify zero login, registration, password reset, or OAuth requirements."""
 
     def test_no_login_required_for_public_api_endpoints(self, client):
-        """Anonymous client with no headers/session can call public endpoints."""
-        endpoints = [
+        """Purged auth endpoints return 404, while public tool endpoints succeed anonymously."""
+        purged_endpoints = [
             ("/api/session", "get", None),
             ("/api/login", "post", {"email": "any@example.com"}),
             ("/api/register", "post", {"email": "any@example.com"}),
             ("/api/logout", "post", {}),
         ]
-        for ep, method, payload in endpoints:
+        for ep, method, payload in purged_endpoints:
             func = getattr(client, method)
             resp = func(ep, json=payload or {})
-            assert resp.status_code == 200, f"{ep} failed with {resp.status_code}"
-            data = resp.get_json()
-            assert data.get("public_mode") is True, f"{ep} did not indicate public_mode"
+            assert resp.status_code in (404, 405), f"{ep} expected 404/405 (purged), got {resp.status_code}"
+
+
+        # Public endpoints work without credentials
+        resp_trends = client.get("/api/trends")
+        assert resp_trends.status_code == 200
+        resp_comp = client.get("/api/compare-keywords")
+        assert resp_comp.status_code == 200
 
     def test_no_google_oauth_dependency_in_config(self):
         """Backend config must have no Google OAuth client configuration attributes."""
@@ -231,7 +236,7 @@ class TestApiAcceptance:
 
     def test_no_secrets_in_response_headers_or_body(self, client):
         """Responses must never contain private keys or system secrets."""
-        resp = client.get("/api/session")
+        resp = client.get("/api/trends")
         body_text = resp.get_data(as_text=True)
         assert "AIzaSy" not in body_text
         assert "gsk_" not in body_text
@@ -261,12 +266,13 @@ class TestFrontendAcceptance:
         assert 'id="authModal"' not in content
         assert 'id="forgotPasswordModal"' not in content
 
-    def test_dashboard_html_has_no_auth_modals(self):
-        """Dashboard page must not have login modals or user login prompts."""
-        content = (REPO_ROOT / "frontend" / "dashboard.html").read_text(encoding="utf-8")
-        assert 'id="loginModal"' not in content
-        assert 'id="registerModal"' not in content
-        assert 'id="authModal"' not in content
+    def test_dashboard_html_purged_and_tools_have_no_auth_modals(self):
+        """Dashboard page is purged, and standalone tool pages have no login modals."""
+        assert not (REPO_ROOT / "frontend" / "dashboard.html").exists()
+        tools_content = (REPO_ROOT / "frontend" / "tools" / "index.html").read_text(encoding="utf-8")
+        assert 'id="loginModal"' not in tools_content
+        assert 'id="registerModal"' not in tools_content
+        assert 'id="authModal"' not in tools_content
 
     def test_login_js_file_deleted(self):
         """Legacy login.js script must be completely deleted from repository."""
@@ -274,11 +280,11 @@ class TestFrontendAcceptance:
         assert not login_js.exists(), "frontend/js/login.js still exists!"
 
     def test_xss_protection_utilities_exist(self):
-        """Frontend JS must contain robust XSS protection routines."""
-        dash_js = (REPO_ROOT / "frontend" / "js" / "dashboard.js").read_text(encoding="utf-8")
-        assert "escapeHtml" in dash_js
-        assert "escapeAttr" in dash_js
-        assert "sanitizeUrl" in dash_js
+        """Frontend JS common module must contain robust XSS protection routines."""
+        common_js = (REPO_ROOT / "frontend" / "js" / "tools" / "common.js").read_text(encoding="utf-8")
+        assert "escapeHtml" in common_js
+        assert "escapeAttr" in common_js
+        assert "sanitizeUrl" in common_js
 
 
 # =============================================================================
@@ -293,10 +299,12 @@ class TestSeoAcceptance:
         assert 'content="index, follow' in content
         assert '<link rel="canonical" href="https://plexudo.vercel.app/">' in content
 
-    def test_dashboard_page_has_noindex(self):
-        """Tool dashboard must be noindex, nofollow, noarchive."""
-        content = (REPO_ROOT / "frontend" / "dashboard.html").read_text(encoding="utf-8")
-        assert 'content="noindex, nofollow, noarchive"' in content
+    def test_dashboard_page_purged_and_tools_indexable(self):
+        """Legacy dashboard is purged, tools directory is indexable."""
+        assert not (REPO_ROOT / "frontend" / "dashboard.html").exists()
+        tools_content = (REPO_ROOT / "frontend" / "tools" / "index.html").read_text(encoding="utf-8")
+        assert 'content="index, follow' in tools_content
+
 
     def test_sitemap_xml_valid(self):
         """sitemap.xml must be valid XML and contain no auth-only paths."""

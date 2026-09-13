@@ -11,7 +11,7 @@ import time
 import re
 import urllib.parse
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.core.config import settings
 
 def get_yt_api_key():
@@ -67,7 +67,7 @@ def _build_authentic_snapshot(total_views: int, total_likes: int, total_comments
     Returns authentic recorded snapshot for today.
     Never fabricates synthetic historical decay curves or imaginary past daily points.
     """
-    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     return [{
         "date": today_str,
         "views": int(total_views or 0),
@@ -541,8 +541,8 @@ def audit_youtube_channel(identifier: str, is_handle: bool = True) -> dict:
 
     # Channel age in years
     try:
-        pub_date  = datetime.strptime(published_at[:10], "%Y-%m-%d")
-        age_years = round((datetime.utcnow() - pub_date).days / 365.25, 1)
+        pub_date  = datetime.strptime(published_at[:10], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        age_years = round((datetime.now(timezone.utc) - pub_date).days / 365.25, 1)
     except Exception:
         age_years = 0
 

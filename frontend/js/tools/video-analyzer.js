@@ -1,0 +1,115 @@
+/**
+ * YouTube Video Virality Analyzer Client JS
+ */
+const videoUrlInput = document.getElementById("videoUrlInput");
+const analyzeVideoBtn = document.getElementById("analyzeVideoBtn");
+const statusLine = document.getElementById("statusLine");
+const loadingArea = document.getElementById("loadingArea");
+const resultsArea = document.getElementById("resultsArea");
+
+const videoThumb = document.getElementById("videoThumb");
+const videoTitle = document.getElementById("videoTitle");
+const videoChannel = document.getElementById("videoChannel");
+const videoDate = document.getElementById("videoDate");
+
+const videoViralityVal = document.getElementById("videoViralityVal");
+const videoViewsVal = document.getElementById("videoViewsVal");
+const videoEngagementVal = document.getElementById("videoEngagementVal");
+
+const sentimentStats = document.getElementById("sentimentStats");
+const sampleCommentText = document.getElementById("sampleCommentText");
+const tagsContainer = document.getElementById("tagsContainer");
+const commentsList = document.getElementById("commentsList");
+
+if (analyzeVideoBtn) {
+  analyzeVideoBtn.addEventListener("click", runVideoAnalysis);
+}
+
+if (videoUrlInput) {
+  videoUrlInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") runVideoAnalysis();
+  });
+}
+
+async function runVideoAnalysis() {
+  const url = videoUrlInput ? videoUrlInput.value.trim() : "";
+  if (!url) {
+    showStatusBar(statusLine, "Please enter a valid YouTube video URL or ID", true);
+    return;
+  }
+
+  hideStatusBar(statusLine);
+  if (loadingArea) loadingArea.style.display = "block";
+  if (resultsArea) resultsArea.style.display = "none";
+  if (analyzeVideoBtn) analyzeVideoBtn.disabled = true;
+
+  try {
+    const res = await fetchWithTimeout("/api/video-analysis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url })
+    }, 25000);
+
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      showStatusBar(statusLine, data.error || data.message || "Could not analyze video. Please verify the link.", true);
+      return;
+    }
+
+    renderVideoResults(data);
+  } catch (err) {
+    showStatusBar(statusLine, err.message || "Network error. Please try again.", true);
+  } finally {
+    if (loadingArea) loadingArea.style.display = "none";
+    if (analyzeVideoBtn) analyzeVideoBtn.disabled = false;
+  }
+}
+
+function renderVideoResults(data) {
+  if (videoThumb) videoThumb.src = sanitizeUrl(data.thumbnail || "");
+  if (videoTitle) videoTitle.textContent = data.title || "Unknown Video";
+  if (videoChannel) videoChannel.textContent = data.channel_title || "Unknown Channel";
+  if (videoDate) videoDate.textContent = data.published_at ? data.published_at.slice(0, 10) : "—";
+
+  if (videoViralityVal) videoViralityVal.textContent = `${data.virality_score || 0}/100`;
+  if (videoViewsVal) videoViewsVal.textContent = Number(data.views || 0).toLocaleString();
+  if (videoEngagementVal) videoEngagementVal.textContent = `${data.engagement_rate || 0}%`;
+
+  const s = data.sentiment || {};
+  if (sentimentStats) {
+    sentimentStats.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
+  }
+  if (sampleCommentText) {
+    sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No sample comment recorded.";
+  }
+
+  // Tags
+  if (tagsContainer) {
+    const tags = data.tags || [];
+    if (tags.length === 0) {
+      tagsContainer.innerHTML = `<span style="font-size:13px; color:#94a3b8;">No tags detected on this video.</span>`;
+    } else {
+      tagsContainer.innerHTML = tags.map(t => `
+        <span class="panel-badge" style="background:#f1f5f9; color:#0f172a; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(t)}', this)">
+          🏷️ ${escapeHtml(t)}
+        </span>
+      `).join("");
+    }
+  }
+
+  // Comments
+  if (commentsList) {
+    const comments = data.comments || [];
+    if (comments.length === 0) {
+      commentsList.innerHTML = `<div style="font-size:13px; color:#94a3b8;">No public comments available.</div>`;
+    } else {
+      commentsList.innerHTML = comments.slice(0, 10).map(c => `
+        <div style="padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; font-size:13px; color:#334155; line-height:1.5;">
+          ${escapeHtml(c.text || c)}
+        </div>
+      `).join("");
+    }
+  }
+
+  if (resultsArea) resultsArea.style.display = "block";
+}
