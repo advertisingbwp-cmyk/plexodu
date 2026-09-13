@@ -286,7 +286,7 @@ def analyze_youtube_video(url: str):
     content = item.get("contentDetails", {})
 
     title         = snippet.get("title", "")
-    description   = snippet.get("description", "")[:500]
+    description   = snippet.get("description", "")[:1000]
     channel_name  = snippet.get("channelTitle", "")
     channel_id    = snippet.get("channelId", "")
     upload_date   = snippet.get("publishedAt", "")
@@ -364,16 +364,19 @@ def analyze_youtube_video(url: str):
         "thumbnail":        thumbnail,
         "description":      description,
         "channel_name":     channel_name,
+        "channel_title":    channel_name,
         "channel_id":       channel_id,
         "channel_url":      f"https://www.youtube.com/channel/{channel_id}" if channel_id else "",
         "subscriber_count": subscriber_count,
         "upload_date":      upload_date[:10] if upload_date else "—",
+        "published_at":     upload_date[:10] if upload_date else "—",
         "duration":         duration_fmt,
         "duration_sec":     duration_sec,
         "is_short":         is_short,
         "tags":             tags,
         "category_id":      category_id,
         "view_count":       view_count,
+        "views":            view_count,
         "like_count":       like_count,
         "comment_count":    comment_count,
         "engagement_rate":  engagement_rate,
@@ -599,14 +602,15 @@ def audit_youtube_channel(identifier: str, is_handle: bool = True) -> dict:
                             vph = round(v_views / max(1, age_years * 8760), 1)
 
                             top_videos.append({
-                                "video_id":  v_id,
-                                "title":     v_title,
-                                "views":     v_views,
-                                "likes":     v_likes,
-                                "thumbnail": v_thumb,
-                                "vph":       vph,
-                                "is_short":  is_short,
-                                "duration":  dur_sec,
+                                "video_id":   v_id,
+                                "title":      v_title,
+                                "views":      v_views,
+                                "likes":      v_likes,
+                                "thumbnail":  v_thumb,
+                                "vph":        vph,
+                                "is_short":   is_short,
+                                "duration":   dur_sec,
+                                "published_at": v_snip.get("publishedAt", "")[:10] if v_snip.get("publishedAt") else "—",
                             })
 
         except Exception:

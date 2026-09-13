@@ -139,9 +139,9 @@ def test_public_tools_work_without_user_or_session():
         res = client.get("/api/compare-keywords")
         assert res.status_code == 200
 
-        # 4. Audit log endpoint
+        # 4. Audit log endpoint (removed from public access for privacy)
         res = client.get("/api/audit-log")
-        assert res.status_code == 200
+        assert res.status_code == 404
 
         # 5. Search endpoint (mocked YouTube fetch)
         mock_yt = {

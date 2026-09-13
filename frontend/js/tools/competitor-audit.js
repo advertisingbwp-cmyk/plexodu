@@ -63,15 +63,15 @@ async function runChannelAudit() {
 
 function renderAuditResults(data) {
   if (channelAvatar) channelAvatar.src = sanitizeUrl(data.avatar_url || data.thumbnail || "");
-  if (channelName) channelName.textContent = data.title || "Channel";
-  if (channelHandle) channelHandle.textContent = data.custom_url || data.handle || "—";
-  if (channelAge) channelAge.textContent = `${data.channel_age_years || 0} years`;
+  if (channelName) channelName.textContent = data.title || data.channel_name || "Channel";
+  if (channelHandle) channelHandle.textContent = data.custom_url || data.handle || data.channel_name || "—";
+  if (channelAge) channelAge.textContent = `${data.channel_age_years ?? data.age_years ?? 0} years`;
 
-  if (subCountVal) subCountVal.textContent = Number(data.subscribers || 0).toLocaleString();
+  if (subCountVal) subCountVal.textContent = Number(data.subscribers || data.subscriber_count || 0).toLocaleString();
   if (viewsCountVal) viewsCountVal.textContent = Number(data.total_views || 0).toLocaleString();
   if (earningsVal) {
-    const minE = data.est_monthly_earnings_min || 0;
-    const maxE = data.est_monthly_earnings_max || 0;
+    const minE = data.est_monthly_earnings_min ?? data.earn_min_monthly ?? 0;
+    const maxE = data.est_monthly_earnings_max ?? data.earn_max_monthly ?? 0;
     earningsVal.textContent = `$${Number(minE).toLocaleString()} – $${Number(maxE).toLocaleString()}`;
   }
 
@@ -85,7 +85,7 @@ function renderAuditResults(data) {
           <td style="padding:12px; font-weight:700; color:#0f172a; max-width:320px;">${escapeHtml(v.title)}</td>
           <td style="padding:12px; color:#475569;">${Number(v.views || 0).toLocaleString()}</td>
           <td style="padding:12px; color:#475569;">${Number(v.likes || 0).toLocaleString()}</td>
-          <td style="padding:12px; color:#94a3b8;">${v.published_at ? v.published_at.slice(0, 10) : '—'}</td>
+          <td style="padding:12px; color:#94a3b8;">${(v.published_at || v.upload_date || '—').slice(0, 10)}</td>
         </tr>
       `).join("");
     }

@@ -76,7 +76,7 @@ async function handleSendMessage() {
       return;
     }
 
-    const reply = data.response || "No response received.";
+    const reply = data.reply || data.response || "No response received.";
     appendBubble("ai", reply);
 
     // Save to multi-turn memory

@@ -11,6 +11,7 @@ const videoThumb = document.getElementById("videoThumb");
 const videoTitle = document.getElementById("videoTitle");
 const videoChannel = document.getElementById("videoChannel");
 const videoDate = document.getElementById("videoDate");
+const videoDescription = document.getElementById("videoDescription");
 
 const videoViralityVal = document.getElementById("videoViralityVal");
 const videoViewsVal = document.getElementById("videoViewsVal");
@@ -68,11 +69,22 @@ async function runVideoAnalysis() {
 function renderVideoResults(data) {
   if (videoThumb) videoThumb.src = sanitizeUrl(data.thumbnail || "");
   if (videoTitle) videoTitle.textContent = data.title || "Unknown Video";
-  if (videoChannel) videoChannel.textContent = data.channel_title || "Unknown Channel";
-  if (videoDate) videoDate.textContent = data.published_at ? data.published_at.slice(0, 10) : "—";
+  if (videoChannel) videoChannel.textContent = data.channel_title || data.channel_name || "Unknown Channel";
+  if (videoDate) {
+    const pubDate = data.published_at || data.upload_date;
+    videoDate.textContent = pubDate ? pubDate.slice(0, 10) : "—";
+  }
+  if (videoDescription) {
+    if (data.description && data.description.trim()) {
+      videoDescription.textContent = data.description.trim();
+      videoDescription.style.display = "block";
+    } else {
+      videoDescription.style.display = "none";
+    }
+  }
 
   if (videoViralityVal) videoViralityVal.textContent = `${data.virality_score || 0}/100`;
-  if (videoViewsVal) videoViewsVal.textContent = Number(data.views || 0).toLocaleString();
+  if (videoViewsVal) videoViewsVal.textContent = Number(data.views || data.view_count || 0).toLocaleString();
   if (videoEngagementVal) videoEngagementVal.textContent = `${data.engagement_rate || 0}%`;
 
   const s = data.sentiment || {};

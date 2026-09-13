@@ -201,9 +201,7 @@ class TestAnonymousBrowserFlow:
         assert "trends" in data
         assert isinstance(data["trends"], list)
 
-    def test_anonymous_audit_log_succeeds(self, client):
+    def test_anonymous_audit_log_protected_from_public(self, client):
+        """Audit logs must not be exposed to anonymous public users (privacy/security)."""
         res = client.get("/api/audit-log")
-        assert res.status_code == 200
-        data = res.get_json()
-        assert "logs" in data
-        assert isinstance(data["logs"], list)
+        assert res.status_code == 404
