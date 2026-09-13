@@ -1181,7 +1181,23 @@ async function sendChatMessage() {
       credentials: "include",
       body: JSON.stringify({ message, context: chatContext }),
     }, 15000);
-    const data = await res.json();
+
+    let data;
+    const text = await res.text();
+    try {
+      data = JSON.parse(text);
+    } catch (_) {
+      let errMsg = `Server returned HTTP ${res.status}`;
+      if (text && text.length < 120 && !text.includes("<")) {
+        errMsg = text.trim();
+      }
+      throw new Error(errMsg);
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error || `Server error (${res.status})`);
+    }
+
     removeTyping(typingId);
     appendChatMessage("ai", data.reply || "⚠ No response received.");
   } catch (err) {
