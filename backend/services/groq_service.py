@@ -14,14 +14,18 @@ from app.core.config import settings
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-# Modern, officially supported Groq model list (active Llama 3 models)
+# Modern, officially supported Groq model list
 DEPRECATED_MODELS = {"openai/gpt-oss-120b", "mixtral-8x7b-32768"}
 configured_model = (settings.GROQ_MODEL or os.environ.get("GROQ_MODEL", "")).strip()
 if not configured_model or configured_model in DEPRECATED_MODELS:
-    configured_model = "llama-3.3-70b-versatile"
+    configured_model = "openai/gpt-oss-20b"
 
 SUPPORTED_MODELS = [
     configured_model,
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.6-27b",
+    "qwen/qwen3.8-27b",
+    "groq/compound-mini",
     "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant",
 ]
@@ -48,12 +52,12 @@ def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
         }
 
     system_prompt = (
-        "You are Plexudo AI — an intelligent, natural, helpful, and versatile AI assistant. "
-        "Guidelines for responding:\n"
-        "1. DIRECT & RELEVANT: Answer the user's question directly, accurately, and conversationally. Never output unsolicited tables, rigid templates, or unwanted metrics unless the user explicitly requests them.\n"
-        "2. LANGUAGE MATCHING: Always respond in the same language and style the user uses (Urdu, Roman Urdu, English, Hindi, etc.). If the user asks in Roman Urdu (e.g. 'ye kon hai?'), reply naturally in clear, friendly Roman Urdu.\n"
-        "3. VERSATILITY: Answer any general knowledge, biography, coding, creator tips, YouTube growth, or conversational inquiries with warmth, clarity, and precision.\n"
-        "4. BACKGROUND CONTEXT: If background YouTube trend metrics are provided, only reference them if the user specifically asks about video stats, view counts, or channel performance."
+        "You are Plexudo AI — a friendly, intelligent, helpful, and completely versatile AI assistant. "
+        "Guidelines:\n"
+        "1. DIRECT & CONVERSATIONAL: Answer the user directly, naturally, and warmly. Help with titles, descriptions, scripts, gaming, code, general knowledge, or casual chat.\n"
+        "2. LANGUAGE MATCHING: Always respond in the exact same language and style the user uses (English, Urdu, Roman Urdu, Hindi, etc.). If the user asks in Roman Urdu (e.g. 'bhai titles batao' or 'ye kaisa hai'), reply in natural, fluent Roman Urdu.\n"
+        "3. HIGH QUALITY & CREATIVITY: When asked for titles or ideas, provide ready-to-use, catchy, high-CTR suggestions tailored to the user's specific request.\n"
+        "4. NO RIGID TEMPLATES: Never output placeholder templates like '[Topic]' or rigid canned bullet points. Act like a normal, high-level AI assistant."
     )
 
     messages = [{"role": "system", "content": system_prompt}]
@@ -116,50 +120,30 @@ def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
 
 def generate_smart_youtube_fallback(user_message: str, trend_context: dict = None) -> dict:
     """
-    Provides intelligent, context-aware YouTube trend & growth advice
-    even when Groq API key is being updated.
+    Fallback when external AI service is unreachable or rate-limited.
+    Provides natural advice tailored to the user's message.
     """
-    msg = user_message.lower()
-    
-    if any(w in msg for w in ["hi", "hello", "hey", "salam", "start"]):
+    msg = user_message.strip()
+    topic = ""
+    if trend_context and isinstance(trend_context, dict) and trend_context.get("keyword"):
+        topic = str(trend_context["keyword"]).strip()
+    if not topic:
+        clean_msg = re.sub(r'(?i)\b(i want|give me|how to|titles? for|about|video|videos?|please|bhai|batao)\b', '', msg).strip()
+        topic = clean_msg if clean_msg else "your content"
+
+    if any(w in msg.lower() for w in ["hi", "hello", "hey", "salam", "start"]):
         reply = (
-            "👋 **Hello! I am your Plexudo AI YouTube Strategist.**\n\n"
-            "I can help you optimize your channel metadata and content strategy:\n\n"
-            "• 🎯 **Strategic Title Formats:** Search-focused, benefit-driven, and educational title angles.\n"
-            "• 🏷️ **Relevant SEO Tags:** Topic-specific long-tail tags and search query alignment.\n"
-            "• 📈 **Channel Analysis:** Interpreting video velocity, view trends, and audience engagement.\n"
-            "• 💡 **Content Strategy:** Niche topic ideas and description structure.\n\n"
-            "Ask me anything, e.g. *'How should I structure my video description?'* or *'Give me 3 title ideas for a tech tutorial.'*"
-        )
-    elif any(w in msg for w in ["title", "hook", "ctr"]):
-        reply = (
-            "🎯 **Proven YouTube Title Strategies:**\n\n"
-            "1. **Search-Focused:** *'[Topic]: Complete Step-by-Step Guide for Beginners'* (Direct search intent)\n"
-            "2. **Benefit-Driven:** *'How to [Desired Outcome] in [Year] (Best Practices)'* (Clear value payoff)\n"
-            "3. **Problem-Solution:** *'Common [Topic] Mistakes and How to Fix Them'* (High viewer utility)\n\n"
-            "💡 **Pro Tip:** Aim for **40–65 characters** so your title reads clearly on mobile devices without truncation."
-        )
-    elif any(w in msg for w in ["tag", "seo", "keyword", "rank"]):
-        reply = (
-            "📊 **Plexudo Metadata Optimization Best Practices:**\n\n"
-            "1. **Primary Topic in Title:** Place your core search keyword naturally in your title.\n"
-            "2. **Structured Description:** Write at least 2–3 paragraphs explaining the video context and key takeaways.\n"
-            "3. **Relevant Topic Tags:** Use 8–15 specific tags directly covering your video's main points and long-tail variants.\n"
-            "4. **Triple Metadata Overlap:** Ensure core keywords appear naturally across your Title, Description, and Tags."
-        )
-    elif any(w in msg for w in ["freefire", "free fire", "game", "gaming"]):
-        reply = (
-            "🎮 **Gaming Content Optimization Strategy:**\n\n"
-            "• **Clarity First:** Include game title, specific mode/character/weapon, and context in your title.\n"
-            "• **Description Value:** List key timestamps, settings discussed, and helpful game tips.\n"
-            "• **Hashtags:** Include 3–4 clean game-specific tags at the bottom of your description."
+            "👋 **Hello! I am your Plexudo AI Strategist.**\n\n"
+            "How can I help you today? You can ask me for video titles, descriptions, tags, scripting ideas, or channel growth strategies!"
         )
     else:
+        capitalized_topic = topic.title()
         reply = (
-            f"📊 **Plexudo Strategy Recommendations for: '{user_message}'**\n\n"
-            "1. **Search Intent:** Align your video title with questions viewers are actively searching for.\n"
-            "2. **First 15-Second Hook:** State the core value and roadmap of your video immediately.\n"
-            "3. **Audience Engagement:** Ask a specific question to encourage genuine comments and discussion."
+            f"Here are strategic title recommendations for **{capitalized_topic}** from Plexudo AI Strategist:\n\n"
+            f"1. **High CTR & Curiosity:** *The Ultimate {capitalized_topic} Secret Nobody Tells You*\n"
+            f"2. **Search Intent:** *How to Master {capitalized_topic} (Step-by-Step Beginner Guide)*\n"
+            f"3. **Urgency & Challenge:** *I Tried {capitalized_topic} for 24 Hours – Here's What Happened*\n"
+            f"4. **Action-Packed:** *Top 5 {capitalized_topic} Pro Plays That Actually Work*\n\n"
+            f"💡 **Tip:** Keep titles under 60 characters so they stay fully visible on mobile feeds."
         )
-    
     return {"reply": reply, "error": False}
