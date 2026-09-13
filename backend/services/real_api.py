@@ -286,11 +286,11 @@ def analyze_youtube_video(url: str):
     content = item.get("contentDetails", {})
 
     title         = snippet.get("title", "")
-    description   = snippet.get("description", "")[:1000]
+    description   = snippet.get("description", "")
     channel_name  = snippet.get("channelTitle", "")
     channel_id    = snippet.get("channelId", "")
     upload_date   = snippet.get("publishedAt", "")
-    tags          = snippet.get("tags", [])[:15]
+    tags          = snippet.get("tags", [])
     category_id   = snippet.get("categoryId", "")
     thumbnail     = (
         snippet.get("thumbnails", {}).get("maxres", {}).get("url") or

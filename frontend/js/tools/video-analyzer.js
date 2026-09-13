@@ -17,6 +17,14 @@ const videoViralityVal = document.getElementById("videoViralityVal");
 const videoViewsVal = document.getElementById("videoViewsVal");
 const videoEngagementVal = document.getElementById("videoEngagementVal");
 
+const copyTitleBtn = document.getElementById("copyTitleBtn");
+const copyDescBtn = document.getElementById("copyDescBtn");
+const copyTagsBtn = document.getElementById("copyTagsBtn");
+
+let currentVideoTitle = "";
+let currentVideoDescription = "";
+let currentVideoTags = [];
+
 const sentimentStats = document.getElementById("sentimentStats");
 const sampleCommentText = document.getElementById("sampleCommentText");
 const tagsContainer = document.getElementById("tagsContainer");
@@ -30,6 +38,74 @@ if (videoUrlInput) {
   videoUrlInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") runVideoAnalysis();
   });
+}
+
+// Copy Action Handlers
+if (copyTitleBtn) {
+  copyTitleBtn.addEventListener("click", () => {
+    safeCopyToClipboard(currentVideoTitle, copyTitleBtn);
+  });
+}
+
+if (copyDescBtn) {
+  copyDescBtn.addEventListener("click", () => {
+    safeCopyToClipboard(currentVideoDescription, copyDescBtn);
+  });
+}
+
+if (copyTagsBtn) {
+  copyTagsBtn.addEventListener("click", () => {
+    const tagsText = (currentVideoTags && currentVideoTags.length > 0)
+      ? currentVideoTags.join(", ")
+      : "";
+    safeCopyToClipboard(tagsText, copyTagsBtn);
+  });
+}
+
+async function safeCopyToClipboard(text, btnElement) {
+  if (!text) return false;
+  let copied = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      copied = true;
+    } else {
+      throw new Error("Clipboard API unavailable");
+    }
+  } catch (err) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    textarea.setAttribute("readonly", "");
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      copied = document.execCommand("copy");
+    } catch (e) {
+      copied = false;
+    }
+    document.body.removeChild(textarea);
+  }
+
+  if (copied && btnElement) {
+    const originalText = btnElement.textContent;
+    btnElement.textContent = "Copied!";
+    btnElement.classList.add("copied");
+    setTimeout(() => {
+      btnElement.textContent = originalText;
+      btnElement.classList.remove("copied");
+    }, 2000);
+  }
+  return copied;
+}
+
+function decodeHtmlEntities(str) {
+  if (!str) return "";
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value;
 }
 
 async function runVideoAnalysis() {
@@ -67,20 +143,44 @@ async function runVideoAnalysis() {
 }
 
 function renderVideoResults(data) {
+  currentVideoTitle = (data.title || "Unknown Video").trim();
+  currentVideoTags = Array.isArray(data.tags) ? data.tags : [];
+
   if (videoThumb) videoThumb.src = sanitizeUrl(data.thumbnail || "");
-  if (videoTitle) videoTitle.textContent = data.title || "Unknown Video";
+  if (videoTitle) videoTitle.textContent = currentVideoTitle;
   if (videoChannel) videoChannel.textContent = data.channel_title || data.channel_name || "Unknown Channel";
   if (videoDate) {
     const pubDate = data.published_at || data.upload_date;
     videoDate.textContent = pubDate ? pubDate.slice(0, 10) : "—";
   }
-  if (videoDescription) {
-    const rawDesc = (data.description != null && String(data.description).trim() !== "")
-      ? String(data.description).trim()
-      : "No description available.";
-    const escaped = escapeHtml(rawDesc);
-    videoDescription.innerHTML = escaped.replace(/\n/g, "<br>");
-    videoDescription.style.display = "block";
+
+  // Full Description Handling with Strict XSS Protection
+  const rawDesc = (data.description != null && String(data.description).trim() !== "")
+    ? String(data.description).trim()
+    : "";
+
+  if (rawDesc) {
+    // Decode HTML entities if any were passed from legacy API, and normalize any raw <br> tags
+    const decoded = decodeHtmlEntities(rawDesc).replace(/<br\s*\/?>/gi, "\n");
+    currentVideoDescription = decoded;
+    if (videoDescription) {
+      videoDescription.textContent = decoded; // textContent guarantees safe rendering with zero XSS!
+      videoDescription.classList.remove("is-empty");
+      videoDescription.style.display = "block";
+    }
+    if (copyDescBtn) copyDescBtn.disabled = false;
+  } else {
+    currentVideoDescription = "";
+    if (videoDescription) {
+      videoDescription.textContent = "No description available.";
+      videoDescription.classList.add("is-empty");
+      videoDescription.style.display = "block";
+    }
+    if (copyDescBtn) copyDescBtn.disabled = true;
+  }
+
+  if (copyTagsBtn) {
+    copyTagsBtn.disabled = currentVideoTags.length === 0;
   }
 
   if (videoViralityVal) videoViralityVal.textContent = `${data.virality_score || 0}/100`;

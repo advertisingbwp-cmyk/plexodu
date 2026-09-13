@@ -327,3 +327,98 @@ def test_video_analyzer_html_utf8_and_description():
     assert 'id="videoDescription"' in html, "HTML must include element with id='videoDescription'"
     assert 'class="video-description-box"' in html, "HTML must style description with class 'video-description-box'"
 
+
+# --- 10. Untruncated full description & special character preservation --------
+
+def test_full_description_fetch_no_truncation(client, flask_mod):
+    """Verify description is NOT truncated even if > 2500 chars, with emojis, line breaks, and URLs."""
+    long_description = (
+        "🔥 Official Music Video by Karan Aujla performing 'Softly'.\n\n"
+        "Stream / Download:\n"
+        "https://example.com/music/softly\n\n"
+        "Connect with Karan Aujla:\n"
+        "Instagram: https://instagram.com/karanaujla\n"
+        "Twitter: https://twitter.com/karanaujla\n\n"
+        "Lyrics & Credits:\n" + ("Song line with details & credits...\n" * 80) +
+        "\n#KaranAujla #Softly #Trending #Music #PunjabiSong #GTA5"
+    )
+    assert len(long_description) > 2500, "Test payload must be > 2500 characters"
+
+    mock_result = {
+        "video_id": "long_desc_vid",
+        "title": "GTA V | SOFTLY | KARAN AUJLA",
+        "channel_name": "XAshuX",
+        "description": long_description,
+        "view_count": 1618854,
+        "like_count": 6000,
+        "comment_count": 42,
+        "upload_date": "2025-03-22",
+        "thumbnail": "https://example.com/thumb.jpg",
+        "tags": ["gta", "gtav", "song", "karan aujla"],
+        "daily_metrics": [{"date": "2025-03-22", "views": 1618854, "likes": 6000, "shares": 0, "comments_count": 42}],
+        "comments": ["Great edit!"],
+    }
+
+    with patch.object(flask_mod, "analyze_youtube_video", return_value=mock_result), \
+         patch.object(flask_mod, "analyze_sentiment", return_value={"dominant_sentiment": "positive"}):
+
+        res = client.post(
+            "/api/video-analysis",
+            data=json.dumps({"url": "https://www.youtube.com/watch?v=5mHXWZLZVeE"}),
+            content_type="application/json",
+        )
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data.get("success") is True
+    # Verify description is 100% complete with no truncation
+    assert data.get("description") == long_description
+    assert len(data.get("description")) == len(long_description)
+    assert "🔥" in data.get("description")
+    assert "\n\n" in data.get("description")
+    assert "#GTA5" in data.get("description")
+    assert "https://example.com/music/softly" in data.get("description")
+
+
+# --- 11. HTML copy buttons present -------------------------------------------
+
+def test_video_analyzer_html_contains_copy_buttons():
+    """Verify video-analyzer.html contains Copy Title, Copy Description, and Copy Tags buttons."""
+    html_path = REPO_ROOT / "frontend" / "tools" / "video-analyzer.html"
+    with open(html_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    assert 'id="copyTitleBtn"' in html, "copyTitleBtn must be present in HTML"
+    assert 'Copy Title' in html, "Copy Title text must be present"
+
+    assert 'id="copyDescBtn"' in html, "copyDescBtn must be present in HTML"
+    assert 'Copy Description' in html, "Copy Description text must be present"
+
+    assert 'id="copyTagsBtn"' in html, "copyTagsBtn must be present in HTML"
+    assert 'Copy Tags' in html, "Copy Tags text must be present"
+
+
+# --- 12. Frontend JS XSS safety and copy functions ----------------------------
+
+def test_video_analyzer_js_xss_safety_and_clipboard():
+    """Verify video-analyzer.js uses textContent for XSS protection and includes safe clipboard fallback."""
+    js_path = REPO_ROOT / "frontend" / "js" / "tools" / "video-analyzer.js"
+    with open(js_path, "r", encoding="utf-8") as f:
+        js = f.read()
+
+    # XSS Protection: textContent used on videoDescription
+    assert "videoDescription.textContent = decoded" in js or "videoDescription.textContent =" in js, (
+        "videoDescription must use textContent for safe plain-text rendering with zero XSS"
+    )
+
+    # Clipboard functions and fallback
+    assert "navigator.clipboard.writeText" in js, "Must use navigator.clipboard.writeText"
+    assert "document.execCommand" in js, "Must provide fallback for older/non-secure contexts"
+
+    # Tags formatting for clipboard
+    assert 'join(", ")' in js, "Tags must be formatted as comma-separated list for clipboard"
+
+    # Copied feedback
+    assert '"Copied!"' in js, "Must give user temporary 'Copied!' feedback"
+
+

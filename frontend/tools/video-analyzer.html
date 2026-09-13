@@ -9,7 +9,7 @@
 <link rel="canonical" href="https://plexudo.vercel.app/tools/video-analyzer">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
-<link rel="stylesheet" href="/css/style.css?v=17.0">
+<link rel="stylesheet" href="/css/style.css?v=18.0">
 </head>
 <body>
 
@@ -93,14 +93,20 @@
     <div class="tool-results-panel video-meta-row">
       <img id="videoThumb" src="" alt="Thumbnail" class="video-thumb-img">
       <div class="video-meta-info">
-        <h2 id="videoTitle" style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;">Video Title</h2>
+        <div class="video-title-header">
+          <h2 id="videoTitle" class="video-title-heading">Video Title</h2>
+          <button id="copyTitleBtn" class="tool-copy-action-btn" type="button" aria-label="Copy video title">Copy Title</button>
+        </div>
         <div style="font-size:0.85rem; color:#64748b; margin-bottom:10px;">
           Channel: <strong id="videoChannel" style="color:#0f172a;">&mdash;</strong> &bull;
           Published: <span id="videoDate">&mdash;</span>
         </div>
         <div class="video-description-container">
-          <div style="font-size:0.8rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Description</div>
-          <p id="videoDescription" class="video-description-box">No description available.</p>
+          <div class="video-description-header">
+            <span class="video-section-label">Description</span>
+            <button id="copyDescBtn" class="tool-copy-action-btn" type="button" aria-label="Copy video description">Copy Description</button>
+          </div>
+          <div id="videoDescription" class="video-description-box">No description available.</div>
         </div>
       </div>
     </div>
@@ -135,8 +141,11 @@
       </div>
 
       <div class="tool-results-panel">
-        <h3 style="margin-bottom:14px; font-size:1.1rem;">🏷️ Detected Video Tags</h3>
-        <div id="tagsContainer" class="tags-wrap"></div>
+        <div class="video-section-header">
+          <h3 style="margin:0; font-size:1.1rem;">🏷️ Detected Video Tags</h3>
+          <button id="copyTagsBtn" class="tool-copy-action-btn" type="button" aria-label="Copy all tags">Copy Tags</button>
+        </div>
+        <div id="tagsContainer" class="tags-wrap" style="margin-top:14px;"></div>
       </div>
     </div>
 
@@ -218,7 +227,7 @@
   </div>
 </footer>
 
-<script src="/js/tools/common.js?v=11.0"></script>
-<script src="/js/tools/video-analyzer.js?v=11.0"></script>
+<script src="/js/tools/common.js?v=12.0"></script>
+<script src="/js/tools/video-analyzer.js?v=12.0"></script>
 </body>
 </html>
