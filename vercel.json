@@ -103,12 +103,24 @@
       "dest": "/frontend/assets/$1"
     },
     {
+      "src": "/dashboard",
+      "dest": "/frontend/dashboard.html"
+    },
+    {
       "src": "/dashboard.html",
       "dest": "/frontend/dashboard.html"
     },
     {
+      "src": "/terms",
+      "dest": "/frontend/terms.html"
+    },
+    {
       "src": "/terms.html",
       "dest": "/frontend/terms.html"
+    },
+    {
+      "src": "/privacy",
+      "dest": "/frontend/privacy.html"
     },
     {
       "src": "/privacy.html",
