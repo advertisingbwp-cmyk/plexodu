@@ -75,12 +75,12 @@ function renderVideoResults(data) {
     videoDate.textContent = pubDate ? pubDate.slice(0, 10) : "—";
   }
   if (videoDescription) {
-    if (data.description && data.description.trim()) {
-      videoDescription.textContent = data.description.trim();
-      videoDescription.style.display = "block";
-    } else {
-      videoDescription.style.display = "none";
-    }
+    const rawDesc = (data.description != null && String(data.description).trim() !== "")
+      ? String(data.description).trim()
+      : "No description available.";
+    const escaped = escapeHtml(rawDesc);
+    videoDescription.innerHTML = escaped.replace(/\n/g, "<br>");
+    videoDescription.style.display = "block";
   }
 
   if (videoViralityVal) videoViralityVal.textContent = `${data.virality_score || 0}/100`;

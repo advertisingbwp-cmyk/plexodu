@@ -226,3 +226,104 @@ def test_suggest_returns_list(client, flask_mod):
     data = res.get_json()
     assert "suggestions" in data, f"Expected 'suggestions' key, got: {list(data.keys())}"
     assert isinstance(data["suggestions"], list), "suggestions must be a list"
+
+
+# --- 7. /api/video-analysis preserves description & success flag --------------
+
+def test_video_analysis_preserves_description(client, flask_mod):
+    """Verify /api/video-analysis preserves video description and success flag in response."""
+    mock_result = {
+        "video_id": "test_desc_1",
+        "title": "GTA V Video",
+        "channel_name": "XAshuX",
+        "description": "#gta #gtav #gtavonline #song #karanaujla",
+        "view_count": 1600000,
+        "like_count": 6000,
+        "comment_count": 42,
+        "upload_date": "2025-03-22",
+        "thumbnail": "https://example.com/thumb.jpg",
+        "daily_metrics": [{"date": "2025-03-22", "views": 1600000, "likes": 6000, "shares": 0, "comments_count": 42}],
+        "comments": ["Awesome edit!"],
+    }
+
+    with patch.object(flask_mod, "analyze_youtube_video", return_value=mock_result), \
+         patch.object(flask_mod, "analyze_sentiment", return_value={"dominant_sentiment": "positive"}):
+
+        res = client.post(
+            "/api/video-analysis",
+            data=json.dumps({"url": "https://www.youtube.com/watch?v=5mHXWZLZVeE"}),
+            content_type="application/json",
+        )
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data.get("success") is True, "Expected success: True in response"
+    assert data.get("description") == "#gta #gtav #gtavonline #song #karanaujla"
+    assert data.get("channel_title") == "XAshuX"
+    assert data.get("views") == 1600000
+    assert data.get("published_at") == "2025-03-22"
+    assert "virality_score" in data
+    assert "engagement_rate" in data
+
+
+# --- 8. /api/video-analysis handles empty/missing description ------------------
+
+def test_video_analysis_handles_empty_description(client, flask_mod):
+    """Verify /api/video-analysis handles empty or None description safely."""
+    mock_result = {
+        "video_id": "test_empty_desc",
+        "title": "No Desc Video",
+        "channel_name": "Channel1",
+        "description": "",
+        "view_count": 1000,
+        "like_count": 50,
+        "comment_count": 5,
+        "upload_date": "2025-01-01",
+        "thumbnail": "https://example.com/thumb.jpg",
+        "daily_metrics": [],
+        "comments": [],
+    }
+
+    with patch.object(flask_mod, "analyze_youtube_video", return_value=mock_result), \
+         patch.object(flask_mod, "analyze_sentiment", return_value={"dominant_sentiment": "neutral"}):
+
+        res = client.post(
+            "/api/video-analysis",
+            data=json.dumps({"url": "https://www.youtube.com/watch?v=abc12345678"}),
+            content_type="application/json",
+        )
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data.get("success") is True
+    assert data.get("description") == ""
+
+
+# --- 9. UTF-8 & Emoji encoding validation on video-analyzer.html -------------
+
+def test_video_analyzer_html_utf8_and_description():
+    """Verify video-analyzer.html contains correct UTF-8 emojis, no mojibake, and #videoDescription container."""
+    html_path = REPO_ROOT / "frontend" / "tools" / "video-analyzer.html"
+    assert html_path.exists(), "video-analyzer.html must exist"
+
+    with open(html_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    # UTF-8 charset declaration
+    assert '<meta charset="UTF-8">' in html, "HTML must declare <meta charset='UTF-8'>"
+
+    # Valid emoji verification
+    assert "🎬" in html, "🎬 emoji must be present in HTML"
+    assert "💬" in html, "💬 emoji must be present in HTML"
+    assert "🏷️" in html, "🏷️ emoji must be present in HTML"
+    assert "📝" in html, "📝 emoji must be present in HTML"
+
+    # Zero mojibake verification
+    mojibake_fragments = ["ðŸŽ¬", "ðŸ’¬", "ðŸ ·ï¸", "ðŸ“", "â€”", "âž”", "â€¦"]
+    for m in mojibake_fragments:
+        assert m not in html, f"Corrupted mojibake character '{m}' found in video-analyzer.html"
+
+    # Description container verification
+    assert 'id="videoDescription"' in html, "HTML must include element with id='videoDescription'"
+    assert 'class="video-description-box"' in html, "HTML must style description with class 'video-description-box'"
+

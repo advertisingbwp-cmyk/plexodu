@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="index, follow">
-<title>YouTube Video Virality Analyzer â€” Plexudo</title>
+<title>YouTube Video Virality Analyzer — Plexudo</title>
 <meta name="description" content="Analyze YouTube video URL for virality score, views, likes, engagement ratio, top audience comments, and sentiment. Free anonymous tool.">
 <link rel="canonical" href="https://plexudo.vercel.app/tools/video-analyzer">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
-<link rel="stylesheet" href="/css/style.css?v=16.0">
+<link rel="stylesheet" href="/css/style.css?v=17.0">
 </head>
 <body>
 
@@ -36,7 +36,7 @@
       </ul>
 
       <div class="nav-actions">
-        <a href="/tools" class="btn-primary" style="text-decoration:none;">Explore Tools âž”</a>
+        <a href="/tools" class="btn-primary" style="text-decoration:none;">Explore Tools ➔</a>
         <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
@@ -53,7 +53,7 @@
         <li><a href="/#faq" class="nav-link" onclick="toggleMobileMenu()">FAQ</a></li>
       </ul>
       <div>
-        <a href="/tools" class="btn-primary" class="nav-mobile-cta">Explore Tools âž”</a>
+        <a href="/tools" class="btn-primary" class="nav-mobile-cta">Explore Tools ➔</a>
       </div>
     </div>
   </nav>
@@ -61,7 +61,7 @@
 
 <main class="tool-page-main">
   <div class="tool-hero">
-    <div class="tool-badge">ðŸŽ¬ Deep Video Diagnostics</div>
+    <div class="tool-badge">🎬 Deep Video Diagnostics</div>
     <h1 class="tool-title">YouTube Video Virality Analyzer</h1>
     <p class="tool-desc">
       Paste any YouTube video link to inspect real performance metrics: Virality Index, view velocity, engagement ratios, and NLP sentiment across top comments.
@@ -74,7 +74,7 @@
         <input type="text" id="videoUrlInput" class="tool-input-field"
           placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ or youtu.be/...">
       </div>
-      <button id="analyzeVideoBtn" class="tool-primary-btn">Analyze Video ðŸŽ¬</button>
+      <button id="analyzeVideoBtn" class="tool-primary-btn">Analyze Video 🎬</button>
     </div>
     <div class="tool-input-hint">
       Supports standard links (<code>watch?v=</code>), short links (<code>youtu.be/</code>), and YouTube Shorts.
@@ -85,7 +85,7 @@
 
   <div id="loadingArea" class="tool-loading" style="display:none;">
     <div class="tool-spinner"></div>
-    <p>Fetching authentic YouTube video metrics, top comments, and engagement dataâ€¦</p>
+    <p>Fetching authentic YouTube video metrics, top comments, and engagement data…</p>
   </div>
 
   <div id="resultsArea" style="display:none;">
@@ -94,11 +94,14 @@
       <img id="videoThumb" src="" alt="Thumbnail" class="video-thumb-img">
       <div class="video-meta-info">
         <h2 id="videoTitle" style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;">Video Title</h2>
-        <div style="font-size:0.85rem; color:#64748b;">
+        <div style="font-size:0.85rem; color:#64748b; margin-bottom:10px;">
           Channel: <strong id="videoChannel" style="color:#0f172a;">&mdash;</strong> &bull;
           Published: <span id="videoDate">&mdash;</span>
         </div>
-        <p id="videoDescription" class="video-description-box" style="display:none;"></p>
+        <div class="video-description-container">
+          <div style="font-size:0.8rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;">Description</div>
+          <p id="videoDescription" class="video-description-box">No description available.</p>
+        </div>
       </div>
     </div>
 
@@ -121,25 +124,25 @@
     <!-- Sentiment & Comments Grid -->
     <div class="tool-grid-2col" style="margin-bottom:24px;">
       <div class="tool-results-panel">
-        <h3 style="margin-bottom:14px; font-size:1.1rem;">ðŸ’¬ Audience Sentiment Breakdown</h3>
+        <h3 style="margin-bottom:14px; font-size:1.1rem;">💬 Audience Sentiment Breakdown</h3>
         <div style="font-size:0.92rem; color:#475569; margin-bottom:14px;" id="sentimentStats">
           Positive: 0% &bull; Neutral: 0% &bull; Negative: 0%
         </div>
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; font-size:0.85rem; color:#475569;">
           <strong>Sample Audience Voice:</strong>
-          <p id="sampleCommentText" style="margin-top:6px; font-style:italic;">â€”</p>
+          <p id="sampleCommentText" style="margin-top:6px; font-style:italic;">&mdash;</p>
         </div>
       </div>
 
       <div class="tool-results-panel">
-        <h3 style="margin-bottom:14px; font-size:1.1rem;">ðŸ·ï¸ Detected Video Tags</h3>
+        <h3 style="margin-bottom:14px; font-size:1.1rem;">🏷️ Detected Video Tags</h3>
         <div id="tagsContainer" class="tags-wrap"></div>
       </div>
     </div>
 
     <!-- Top Comments List -->
     <div class="tool-results-panel">
-      <h3 style="margin-bottom:16px; font-size:1.1rem;">ðŸ“ Top Audience Comments</h3>
+      <h3 style="margin-bottom:16px; font-size:1.1rem;">📝 Top Audience Comments</h3>
       <div id="commentsList" class="flex-col-gap"></div>
     </div>
   </div>
@@ -215,7 +218,7 @@
   </div>
 </footer>
 
-<script src="/js/tools/common.js?v=10.0"></script>
-<script src="/js/tools/video-analyzer.js?v=10.0"></script>
+<script src="/js/tools/common.js?v=11.0"></script>
+<script src="/js/tools/video-analyzer.js?v=11.0"></script>
 </body>
 </html>

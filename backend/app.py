@@ -758,6 +758,7 @@ def video_analysis():
 
     return jsonify({
         **result,
+        "success":       True,
         "sentiment":     sentiment,
         "growth_rate":   growth_rate,
         "virality_score": virality,
@@ -766,6 +767,7 @@ def video_analysis():
         "channel_title": result.get("channel_title") or result.get("channel_name", ""),
         "views":         result.get("views") or result.get("view_count", 0),
         "published_at":  result.get("published_at") or result.get("upload_date", ""),
+        "description":   result.get("description", ""),
     })
 
 
