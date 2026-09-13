@@ -1985,5 +1985,103 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
   text-decoration: none;
 }
 
+/* =============================================
+   STANDALONE TOOLS NAVBAR
+   ============================================= */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.nav-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 24px;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Hamburger — hidden on desktop, visible on mobile */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: #0b192c;
+  line-height: 0;
+}
+
+/* Mobile drawer — hidden by default */
+.mobile-drawer {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 16px 20px 20px;
+}
+
+.mobile-drawer.active {
+  display: flex;
+}
+
+.mobile-drawer-links {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-drawer-links .nav-link {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #374151;
+  text-decoration: none;
+}
+
+.mobile-drawer-links .nav-link:hover {
+  background: #f1f5f9;
+  color: #0b192c;
+}
+
+/* Mobile responsive breakpoint */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
+  }
+
+  .nav-actions .btn-primary {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: flex;
+  }
+}
+
 
 
