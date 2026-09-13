@@ -6,12 +6,10 @@
 
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(30) DEFAULT 'Researcher',
-    login_attempts INT DEFAULT 0,
-    is_locked BOOLEAN DEFAULT FALSE,
+    name VARCHAR(100),
+    email VARCHAR(150) UNIQUE,
+    role VARCHAR(30) DEFAULT 'Creator',
+    avatar_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

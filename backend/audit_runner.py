@@ -42,9 +42,6 @@ audit_assert("ENV", ".env file loaded", (BASE_DIR / ".env").exists() or bool(set
 audit_assert("ENV", ".env.example exists", (BASE_DIR / ".env.example").exists())
 audit_assert("ENV", "GROQ_API_KEY present", settings.is_groq_configured())
 audit_assert("ENV", "YOUTUBE_API_KEY present", settings.is_youtube_configured())
-audit_assert("ENV", "GOOGLE_CLIENT_ID present", bool(settings.GOOGLE_CLIENT_ID))
-audit_assert("ENV", "GOOGLE_CLIENT_SECRET present", bool(settings.GOOGLE_CLIENT_SECRET))
-audit_assert("ENV", "GOOGLE_REDIRECT_URI set", bool(settings.GOOGLE_REDIRECT_URI))
 
 print("\n==================================================")
 print("2. DATABASE INVARIANTS AUDIT")

@@ -8,144 +8,12 @@ from flask import Blueprint, request, jsonify, session, redirect
 
 channel_seo_bp = Blueprint('channel_seo', __name__, url_prefix='/api/channel-seo')
 
-import secrets
-import hmac
 from app.core.config import settings
-
-def get_google_client_id():
-    return settings.GOOGLE_CLIENT_ID or os.environ.get("GOOGLE_CLIENT_ID", "").strip()
-
-def get_google_client_secret():
-    return settings.GOOGLE_CLIENT_SECRET or os.environ.get("GOOGLE_CLIENT_SECRET", "").strip()
-
-def get_redirect_uri():
-    uri = (
-        os.environ.get("GOOGLE_REDIRECT_URI", "").strip()
-        or settings.GOOGLE_REDIRECT_URI
-        or "http://127.0.0.1:5000/api/channel-seo/auth/callback"
-    )
-    if uri.startswith("//"):
-        uri = "https:" + uri
-    elif not uri.startswith("http://") and not uri.startswith("https://"):
-        uri = "https://" + uri
-    return uri
+from services.security_guard import rate_limiter, API_LIMIT_PER_MIN, AI_LIMIT_PER_MIN
 
 # --------------------------------------------------------------------------
-# OAuth Routes
+# OAuth Routes Removed (Plexudo operates in 100% public/no-login mode)
 # --------------------------------------------------------------------------
-import urllib.parse
-
-@channel_seo_bp.route('/auth/google', methods=['GET'])
-def auth_google():
-    client_id = get_google_client_id()
-    redirect_uri = get_redirect_uri()
-    encoded_redirect = urllib.parse.quote(redirect_uri, safe='')
-    encoded_scope = urllib.parse.quote("openid email profile https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.force-ssl", safe='')
-
-    state = secrets.token_urlsafe(32)
-    session['oauth_state'] = state
-    encoded_state = urllib.parse.quote(state, safe='')
-
-    auth_url = (
-        f"https://accounts.google.com/o/oauth2/v2/auth?"
-        f"response_type=code&client_id={client_id}&redirect_uri={encoded_redirect}&"
-        f"scope={encoded_scope}&state={encoded_state}&access_type=offline&prompt=select_account%20consent"
-    )
-    return redirect(auth_url)
-
-
-@channel_seo_bp.route('/auth/callback', methods=['GET'])
-def auth_callback():
-    received_state = request.args.get('state')
-    expected_state = session.pop('oauth_state', None)
-    if not received_state or not expected_state or not hmac.compare_digest(received_state, expected_state):
-        return jsonify({"error": "Invalid, expired, or missing OAuth state parameter"}), 400
-
-    code = request.args.get('code')
-    if not code:
-        return jsonify({"error": "Missing auth code"}), 400
-
-    token_url = "https://oauth2.googleapis.com/token"
-    payload = {
-        "code": code,
-        "client_id": get_google_client_id(),
-        "client_secret": get_google_client_secret(),
-        "redirect_uri": get_redirect_uri(),
-        "grant_type": "authorization_code"
-    }
-
-    resp = requests.post(token_url, data=payload)
-    if resp.status_code != 200:
-        return f"OAuth Error: {resp.text}", 400
-
-    tokens = resp.json()
-    access_token = tokens.get('access_token')
-    refresh_token = tokens.get('refresh_token')
-    session.permanent = True
-    session['google_access_token'] = access_token
-    if refresh_token:
-        session['google_refresh_token'] = refresh_token
-
-    # Fetch Google User Identity and login or create user
-    try:
-        userinfo_resp = requests.get(
-            "https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-        if userinfo_resp.status_code == 200:
-            uinfo = userinfo_resp.json()
-            google_email = uinfo.get("email")
-            google_name = uinfo.get("name") or "Creator"
-            google_sub = uinfo.get("sub")
-            google_pic = uinfo.get("picture")
-
-            if google_email:
-                from models import db, User
-                user = User.query.filter_by(email=google_email).first()
-                if not user:
-                    # Create Plexudo user with verified Google email & 3 welcome credits
-                    user = User(
-                        name=google_name,
-                        email=google_email,
-                        password_hash="google_oauth_no_pwd",
-                        role="Creator",
-                        google_id=google_sub,
-                        avatar_url=google_pic,
-                        email_verified=True,
-                        credits=3
-                    )
-                    db.session.add(user)
-                    db.session.commit()
-                else:
-                    # Link Google identity
-                    if google_sub and not user.google_id:
-                        user.google_id = google_sub
-                    if google_pic and not user.avatar_url:
-                        user.avatar_url = google_pic
-                    user.email_verified = True
-                    db.session.commit()
-
-                # Set authenticated session
-                session["user_id"] = user.id
-                session["email"] = user.email
-                session["role"] = user.role
-    except Exception as e:
-        print(f"Google userinfo sync notice: {e}")
-
-    return redirect('/dashboard.html?seo_auth=success#channelSeo')
-
-
-@channel_seo_bp.route('/auth/status', methods=['GET'])
-def auth_status():
-    token = session.get('google_access_token')
-    return jsonify({"authenticated": bool(token)})
-
-
-@channel_seo_bp.route('/auth/disconnect', methods=['POST'])
-def auth_disconnect():
-    session.pop('google_access_token', None)
-    session.pop('google_refresh_token', None)
-    return jsonify({"success": True, "connected": False, "message": "Successfully disconnected YouTube channel."})
 
 
 # --------------------------------------------------------------------------
@@ -385,6 +253,11 @@ def extract_keywords(text):
 
 @channel_seo_bp.route('/seo/analyze', methods=['POST'])
 def analyze_seo():
+    client_ip = request.remote_addr or "127.0.0.1"
+    allowed, retry_after = rate_limiter.is_allowed(f"seo_analyze_ip_{client_ip}", API_LIMIT_PER_MIN, 60)
+    if not allowed:
+        return jsonify({"error": f"Rate limit exceeded. Please wait {retry_after} seconds."}), 429
+
     data = request.json or {}
     title = data.get('title', '').strip()
     description = data.get('description', '').strip()
@@ -485,6 +358,11 @@ def analyze_seo():
 # --------------------------------------------------------------------------
 @channel_seo_bp.route('/ai/suggest-titles', methods=['POST'])
 def suggest_titles():
+    client_ip = request.remote_addr or "127.0.0.1"
+    allowed, retry_after = rate_limiter.is_allowed(f"ai_titles_ip_{client_ip}", AI_LIMIT_PER_MIN, 60)
+    if not allowed:
+        return jsonify({"error": f"Rate limit exceeded. Please wait {retry_after} seconds."}), 429
+
     from services.title_intelligence import generate_context_aware_titles
 
     data = request.json or {}
@@ -512,6 +390,11 @@ def suggest_titles():
 
 @channel_seo_bp.route('/ai/generate-description', methods=['POST'])
 def generate_description():
+    client_ip = request.remote_addr or "127.0.0.1"
+    allowed, retry_after = rate_limiter.is_allowed(f"ai_desc_ip_{client_ip}", AI_LIMIT_PER_MIN, 60)
+    if not allowed:
+        return jsonify({"error": f"Rate limit exceeded. Please wait {retry_after} seconds."}), 429
+
     data = request.json or {}
     title = data.get('title', '').strip()
     clean_title = re.sub(r'[#@\(\)\[\]]', '', title).strip() or 'YouTube Video'
@@ -569,6 +452,11 @@ def generate_description():
 
 @channel_seo_bp.route('/ai/suggest-tags', methods=['POST'])
 def suggest_tags():
+    client_ip = request.remote_addr or "127.0.0.1"
+    allowed, retry_after = rate_limiter.is_allowed(f"ai_tags_ip_{client_ip}", AI_LIMIT_PER_MIN, 60)
+    if not allowed:
+        return jsonify({"error": f"Rate limit exceeded. Please wait {retry_after} seconds."}), 429
+
     data = request.json or {}
     title = data.get('title', '').strip()
     clean_title = re.sub(r'[#@\(\)\[\]]', '', title).strip() or 'YouTube Video'
@@ -671,6 +559,11 @@ def suggest_tags():
 
 @channel_seo_bp.route('/ai/find-tags', methods=['POST'])
 def find_tags():
+    client_ip = request.remote_addr or "127.0.0.1"
+    allowed, retry_after = rate_limiter.is_allowed(f"ai_find_tags_ip_{client_ip}", AI_LIMIT_PER_MIN, 60)
+    if not allowed:
+        return jsonify({"error": f"Rate limit exceeded. Please wait {retry_after} seconds."}), 429
+
     data = request.json or {}
     keyword = (data.get('keyword') or 'trending').lower().strip()
     clean_kw = re.sub(r'[^a-zA-Z0-9\s]', '', keyword).strip() or 'trending'

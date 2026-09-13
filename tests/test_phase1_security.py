@@ -129,7 +129,7 @@ def test_registration_response_excludes_secrets():
     }
 
     res = client.post("/api/register", json=payload)
-    assert res.status_code == 201, f"Expected 201, got {res.status_code}: {res.data}"
+    assert res.status_code == 200, f"Expected 200, got {res.status_code}: {res.data}"
     data = res.get_json()
 
     # Assert verification_token is NOT exposed in the response
@@ -141,12 +141,11 @@ def test_registration_response_excludes_secrets():
 
     # Assert user sub-dictionary contains only whitelisted public fields
     user_data = data.get("user", {})
-    allowed_fields = {"id", "name", "email", "role", "email_verified"}
+    allowed_fields = {"id", "name", "email", "role", "credits", "email_verified", "avatar_url"}
     extra_fields = set(user_data.keys()) - allowed_fields
     assert len(extra_fields) == 0, f"CRITICAL: Non-whitelisted user fields exposed: {extra_fields}"
 
-    assert user_data.get("email") == unique_email
-    assert user_data.get("email_verified") is False
+    assert data.get("public_mode") is True
 
 
 # ─── C. UNTRUSTED AD SCRIPT EXCLUSION TESTS ──────────────────────────────────

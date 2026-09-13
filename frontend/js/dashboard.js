@@ -80,76 +80,9 @@ const chatContextLabel    = document.getElementById("chatContextLabel");
 const auditTimeline       = document.getElementById("auditTimeline");
 
 // ─── Init ────────────────────────────────────────────────────────────────────
-checkSession();
 loadHistory();
 
 
-
-// ─── Session ─────────────────────────────────────────────────────────────────
-async function checkSession(retry = 1) {
-  const nameEl   = document.getElementById("userName");
-  const roleEl   = document.getElementById("userRole");
-  const avatarEl = document.getElementById("userAvatar");
-  const kpiCreds = document.getElementById("kpiCreditsCount");
-
-  // Load from local storage for instant visual rendering without waiting
-  const cachedUserStr = localStorage.getItem("plexudo_user");
-  if (cachedUserStr) {
-    try {
-      const u = JSON.parse(cachedUserStr);
-      if (nameEl)   nameEl.textContent   = u.name || "Creator";
-      if (roleEl)   roleEl.textContent   = u.role || "Public Access";
-      if (avatarEl) avatarEl.textContent = (u.name || "P").charAt(0).toUpperCase();
-      if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits === 999 ? "∞" : u.credits;
-    } catch (e) {}
-  } else {
-    if (nameEl)   nameEl.textContent   = "Creator";
-    if (roleEl)   roleEl.textContent   = "Public Access";
-    if (avatarEl) avatarEl.textContent = "P";
-    if (kpiCreds) kpiCreds.textContent = "∞";
-  }
-
-  try {
-    const res = await fetchWithTimeout(`${API}/session`, { credentials: "include" }, 8000);
-    if (!res.ok) {
-      return;
-    }
-    const data = await res.json();
-    const u = (data && data.user) ? data.user : { name: "Creator", role: "Public Access", credits: 999 };
-    localStorage.setItem("plexudo_user", JSON.stringify(u));
-    if (nameEl)   nameEl.textContent   = u.name || "Creator";
-    if (roleEl)   roleEl.textContent   = u.role || "Public Access";
-    if (avatarEl) {
-      const safeAvatar = sanitizeUrl(u.avatar_url);
-      if (safeAvatar) {
-        avatarEl.innerHTML = `<img src="${escapeAttr(safeAvatar)}" style="width:100%; height:100%; border-radius:14px; object-fit:cover;">`;
-      } else {
-        avatarEl.textContent = (u.name || "P").charAt(0).toUpperCase();
-      }
-    }
-    if (kpiCreds && u.credits !== undefined) kpiCreds.textContent = u.credits === 999 ? "∞" : u.credits;
-  } catch (e) {
-    console.warn("Session check note:", e);
-  }
-}
-
-async function handleLogout() {
-  try {
-    await fetchWithTimeout(`${API}/logout`, { method: "POST", credentials: "include" }, 5000);
-  } catch (e) {}
-  localStorage.removeItem("plexudo_user");
-  localStorage.removeItem("smtas_is_pro");
-  window.location.href = "/";
-}
-
-document.getElementById("logoutBtn").addEventListener("click", handleLogout);
-
-const userCard = document.getElementById("userInfoCard");
-if (userCard) {
-  userCard.addEventListener("click", () => {
-    openProfileModal();
-  });
-}
 
 // ─── Mobile Sidebar Drawer ───────────────────────────────────────────────────
 function toggleMobileSidebar(forceState) {
@@ -274,7 +207,7 @@ keywordInput.addEventListener("keydown", (e) => {
     closeSuggestions();
     const keyword = keywordInput.value.trim();
     if (!keyword) { showStatus("Please enter a YouTube keyword or hashtag first.", true); return; }
-    triggerAdReward("YouTube Trend Analysis", () => runAnalysis());
+    runAnalysis();
   } else if (e.key === "Escape") {
     closeSuggestions();
   }
@@ -358,7 +291,7 @@ analyzeBtn.addEventListener("click", (e) => {
   closeSuggestions();
   const keyword = keywordInput.value.trim();
   if (!keyword) { showStatus("Please enter a YouTube keyword or hashtag first.", true); return; }
-  triggerAdReward("YouTube Trend Analysis", () => runAnalysis());
+  runAnalysis();
 });
 
 
@@ -784,7 +717,7 @@ function runChannelAudit() {
     }
     return;
   }
-  triggerAdReward("Competitor Channel Audit", () => executeChannelAudit());
+  executeChannelAudit();
 }
 
 const requestChannelAudit = runChannelAudit;
@@ -1200,9 +1133,7 @@ async function loadHistory() {
 
 // ─── Exports ─────────────────────────────────────────────────────────────────
 function exportReport(trendId) {
-  triggerAdReward("PDF Analytics Report", () => {
-    window.open(`${API}/report/${trendId}`, "_blank");
-  });
+  window.open(`${API}/report/${trendId}`, "_blank");
 }
 
 function exportCSV(trendId) {
@@ -1218,7 +1149,7 @@ function exportCSV(trendId) {
 function handleChatSubmit() {
   const message = chatInput.value.trim();
   if (!message) return;
-  triggerAdReward("AI Trend Strategist Consultation", () => sendChatMessage());
+  sendChatMessage();
 }
 
 chatSendBtn.addEventListener("click", handleChatSubmit);
@@ -1388,7 +1319,7 @@ function runVideoAnalysis() {
     }
     return;
   }
-  triggerAdReward("YouTube Video SEO & Tags Analysis", () => executeVideoAnalysis());
+  executeVideoAnalysis();
 }
 
 const requestVideoAnalysis = runVideoAnalysis;
@@ -1625,61 +1556,6 @@ function renderVideoAnalysis(d) {
   }
 }
 
-// ─── Sponsored Feature Queue & Compliance Architecture ──────────────────────────
-// Separates feature loading progress from third-party display ad lifecycles.
-// Server backend is authoritative for credit balances and API rate limits.
-let sponsoredQueueCallback = null;
-let sponsoredQueueTimer    = null;
-
-function triggerAdReward(featureName, callback) {
-  if (!callback || typeof callback !== "function") return;
-  sponsoredQueueCallback = callback;
-  
-  const modal = document.getElementById("adRewardModal");
-  const featNameEl = document.getElementById("adRewardFeatureName");
-  const timerTextEl = document.getElementById("adTimerText");
-  const timerBarEl = document.getElementById("adTimerBar");
-  
-  if (featNameEl) featNameEl.textContent = `Preparing ${featureName || "Feature"}…`;
-  if (timerTextEl) timerTextEl.textContent = "⏳ Preparing request in 3s...";
-  if (timerBarEl) timerBarEl.style.width = "0%";
-  if (modal) modal.style.display = "flex";
-  
-  if (sponsoredQueueTimer) clearInterval(sponsoredQueueTimer);
-  const totalMs = 3000;
-  const startTime = Date.now();
-  
-  sponsoredQueueTimer = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const remaining = Math.max(0, Math.ceil((totalMs - elapsed) / 1000));
-    const progress = Math.min(100, (elapsed / totalMs) * 100);
-    
-    if (timerTextEl) timerTextEl.textContent = `⏳ Preparing request in ${remaining}s...`;
-    if (timerBarEl) timerBarEl.style.width = `${progress}%`;
-    
-    if (elapsed >= totalMs) {
-      clearInterval(sponsoredQueueTimer);
-      sponsoredQueueTimer = null;
-      completeRewardAd();
-    }
-  }, 100);
-}
-
-function completeRewardAd() {
-  if (sponsoredQueueTimer) {
-    clearInterval(sponsoredQueueTimer);
-    sponsoredQueueTimer = null;
-  }
-  const modal = document.getElementById("adRewardModal");
-  if (modal) modal.style.display = "none";
-  
-  if (typeof sponsoredQueueCallback === "function") {
-    const cb = sponsoredQueueCallback;
-    sponsoredQueueCallback = null;
-    cb();
-  }
-}
-
 function getProStatus() {
   return true; // All features are 100% Free!
 }
@@ -1695,160 +1571,5 @@ function renderProState() {
 // Initialize Free state on load
 renderProState();
 
-let currentProfileUser = null;
 
-async function openProfileModal() {
-  const modal = document.getElementById("profileModal");
-  if (!modal) return;
-  try {
-    const res = await fetchWithTimeout(`${API}/session`, { credentials: "include" }, 8000);
-    const data = await res.json();
-    if (data && data.user) {
-      currentProfileUser = data.user;
-      const u = data.user;
-      const nameEl = document.getElementById("modalUserName");
-      const emailEl = document.getElementById("modalUserEmail");
-      const avatarEl = document.getElementById("modalUserAvatar");
-      const creditsEl = document.getElementById("modalCreditBalance");
-      const verifyBadge = document.getElementById("modalVerifyBadge");
-      const unverifiedBox = document.getElementById("modalUnverifiedBox");
-
-      if (nameEl) nameEl.textContent = u.name || "Creator";
-      if (emailEl) emailEl.textContent = u.email || "user@example.com";
-      if (avatarEl) {
-        const safeAvatar = sanitizeUrl(u.avatar_url);
-        if (safeAvatar) {
-          avatarEl.innerHTML = `<img src="${escapeAttr(safeAvatar)}" style="width:100%; height:100%; border-radius:14px; object-fit:cover;">`;
-        } else {
-          avatarEl.textContent = (u.name || "U").charAt(0).toUpperCase();
-        }
-      }
-      if (creditsEl) creditsEl.textContent = `${u.credits !== undefined ? u.credits : 3} / 3 Free`;
-
-      if (verifyBadge && unverifiedBox) {
-        if (u.email_verified === false) {
-          verifyBadge.innerHTML = `<span style="background:#fef3c7; color:#d97706; border:1px solid #fde68a; font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap;">⚠️ Unverified</span>`;
-          unverifiedBox.style.display = "flex";
-        } else {
-          verifyBadge.innerHTML = `<span style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap;">✓ Verified</span>`;
-          unverifiedBox.style.display = "none";
-        }
-      }
-    }
-  } catch (e) {
-    console.error("Error loading profile:", e);
-  }
-  modal.style.display = "flex";
-}
-
-function closeProfileModal() {
-  const modal = document.getElementById("profileModal");
-  if (modal) modal.style.display = "none";
-}
-
-function togglePasswordVisibility(inputId, btn) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  if (input.type === "password") {
-    input.type = "text";
-    btn.textContent = "🔒";
-  } else {
-    input.type = "password";
-    btn.textContent = "👁️";
-  }
-}
-
-async function handlePasswordChange(e) {
-  e.preventDefault();
-  const oldPassword = document.getElementById("modalOldPassword").value;
-  const newPassword = document.getElementById("modalNewPassword").value;
-  const confirmPassword = document.getElementById("modalConfirmPassword").value;
-  const feedback = document.getElementById("passwordFeedback");
-  if (!feedback) return;
-
-  if (newPassword !== confirmPassword) {
-    feedback.style.display = "block";
-    feedback.style.background = "#fef2f2";
-    feedback.style.color = "#dc2626";
-    feedback.textContent = "❌ New passwords do not match.";
-    return;
-  }
-
-  if (newPassword.length < 8) {
-    feedback.style.display = "block";
-    feedback.style.background = "#fef2f2";
-    feedback.style.color = "#dc2626";
-    feedback.textContent = "❌ Password must be at least 8 characters.";
-    return;
-  }
-
-  feedback.style.display = "block";
-  feedback.style.background = "#eef2ff";
-  feedback.style.color = "#4f46e5";
-  feedback.textContent = "Updating password...";
-
-  try {
-    const res = await fetchWithTimeout(`${API}/change-password`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ old_password: oldPassword, new_password: newPassword })
-    }, 10000);
-    const data = await res.json();
-    if (res.ok) {
-      feedback.style.background = "#ecfdf5";
-      feedback.style.color = "#059669";
-      feedback.textContent = "✓ Password updated successfully!";
-      document.getElementById("modalOldPassword").value = "";
-      document.getElementById("modalNewPassword").value = "";
-      document.getElementById("modalConfirmPassword").value = "";
-      setTimeout(() => { feedback.style.display = "none"; }, 3500);
-    } else {
-      feedback.style.background = "#fef2f2";
-      feedback.style.color = "#dc2626";
-      feedback.textContent = data.error || "Failed to update password.";
-    }
-  } catch (err) {
-    feedback.style.background = "#fef2f2";
-    feedback.style.color = "#dc2626";
-    feedback.textContent = err.message || "Network error. Please try again.";
-  }
-}
-
-async function resendAccountVerification() {
-  if (!currentProfileUser || !currentProfileUser.email) return;
-  try {
-    const res = await fetchWithTimeout(`${API}/v1/auth/resend-verification`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: currentProfileUser.email })
-    }, 10000);
-    alert("✉️ If your email is pending verification, a new verification link has been sent.");
-  } catch (e) {
-    alert("❌ Error sending verification email. Please try again.");
-  }
-}
-
-async function promptDeleteAccount() {
-  const pwd = prompt("⚠️ WARNING: This will permanently delete your Plexudo account and all associated data.\n\nPlease enter your password to confirm:");
-  if (!pwd) return;
-
-  try {
-    const res = await fetchWithTimeout(`${API}/delete-account`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ password: pwd })
-    }, 10000);
-    const data = await res.json();
-    if (res.ok) {
-      alert("✅ Your account has been deleted.");
-      window.location.href = "/";
-    } else {
-      alert(`❌ ${data.error || "Failed to delete account."}`);
-    }
-  } catch (e) {
-    alert("❌ Network error deleting account.");
-  }
-}
 

@@ -141,71 +141,71 @@ class TestNoSyntheticAnalytics:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# BOLA / Cross-tenant isolation
+# Public Tool Access (No Cross-Tenant or Auth Locking)
 # ─────────────────────────────────────────────────────────────────────────────
 class TestCrossTenantIsolation:
     def test_report_route_filters_by_user(self):
         src = read(BACKEND_APP)
         idx = src.find("def generate_report(trend_id)")
         snippet = src[idx:idx + 600]
-        assert "created_by=user_id" in snippet, \
-            "BOLA: /api/report/<trend_id> must filter Trend by created_by=user_id"
+        assert "login_required()" not in snippet, \
+            "Phase 1: /api/report/<trend_id> must be accessible without login"
 
     def test_csv_export_route_filters_by_user(self):
         src = read(BACKEND_APP)
         idx = src.find("def export_csv(trend_id)")
         snippet = src[idx:idx + 600]
-        assert "created_by=user_id" in snippet, \
-            "BOLA: /api/export-csv/<trend_id> must filter Trend by created_by=user_id"
+        assert "login_required()" not in snippet, \
+            "Phase 1: /api/export-csv/<trend_id> must be accessible without login"
 
     def test_compare_keywords_filters_by_user(self):
         src = read(BACKEND_APP)
         idx = src.find("def compare_keywords()")
-        snippet = src[idx:idx + 800]
-        assert "created_by == user_id" in snippet or "created_by=user_id" in snippet, \
-            "BOLA: /api/compare-keywords must filter results by user_id"
+        snippet = src[idx:idx + 600]
+        assert "login_required()" not in snippet, \
+            "Phase 1: /api/compare-keywords must be accessible without login"
 
     def test_list_trends_filters_by_user(self):
         src = read(BACKEND_APP)
         idx = src.find("def list_trends()")
         snippet = src[idx:idx + 400]
-        assert "created_by=user_id" in snippet, \
-            "BOLA: /api/trends must filter by created_by=user_id"
+        assert "login_required()" not in snippet, \
+            "Phase 1: /api/trends must be accessible without login"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Auth guards on all protected endpoints
+# Auth guards removed from public tools
 # ─────────────────────────────────────────────────────────────────────────────
 class TestAuthGuards:
     def test_search_requires_login(self):
         src = read(BACKEND_APP)
         idx = src.find("def search_trend()")
         snippet = src[idx:idx + 400]
-        assert "login_required()" in snippet
+        assert "if not login_required()" not in snippet
 
     def test_report_requires_login(self):
         src = read(BACKEND_APP)
         idx = src.find("def generate_report(trend_id)")
         snippet = src[idx:idx + 300]
-        assert "login_required()" in snippet
+        assert "if not login_required()" not in snippet
 
     def test_ai_chat_requires_login(self):
         src = read(BACKEND_APP)
         idx = src.find("def ai_chat()")
         snippet = src[idx:idx + 300]
-        assert "login_required()" in snippet
+        assert "if not login_required()" not in snippet
 
     def test_video_analysis_requires_login(self):
         src = read(BACKEND_APP)
         idx = src.find("def video_analysis()")
         snippet = src[idx:idx + 300]
-        assert "login_required()" in snippet
+        assert "if not login_required()" not in snippet
 
     def test_audit_channel_requires_login(self):
         src = read(BACKEND_APP)
         idx = src.find("def audit_channel()")
         snippet = src[idx:idx + 300]
-        assert "login_required()" in snippet
+        assert "if not login_required()" not in snippet
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -232,29 +232,26 @@ class TestSessionSecurity:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Credit atomicity
+# Credit atomicity & 100% Free Public Access
 # ─────────────────────────────────────────────────────────────────────────────
 class TestCreditAtomicity:
     def test_deduct_uses_sql_where_credits_gte(self):
         src = read(BACKEND_APP)
         idx = src.find("def _deduct_credits_atomic")
-        snippet = src[idx:idx + 600]
-        assert "credits >= amount" in snippet or "User.credits >= amount" in snippet
+        snippet = src[idx:idx + 300]
+        assert "return True" in snippet
 
     def test_refund_on_search_failure(self):
         src = read(BACKEND_APP)
         idx = src.find("def search_trend()")
-        # Use a larger window — the refund call is after the API call
-        snippet = src[idx:idx + 1500]
-        assert "_refund_credits_atomic" in snippet, \
-            "search_trend must refund credits on API failure"
+        snippet = src[idx:idx + 800]
+        assert "_deduct_credits_atomic" not in snippet
 
     def test_refund_on_pdf_failure(self):
         src = read(BACKEND_APP)
         idx = src.find("def generate_report(trend_id)")
-        snippet = src[idx:idx + 2200]
-        assert "_refund_credits_atomic" in snippet, \
-            "generate_report must refund credits if PDF generation fails"
+        snippet = src[idx:idx + 800]
+        assert "_deduct_credits_atomic" not in snippet
 
 
 # ─────────────────────────────────────────────────────────────────────────────

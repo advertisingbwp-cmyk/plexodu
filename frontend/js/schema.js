@@ -71,7 +71,7 @@
         "@type": "Offer",
         price: "0",
         priceCurrency: "USD",
-        description: "Free welcome credits and sponsored reward passes.",
+        description: "100% Free and public creator tools with no login or subscription required.",
       },
       ...custom,
     };

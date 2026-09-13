@@ -75,16 +75,9 @@
     </div>
 
     <div class="sidebar-footer">
-      <div class="user-info-card" id="userInfoCard">
-        <div class="user-avatar" id="userAvatar">P</div>
-        <div>
-          <div class="user-name" id="userName">Creator</div>
-          <div class="user-role" id="userRole">Public Access</div>
-        </div>
-      <button class="btn-primary" id="logoutBtn"
-        style="margin-top:10px; padding:9px; font-size:12.5px; font-weight:700; background:rgba(255,255,255,0.08); color:#ffffff; border:1px solid rgba(255,255,255,0.12); border-radius:10px; width:100%; cursor:pointer;">
+      <a href="/" class="sidebar-back-btn">
         ← Back to Home
-      </button>
+      </a>
     </div>
   </aside>
   
@@ -354,7 +347,7 @@
     <!-- ======== SECTION: AUDIT LOG ======== -->
     <section class="page-section" id="sectionAudit">
       <h1 class="page-title">Audit Trail</h1>
-      <p class="page-sub">System activity logs — authentication, keyword searches, PDF/CSV exports, and AI queries</p>
+      <p class="page-sub">System activity logs — keyword searches, competitor audits, PDF/CSV exports, and AI queries</p>
 
       <div class="panel">
         <div class="panel-header">
@@ -370,128 +363,7 @@
   </div><!-- /main-content -->
 </div><!-- /app-layout -->
 
-<!-- ======== SPONSORED FEATURE QUEUE & MODAL (LIGHT UI) ======== -->
-<div id="adRewardModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
-  <div style="background:#ffffff; border:1px solid #e2e8f0; width:100%; max-width:460px; border-radius:24px; box-shadow:0 25px 60px rgba(15,23,42,0.18); overflow:hidden; animation:modalPop 0.25s ease-out; text-align:center;">
-    <!-- Header -->
-    <div style="background:#f8fafc; padding:18px 22px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
-      <div style="text-align:left;">
-        <div style="font-size:11px; font-weight:800; color:#4f46e5; text-transform:uppercase; letter-spacing:0.05em;">⚡ SPONSORED ACCESS</div>
-        <h3 style="font-size:16px; font-weight:800; color:#0f172a; margin:2px 0 0;" id="adRewardFeatureName">Preparing Feature…</h3>
-      </div>
-      <button onclick="completeRewardAd()" title="Close" style="background:#e2e8f0; border:none; color:#0f172a; width:30px; height:30px; border-radius:50%; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
-    </div>
-
-    <!-- Body -->
-    <div style="padding:22px;">
-      <p style="font-size:13.5px; color:#64748b; margin:0 0 16px; line-height:1.5;">
-        Plexudo is <strong>100% Free</strong>. Computational workloads are supported by our verified sponsors.
-      </p>
-
-      <!-- Preparation Progress Indicator -->
-      <div style="margin-top:10px; background:#f8fafc; padding:12px 16px; border-radius:12px; border:1px solid #e2e8f0;">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:700; color:#475569; margin-bottom:6px;">
-          <span id="adTimerText">⏳ Preparing request in 3s...</span>
-          <span style="font-size:11px; color:#059669; font-weight:800;">Free Creator Pass</span>
-        </div>
-        <div style="width:100%; height:6px; background:#e2e8f0; border-radius:6px; overflow:hidden;">
-          <div id="adTimerBar" style="width:0%; height:100%; background:linear-gradient(90deg, #4f46e5, #059669); transition:width 0.1s linear;"></div>
-        </div>
-      </div>
-
-      <div style="font-size:11.5px; color:#94a3b8; margin-top:12px;">
-        🔒 Server-Authoritative Processing • 100% Free Creator Tools
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ======== ACCOUNT & PROFILE SETTINGS MODAL ======== -->
-<div id="profileModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
-  <div style="background:#ffffff; border:1px solid #e2e8f0; width:100%; max-width:520px; border-radius:24px; box-shadow:0 25px 60px rgba(15,23,42,0.18); overflow:hidden; animation:modalPop 0.25s ease-out; display:flex; flex-direction:column; max-height:90vh;">
-    <div style="background:#f8fafc; padding:18px 22px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:20px;">⚙️</span>
-        <h3 style="font-size:17px; font-weight:800; color:#0f172a; margin:0;">Account Settings</h3>
-      </div>
-      <button onclick="closeProfileModal()" style="background:#e2e8f0; border:none; color:#0f172a; width:32px; height:32px; border-radius:50%; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s;">✕</button>
-    </div>
-
-    <div style="padding:22px; display:flex; flex-direction:column; gap:22px; overflow-y:auto; flex:1;">
-      <!-- 1. Profile Info -->
-      <div>
-        <div style="font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Profile Information</div>
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px;">
-          <div style="display:flex; align-items:center; gap:14px;">
-            <div id="modalUserAvatar" style="width:48px; height:48px; border-radius:14px; background:#4f46e5; color:#ffffff; font-size:20px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;">U</div>
-            <div style="flex:1; min-width:0;">
-              <div id="modalUserName" style="font-size:16px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Creator</div>
-              <div id="modalUserEmail" style="font-size:13px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">user@example.com</div>
-            </div>
-            <div id="modalVerifyBadge">
-              <span style="background:#ecfdf5; color:#059669; border:1px solid #a7f3d0; font-size:11px; font-weight:800; padding:3px 8px; border-radius:6px; white-space:nowrap;">✓ Verified</span>
-            </div>
-          </div>
-          
-          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0; padding-top:10px; font-size:12.5px;">
-            <span style="color:#64748b; font-weight:600;">Plan: <strong style="color:#0f172a;">100% Free Creator</strong></span>
-            <span style="color:#64748b; font-weight:600;">Credits: <strong id="modalCreditBalance" style="color:#4f46e5;">3 / 3 Free</strong></span>
-          </div>
-
-          <div id="modalUnverifiedBox" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px 12px; font-size:12px; color:#92400e; justify-content:space-between; align-items:center;">
-            <span>⚠️ Your email is unverified.</span>
-            <button onclick="resendAccountVerification()" style="background:#f59e0b; color:#ffffff; border:none; border-radius:6px; font-size:11px; font-weight:700; padding:4px 10px; cursor:pointer;">Resend Link</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. Security & Password -->
-      <div>
-        <div style="font-size:11px; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Change Password</div>
-        <form onsubmit="handlePasswordChange(event)" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px;">
-          <div style="position:relative;">
-            <input type="password" id="modalOldPassword" placeholder="Current Password" required
-              style="width:100%; padding:10px 38px 10px 14px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; background:#ffffff; box-sizing:border-box;">
-            <button type="button" onclick="togglePasswordVisibility('modalOldPassword', this)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:14px; padding:4px; opacity:0.6;">👁️</button>
-          </div>
-          <div style="position:relative;">
-            <input type="password" id="modalNewPassword" placeholder="New Password (min 8 chars)" required minlength="8"
-              style="width:100%; padding:10px 38px 10px 14px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; background:#ffffff; box-sizing:border-box;">
-            <button type="button" onclick="togglePasswordVisibility('modalNewPassword', this)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:14px; padding:4px; opacity:0.6;">👁️</button>
-          </div>
-          <div style="position:relative;">
-            <input type="password" id="modalConfirmPassword" placeholder="Confirm New Password" required minlength="8"
-              style="width:100%; padding:10px 38px 10px 14px; border:1px solid #cbd5e1; border-radius:10px; font-size:13px; background:#ffffff; box-sizing:border-box;">
-            <button type="button" onclick="togglePasswordVisibility('modalConfirmPassword', this)" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:14px; padding:4px; opacity:0.6;">👁️</button>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-            <button type="submit" style="padding:10px 18px; background:#0f172a; color:#ffffff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; transition:background 0.15s;">
-              Update Password
-            </button>
-          </div>
-          <div id="passwordFeedback" style="font-size:12px; display:none; padding:8px 12px; border-radius:8px;"></div>
-        </form>
-      </div>
-
-
-      <!-- 4. Danger Zone -->
-      <div style="border-top:1px solid #fee2e2; padding-top:18px;">
-        <div style="font-size:11px; font-weight:800; color:#dc2626; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">Danger Zone</div>
-        <div style="background:#fff5f5; border:1px solid #fed7d7; border-radius:16px; padding:16px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
-          <div>
-            <div style="font-size:13.5px; font-weight:700; color:#991b1b;">Delete Account</div>
-            <div style="font-size:12px; color:#7f1d1d;">Permanently remove your account, credits, and trends.</div>
-          </div>
-          <button onclick="promptDeleteAccount()" style="padding:8px 14px; background:#dc2626; color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:background 0.15s;">
-            Delete Account
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="js/dashboard.js?v=8.5"></script>
+<script src="js/dashboard.js?v=9.0"></script>
 
       <script type="module">
         import { reticle } from 'https://cdn.jsdelivr.net/npm/@reticlehq/browser@2.13.1/+esm';

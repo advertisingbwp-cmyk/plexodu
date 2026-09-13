@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 # ==============================================================================
 
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
-YOUTUBE_URL_REGEX = re.compile(r'^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/|channel\/|c\/|@)|youtu\.be\/)[a-zA-Z0-9_\-\@]+')
+YOUTUBE_URL_REGEX = re.compile(r'^(https?:\/\/)?(www\.|m\.)?(youtube\.com\/(watch\?v=|shorts\/|channel\/|c\/|@)|youtu\.be\/)[a-zA-Z0-9_\-\@]+')
 VALID_ROLES = {"Digital Marketer", "Brand Strategist", "Researcher", "Administrator", "Member"}
 
 class ValidationError(Exception):
@@ -69,8 +69,24 @@ def validate_youtube_url(url: str) -> str:
         raise ValidationError("URL cannot be empty", "url")
     if len(cleaned) > 255:
         raise ValidationError("URL is too long", "url")
+    if re.search(r'[\x00-\x1F<>]', cleaned):
+        raise ValidationError("URL contains invalid characters", "url")
+    if re.match(r'^[a-zA-Z0-9_-]{11}$', cleaned):
+        return cleaned
     if not YOUTUBE_URL_REGEX.match(cleaned):
         raise ValidationError("Invalid YouTube video or channel URL format", "url")
+    return cleaned
+
+def validate_channel_identifier(identifier: str) -> str:
+    if not isinstance(identifier, str):
+        raise ValidationError("Channel identifier must be a string", "identifier")
+    cleaned = identifier.strip()
+    if not cleaned:
+        raise ValidationError("Channel URL or handle is required", "identifier")
+    if len(cleaned) > 255:
+        raise ValidationError("Channel identifier is too long (maximum 255 characters)", "identifier")
+    if re.search(r'[\x00-\x1F<>]', cleaned):
+        raise ValidationError("Channel identifier contains invalid characters", "identifier")
     return cleaned
 
 def validate_user_role(role: str) -> str:
@@ -154,7 +170,7 @@ def get_upload_directory() -> str:
     os.makedirs(upload_dir, exist_ok=True)
     return upload_dir
 
-def validate_and_save_upload(file_obj, user_id: str) -> str:
+def validate_and_save_upload(file_obj, user_id: str = "anon") -> str:
     """Validates file type, size, safe filename, and stores in isolated non-executable folder."""
     if not file_obj or file_obj.filename == '':
         raise ValidationError("No file provided", "file")
@@ -174,7 +190,8 @@ def validate_and_save_upload(file_obj, user_id: str) -> str:
         raise ValidationError("File content violates security validation policy", "file")
     
     upload_dir = get_upload_directory()
-    safe_name = f"u_{user_id}_{int(time.time())}_{filename}"
+    uid = user_id or "anon"
+    safe_name = f"u_{uid}_{int(time.time())}_{filename}"
     save_path = os.path.join(upload_dir, safe_name)
     
     file_obj.save(save_path)

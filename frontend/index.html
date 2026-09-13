@@ -81,7 +81,7 @@
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD",
-        "description": "Free welcome credits and sponsored reward passes."
+        "description": "100% Free and public creator tools with no login or subscription required."
       }
     },
     {
@@ -124,7 +124,7 @@
           "name": "Is Plexudo free to use?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes! Every verified user receives 3 free welcome credits upon registration. You can also unlock sponsor reward passes to continue using all creator tools without monthly subscriptions."
+            "text": "Yes! Plexudo is 100% free and open to all creators. No registration, account creation, or subscription is required to use any of our creator tools."
           }
         },
         {
@@ -1609,7 +1609,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
       <div class="text-center">
         <div class="section-tag">Frequently Asked Questions</div>
         <h2 class="section-title">Everything You Need to Know</h2>
-        <p class="section-desc">Transparent answers about Plexudo, our data sources, and credit systems.</p>
+        <p class="section-desc">Transparent answers about Plexudo, our data sources, and free creator tools.</p>
       </div>
 
       <div class="faq-list">
@@ -1629,7 +1629,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
             <span class="faq-chevron">▼</span>
           </button>
           <div class="faq-answer">
-            Yes! Every verified user receives 3 free welcome credits upon registration. You can also unlock sponsor reward passes to continue using all creator tools without monthly subscriptions.
+            Yes! Plexudo is 100% free and open to all creators. No registration, account creation, or subscription is required to use any of our creator tools.
           </div>
         </div>
 
@@ -1759,166 +1759,6 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
   </div>
 </footer>
 
-<!-- ======== AUTHENTICATION MODAL (PREMIUM LIGHT SAAS) ======== -->
-<div class="modal-overlay" id="authModal" onclick="if(event.target===this) closeAuthModal()">
-  <div class="modal-box">
-    <!-- Modal Header -->
-    <div class="modal-header">
-      <div style="font-size:1.1rem; font-weight:800; color:var(--text-main); display:flex; align-items:center; gap:8px;">
-        <svg width="22" height="22" viewBox="0 0 64 64" fill="none">
-          <rect x="2" y="42" width="14" height="14" rx="2.5" fill="#4F46E5"/>
-          <rect x="16" y="28" width="14" height="14" rx="2.5" fill="#4F46E5"/>
-          <path d="M30 14 H40 C44 14 46 16 46 20 V56 H36 V28 H30 V14 Z" fill="#4F46E5"/>
-          <path d="M26 14 C26 7.5 30.5 3 36 3 H46 C55.941 3 64 11.059 64 21 C64 30.941 55.941 39 46 39 H40 C34.477 39 30 43.477 30 49 V56" stroke="#4F46E5" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span id="authModalTitle">Welcome to Plexudo</span>
-      </div>
-      <button onclick="closeAuthModal()" style="background:#f1f5f9; border:none; width:28px; height:28px; border-radius:50%; font-size:1rem; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center;">✕</button>
-    </div>
-
-    <!-- Modal Tabs -->
-    <div class="modal-tabs" id="authModalTabs">
-      <button class="modal-tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('login')">Sign In</button>
-      <button class="modal-tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">Create Account</button>
-    </div>
-
-    <!-- Modal Body -->
-    <div class="modal-body">
-      <!-- 1. MAIN LOGIN / SIGNUP VIEW -->
-      <div id="authMainView">
-        <!-- Prominent Google Continue Button -->
-        <a href="/api/channel-seo/auth/google" class="btn-google" style="display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:11px 16px; background:#ffffff; border:1px solid #cbd5e1; border-radius:var(--radius-sm); font-size:0.92rem; font-weight:700; color:#0f172a; text-decoration:none; box-shadow:var(--shadow-sm); transition:all 0.2s;">
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"/>
-            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.97 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-          </svg>
-          <span>Continue with Google</span>
-        </a>
-
-        <!-- OR Divider -->
-        <div style="display:flex; align-items:center; margin:16px 0 14px; color:#94a3b8; font-size:0.75rem; font-weight:700;">
-          <span style="flex:1; height:1px; background:#e2e8f0;"></span>
-          <span style="padding:0 10px; text-transform:uppercase; letter-spacing:0.04em;">or with email</span>
-          <span style="flex:1; height:1px; background:#e2e8f0;"></span>
-        </div>
-
-        <form id="authForm" onsubmit="handleAuthSubmit(event)">
-          <!-- Register Only Name -->
-          <div class="form-group" id="groupName" style="display:none;">
-            <label class="form-label">Full Name / Creator Handle</label>
-            <input type="text" id="authName" class="form-input" placeholder="e.g. Alex Miller" autocomplete="name">
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Email Address</label>
-            <input type="email" id="authEmail" class="form-input" placeholder="you@domain.com" required autocomplete="email">
-          </div>
-
-          <div class="form-group">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-              <label class="form-label" style="margin:0;">Password</label>
-              <a href="javascript:void(0)" onclick="switchAuthTab('forgot')" id="linkForgotPassword" style="font-size:0.8rem; font-weight:600; color:var(--primary); text-decoration:none;">Forgot password?</a>
-            </div>
-            <div style="position:relative;">
-              <input type="password" id="authPassword" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="current-password" style="padding-right:42px;">
-              <button type="button" onclick="togglePasswordVisibility('authPassword', this)" aria-label="Toggle password visibility" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#64748b; font-size:1rem; cursor:pointer; padding:4px;">👁️</button>
-            </div>
-          </div>
-
-          <!-- Register Only Role -->
-          <div class="form-group" id="groupRole" style="display:none;">
-            <label class="form-label">Creator Role</label>
-            <select id="authRole" class="form-input">
-              <option value="Content Creator">YouTube Content Creator</option>
-              <option value="Digital Marketer">Digital Marketer / Agency</option>
-              <option value="Channel Manager">Channel Manager</option>
-            </select>
-            <div style="font-size:0.78rem; color:#059669; font-weight:600; margin-top:6px; display:flex; align-items:center; gap:4px;">
-              <span>🎁</span> 3 Free Welcome Credits added upon registration.
-            </div>
-          </div>
-
-          <div id="authError" style="display:none; padding:10px 14px; background:#fee2e2; color:#dc2626; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
-
-          <button type="submit" id="authSubmitBtn" class="btn-primary" style="width:100%; justify-content:center; padding:12px; font-size:0.95rem;">
-            Sign In ➔
-          </button>
-        </form>
-
-        <div style="margin-top:16px; text-align:center; font-size:0.85rem; color:var(--text-muted);">
-          <span id="authSwitchPrompt">Don't have an account?</span>
-          <a href="javascript:void(0)" onclick="switchAuthTab(currentAuthTab === 'register' ? 'login' : 'register')" id="authSwitchLink" style="font-weight:700; color:var(--primary); text-decoration:none; margin-left:4px;">Create account</a>
-        </div>
-      </div>
-
-      <!-- 2. FORGOT PASSWORD VIEW -->
-      <div id="viewForgotPassword" style="display:none;">
-        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;">Forgot your password?</h3>
-        <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px; line-height:1.5;">Enter your registered email address and we'll send you a password reset link.</p>
-        <form onsubmit="handleForgotPassword(event)">
-          <div class="form-group">
-            <label class="form-label">Email Address</label>
-            <input type="email" id="forgotEmail" class="form-input" placeholder="you@domain.com" required autocomplete="email">
-          </div>
-          <div id="forgotFeedback" style="display:none; padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
-          <button type="submit" id="btnForgotSubmit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
-            Send Reset Link ➔
-          </button>
-        </form>
-        <div style="margin-top:16px; text-align:center;">
-          <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="font-size:0.85rem; font-weight:700; color:var(--primary); text-decoration:none;">← Back to Sign In</a>
-        </div>
-      </div>
-
-      <!-- 3. RESET PASSWORD VIEW -->
-      <div id="viewResetPassword" style="display:none;">
-        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;">Reset your password</h3>
-        <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px; line-height:1.5;">Enter your new secure password (min 8 characters).</p>
-        <form onsubmit="handleResetPassword(event)">
-          <input type="hidden" id="resetToken">
-          <div class="form-group">
-            <label class="form-label">New Password</label>
-            <div style="position:relative;">
-              <input type="password" id="resetNewPassword" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password" style="padding-right:42px;">
-              <button type="button" onclick="togglePasswordVisibility('resetNewPassword', this)" aria-label="Toggle password visibility" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#64748b; font-size:1rem; cursor:pointer; padding:4px;">👁️</button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Confirm New Password</label>
-            <input type="password" id="resetConfirmPassword" class="form-input" placeholder="••••••••" required minlength="8" autocomplete="new-password">
-          </div>
-          <div id="resetFeedback" style="display:none; padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
-          <button type="submit" id="btnResetSubmit" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
-            Update Password ➔
-          </button>
-        </form>
-        <div style="margin-top:16px; text-align:center;">
-          <a href="javascript:void(0)" onclick="switchAuthTab('login')" style="font-size:0.85rem; font-weight:700; color:var(--primary); text-decoration:none;">← Back to Sign In</a>
-        </div>
-      </div>
-
-      <!-- 4. EMAIL VERIFICATION VIEW -->
-      <div id="viewVerifyEmail" style="display:none; text-align:center;">
-        <div style="font-size:2.5rem; margin-bottom:8px;">📬</div>
-        <h3 style="font-size:1.15rem; font-weight:800; color:#0f172a; margin-bottom:6px;" id="verifyStatusTitle">Verification Email Sent! 📬</h3>
-        <p style="font-size:0.88rem; color:#64748b; margin-bottom:18px; line-height:1.6;" id="verifyStatusDesc">Please check your inbox. The confirmation link is valid for <strong>2 minutes</strong>.</p>
-        <div id="verifyFeedback" style="display:none; padding:10px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; margin-bottom:14px;"></div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <button onclick="handleResendVerification()" id="btnResendVerify" class="btn-login" style="width:100%; justify-content:center; padding:10px; font-size:0.88rem;">
-            🔄 Resend Confirmation Link (2 Min)
-          </button>
-          <button onclick="switchAuthTab('login')" class="btn-primary" style="width:100%; justify-content:center; padding:11px; font-size:0.92rem;">
-            Continue to Sign In ➔
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 <!-- ======== LEGAL & BLOG MODAL ======== -->
 <div class="modal-overlay" id="infoModal" onclick="if(event.target===this) closeInfoModal()">
   <div class="modal-box" style="max-width:680px; max-height:85vh; display:flex; flex-direction:column;">
@@ -1932,10 +1772,8 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
 
 <script>
 // ==========================================================================
-// PLEXUDO CLIENT JAVASCRIPT (AUTH & NAVIGATION SUITE)
+// PLEXUDO CLIENT JAVASCRIPT (NAVIGATION & INTERACTION SUITE)
 // ==========================================================================
-let currentAuthTab = 'login';
-
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   const d = document.createElement('div');
@@ -1947,295 +1785,6 @@ function toggleMobileMenu() {
   const drawer = document.getElementById('mobileDrawer');
   if (drawer) drawer.classList.toggle('active');
 }
-
-function togglePasswordVisibility(inputId, btn) {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '🔒';
-  } else {
-    input.type = 'password';
-    btn.textContent = '👁️';
-  }
-}
-
-function openAuthModal(tab) {
-  currentAuthTab = tab || 'login';
-  const modal = document.getElementById('authModal');
-  if (modal) modal.classList.add('active');
-  switchAuthTab(currentAuthTab);
-}
-
-function closeAuthModal() {
-  const modal = document.getElementById('authModal');
-  if (modal) modal.classList.remove('active');
-  const err = document.getElementById('authError');
-  if (err) err.style.display = 'none';
-}
-
-function switchAuthTab(tab) {
-  currentAuthTab = tab;
-  const mainView = document.getElementById('authMainView');
-  const forgotView = document.getElementById('viewForgotPassword');
-  const resetView = document.getElementById('viewResetPassword');
-  const verifyView = document.getElementById('viewVerifyEmail');
-  const tabs = document.getElementById('authModalTabs');
-  const title = document.getElementById('authModalTitle');
-
-  // Hide sub-views by default
-  mainView.style.display = 'none';
-  forgotView.style.display = 'none';
-  resetView.style.display = 'none';
-  verifyView.style.display = 'none';
-  tabs.style.display = 'flex';
-
-  if (tab === 'forgot') {
-    tabs.style.display = 'none';
-    forgotView.style.display = 'block';
-    title.textContent = 'Forgot Password';
-  } else if (tab === 'reset') {
-    tabs.style.display = 'none';
-    resetView.style.display = 'block';
-    title.textContent = 'Reset Password';
-  } else if (tab === 'verify') {
-    tabs.style.display = 'none';
-    verifyView.style.display = 'block';
-    title.textContent = 'Email Verification';
-  } else {
-    // Login or Register
-    mainView.style.display = 'block';
-    const isReg = tab === 'register';
-    document.getElementById('tabBtnLogin').classList.toggle('active', !isReg);
-    document.getElementById('tabBtnRegister').classList.toggle('active', isReg);
-    document.getElementById('groupName').style.display = isReg ? 'block' : 'none';
-    document.getElementById('groupRole').style.display = isReg ? 'block' : 'none';
-    document.getElementById('authSubmitBtn').textContent = isReg ? 'Create Free Account ➔' : 'Sign In ➔';
-    title.textContent = isReg ? 'Create Your Free Account' : 'Welcome Back to Plexudo';
-    document.getElementById('authSwitchPrompt').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
-    document.getElementById('authSwitchLink').textContent = isReg ? 'Sign In' : 'Create account';
-  }
-}
-
-async function handleAuthSubmit(e) {
-  e.preventDefault();
-  const errorEl = document.getElementById('authError');
-  const btn = document.getElementById('authSubmitBtn');
-  errorEl.style.display = 'none';
-  
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
-  const name = document.getElementById('authName').value.trim();
-  const role = document.getElementById('authRole').value;
-
-  btn.disabled = true;
-  btn.textContent = currentAuthTab === 'register' ? 'Creating Account...' : 'Signing In...';
-
-  try {
-    if (currentAuthTab === 'register') {
-      const res = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name || 'Creator', email, password, role })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
-      
-      lastRegisteredEmail = email;
-      // Switch to Verification View informing user to check inbox
-      switchAuthTab('verify');
-      const title = document.getElementById('verifyStatusTitle');
-      const desc = document.getElementById('verifyStatusDesc');
-      const feedback = document.getElementById('verifyFeedback');
-      title.textContent = 'Verification Email Sent! 📬';
-      desc.innerHTML = `We have sent a 2-minute activation link to <strong>${escapeHtml(email)}</strong>.<br><br>Please open your email inbox and click the verification link to activate your account and claim your <strong>3 Free Welcome Credits</strong> before signing in.`;
-      feedback.style.display = 'block';
-      feedback.style.background = '#ecfdf5';
-      feedback.style.color = '#059669';
-      feedback.textContent = 'Account created! Link valid for 2 minutes. Check your inbox.';
-    } else {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Invalid email or password');
-      }
-      if (data.user) {
-        localStorage.setItem('plexudo_user', JSON.stringify(data.user));
-      }
-      window.location.href = '/dashboard.html';
-    }
-  } catch (err) {
-    errorEl.textContent = err.message;
-    errorEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = currentAuthTab === 'register' ? 'Create Free Account ➔' : 'Sign In ➔';
-  }
-}
-
-async function handleResendVerification() {
-  const email = lastRegisteredEmail || document.getElementById('authEmail')?.value?.trim();
-  const feedback = document.getElementById('verifyFeedback');
-  const btn = document.getElementById('btnResendVerify');
-  if (!email) {
-    alert('Please enter your email to request a new link.');
-    return;
-  }
-  btn.disabled = true;
-  btn.textContent = 'Sending new link...';
-  try {
-    const res = await fetch('/api/resend-verification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    feedback.style.display = 'block';
-    feedback.style.background = '#ecfdf5';
-    feedback.style.color = '#059669';
-    feedback.textContent = data.message || 'A new 2-minute confirmation link has been sent!';
-  } catch (err) {
-    feedback.style.display = 'block';
-    feedback.style.background = '#fee2e2';
-    feedback.style.color = '#dc2626';
-    feedback.textContent = 'Failed to resend. Please try again in a moment.';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '🔄 Resend Confirmation Link (2 Min)';
-  }
-}
-
-async function handleForgotPassword(e) {
-  e.preventDefault();
-  const email = document.getElementById('forgotEmail').value.trim();
-  const feedback = document.getElementById('forgotFeedback');
-  const btn = document.getElementById('btnForgotSubmit');
-
-  btn.disabled = true;
-  btn.textContent = 'Sending Link...';
-  feedback.style.display = 'none';
-
-  try {
-    const res = await fetch('/api/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    feedback.style.display = 'block';
-    feedback.style.background = '#ecfdf5';
-    feedback.style.color = '#059669';
-    feedback.textContent = data.message || "If an account exists for this email, you'll receive a reset link.";
-  } catch (err) {
-    feedback.style.display = 'block';
-    feedback.style.background = '#fee2e2';
-    feedback.style.color = '#dc2626';
-    feedback.textContent = 'Network error. Please try again.';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Send Reset Link ➔';
-  }
-}
-
-async function handleResetPassword(e) {
-  e.preventDefault();
-  const token = document.getElementById('resetToken').value;
-  const newPassword = document.getElementById('resetNewPassword').value;
-  const confirmPassword = document.getElementById('resetConfirmPassword').value;
-  const feedback = document.getElementById('resetFeedback');
-  const btn = document.getElementById('btnResetSubmit');
-
-  if (newPassword !== confirmPassword) {
-    feedback.style.display = 'block';
-    feedback.style.background = '#fee2e2';
-    feedback.style.color = '#dc2626';
-    feedback.textContent = 'Passwords do not match.';
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Updating Password...';
-  feedback.style.display = 'none';
-
-  try {
-    const res = await fetch('/api/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, new_password: newPassword })
-    });
-    const data = await res.json();
-    feedback.style.display = 'block';
-    if (res.ok) {
-      feedback.style.background = '#ecfdf5';
-      feedback.style.color = '#059669';
-      feedback.textContent = data.message || 'Password reset successfully! Redirecting to Sign In...';
-      setTimeout(() => switchAuthTab('login'), 2000);
-    } else {
-      feedback.style.background = '#fee2e2';
-      feedback.style.color = '#dc2626';
-      feedback.textContent = data.error || 'Failed to reset password.';
-    }
-  } catch (err) {
-    feedback.style.display = 'block';
-    feedback.style.background = '#fee2e2';
-    feedback.style.color = '#dc2626';
-    feedback.textContent = 'Network error. Please try again.';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Update Password ➔';
-  }
-}
-
-// Auto-check URL routes and query parameters on page load
-window.addEventListener('DOMContentLoaded', async () => {
-  const path = window.location.pathname.toLowerCase();
-  const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('token');
-
-  if (path === '/login') {
-    openAuthModal('login');
-  } else if (path === '/signup' || path === '/register') {
-    openAuthModal('register');
-  } else if (path === '/forgot-password') {
-    openAuthModal('forgot');
-  } else if (path === '/reset-password' || (token && path.includes('reset'))) {
-    openAuthModal('reset');
-    if (token) document.getElementById('resetToken').value = token;
-  } else if (path === '/verify-email' || (token && path.includes('verify'))) {
-    openAuthModal('verify');
-    if (token) {
-      try {
-        const res = await fetch(`/api/verify-email?token=${encodeURIComponent(token)}`);
-        const data = await res.json();
-        const title = document.getElementById('verifyStatusTitle');
-        const desc = document.getElementById('verifyStatusDesc');
-        const feedback = document.getElementById('verifyFeedback');
-        feedback.style.display = 'block';
-        if (res.ok) {
-          title.textContent = 'Email Verified! 🎉';
-          desc.textContent = 'Your Plexudo creator account is ready with 3 welcome credits.';
-          feedback.style.background = '#ecfdf5';
-          feedback.style.color = '#059669';
-          feedback.textContent = '✓ Verified successfully.';
-        } else {
-          title.textContent = 'Verification Notice';
-          desc.textContent = data.error || 'This verification link is invalid or has expired.';
-          feedback.style.background = '#fee2e2';
-          feedback.style.color = '#dc2626';
-          feedback.textContent = data.error || 'Verification failed.';
-        }
-      } catch (err) {
-        console.error('Verify error:', err);
-      }
-    }
-  }
-});
 
 function toggleFaq(btn) {
   const item = btn.parentElement;
@@ -2250,20 +1799,20 @@ function openLegalModal(type) {
   if (type === 'privacy') {
     title.textContent = 'Plexudo — Privacy Policy';
     content.innerHTML = `
-      <h4 style="color:#0f172a; margin-bottom:8px;">1. Information We Collect</h4>
-      <p style="margin-bottom:14px;">Plexudo accesses only publicly available YouTube metadata and authorized channel metrics via Google OAuth 2.0. We never store passwords or sell user data.</p>
+      <h4 style="color:#0f172a; margin-bottom:8px;">1. Information We Process</h4>
+      <p style="margin-bottom:14px;">Plexudo is 100% login-free and anonymous. We access only publicly available YouTube metadata via YouTube Data API v3 and user-submitted search keywords. We never collect passwords, emails, or personal accounts.</p>
       <h4 style="color:#0f172a; margin-bottom:8px;">2. How Data is Used</h4>
       <p style="margin-bottom:14px;">Data is processed strictly in real-time to compute SEO scores, keyword competition metrics, and AI recommendations.</p>
-      <h4 style="color:#0f172a; margin-bottom:8px;">3. Data Security</h4>
-      <p>All authentication tokens and API keys are protected behind server-side encryption layers and HttpOnly session cookies.</p>
+      <h4 style="color:#0f172a; margin-bottom:8px;">3. Data Security &amp; Fair Use</h4>
+      <p>All API keys are strictly protected server-side, communications are TLS encrypted, and IP-level rate limiting prevents abuse.</p>
     `;
   } else {
     title.textContent = 'Plexudo — Terms of Service';
     content.innerHTML = `
       <h4 style="color:#0f172a; margin-bottom:8px;">1. Acceptance of Terms</h4>
       <p style="margin-bottom:14px;">By accessing Plexudo, you agree to comply with YouTube's Terms of Service and Google API Services User Data Policy.</p>
-      <h4 style="color:#0f172a; margin-bottom:8px;">2. Fair Use &amp; Credits</h4>
-      <p style="margin-bottom:14px;">Credits are allocated for computational workloads. Automated scraping or reverse engineering is prohibited.</p>
+      <h4 style="color:#0f172a; margin-bottom:8px;">2. Fair Use Policy</h4>
+      <p style="margin-bottom:14px;">Plexudo provides free computational workloads for creator growth. Automated scraping or reverse engineering is prohibited.</p>
       <h4 style="color:#0f172a; margin-bottom:8px;">3. Disclaimer</h4>
       <p>Plexudo provides optimization recommendations based on defined algorithm heuristics. Video performance on YouTube depends on audience retention and content quality.</p>
     `;

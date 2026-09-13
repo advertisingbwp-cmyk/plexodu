@@ -38,26 +38,26 @@ def get_flask_app():
     return flask_module.app
 
 
-# ─── 1. UNAUTHENTICATED ACCESS PROTECTIONS ──────────────────────────────────
+# ─── 1. PUBLIC ACCESS PROTECTIONS ──────────────────────────────────────────
 
-def test_unauthenticated_report_access_rejected():
-    """Verify unauthenticated requests to report generation endpoints return 401."""
+def test_public_mode_report_access():
+    """Verify in public mode, report generation endpoints are accessible without login and return 404 for nonexistent trends."""
     app = get_flask_app()
     app.config["TESTING"] = True
     with app.test_client() as client:
         # PDF report
         res_pdf = client.get("/api/report/9999")
-        assert res_pdf.status_code == 401, f"Expected 401, got {res_pdf.status_code}"
-        assert "Authentication required" in res_pdf.get_json().get("error", "")
+        assert res_pdf.status_code == 404, f"Expected 404, got {res_pdf.status_code}"
+        assert "not found" in res_pdf.get_json().get("error", "").lower()
 
         # CSV export
         res_csv = client.get("/api/export-csv/9999")
-        assert res_csv.status_code == 401, f"Expected 401, got {res_csv.status_code}"
-        assert "Authentication required" in res_csv.get_json().get("error", "")
+        assert res_csv.status_code == 404, f"Expected 404, got {res_csv.status_code}"
+        assert "not found" in res_csv.get_json().get("error", "").lower()
 
 
-def test_unauthenticated_session_and_trends_no_leak():
-    """Verify unauthenticated /api/session, /api/trends, and /api/compare-keywords leak no tenant data."""
+def test_public_mode_session_and_trends():
+    """Verify /api/session returns public mode access and /api/trends works publicly."""
     app = get_flask_app()
     app.config["TESTING"] = True
     with app.test_client() as client:
@@ -65,125 +65,73 @@ def test_unauthenticated_session_and_trends_no_leak():
         res_session = client.get("/api/session")
         assert res_session.status_code == 200
         data = res_session.get_json()
-        assert data.get("authenticated") is False, "Unauthenticated session must return authenticated: False"
-        assert data.get("user") is None, "Unauthenticated session must return user: None"
+        assert data.get("authenticated") is True, "Public mode session must return authenticated: True"
+        assert data.get("public_mode") is True, "Public mode session must return public_mode: True"
+        assert data.get("user") is not None, "Public mode session must provide public user profile"
+        assert data["user"].get("name") == "Creator"
 
-        # Trends endpoint
+        # Trends endpoint is publicly accessible
         res_trends = client.get("/api/trends")
         assert res_trends.status_code == 200
-        assert res_trends.get_json().get("trends") == [], "Unauthenticated trends must be empty"
+        assert isinstance(res_trends.get_json().get("trends"), list)
 
-        # Compare keywords endpoint
+        # Compare keywords endpoint is publicly accessible
         res_comp = client.get("/api/compare-keywords")
         assert res_comp.status_code == 200
-        assert res_comp.get_json().get("comparison") == [], "Unauthenticated keyword comparison must be empty"
+        assert isinstance(res_comp.get_json().get("comparison"), list)
 
 
-# ─── 2. BOLA / IDOR PROTECTION ACROSS TENANTS ──────────────────────────────
+# ─── 2. PUBLIC REPORT ACCESS ───────────────────────────────────────────────
 
-def test_bola_cross_user_report_access_returns_safe_404():
-    """Verify User B attempting to access User A's trend report receives 404 (not 403 or 200)."""
+def test_public_mode_report_generation():
+    """Verify in public mode, reports can be generated without any session authentication."""
     app = get_flask_app()
     app.config["TESTING"] = True
     main_mod = sys.modules["main_flask_app"]
     db = main_mod.db
-    User = main_mod.User
     Trend = main_mod.Trend
 
     with app.app_context():
-        # Create User A
-        email_a = f"user_a_{int(time.time())}_{secrets.token_hex(3)}@test.com"
-        user_a = User(name="User A", email=email_a, password_hash="hash", credits=10)
-        db.session.add(user_a)
-        db.session.commit()
-
-        # Create User B
-        email_b = f"user_b_{int(time.time())}_{secrets.token_hex(3)}@test.com"
-        user_b = User(name="User B", email=email_b, password_hash="hash", credits=10)
-        db.session.add(user_b)
-        db.session.commit()
-
-        # Create Trend owned by User A
+        # Create public Trend
         trend_a = Trend(
-            keyword="AI tools 2026",
+            keyword=f"AI tools {int(time.time())}",
             platform="YouTube",
             total_views=50000,
             growth_rate=25.0,
             virality_score=80.0,
-            created_by=user_a.id,
+            created_by=None,
         )
         db.session.add(trend_a)
         db.session.commit()
         trend_id = trend_a.trend_id
-        user_a_id = user_a.id
-        user_a_email = user_a.email
-        user_b_id = user_b.id
-        user_b_email = user_b.email
 
-    # Test Client logged in as User B
+    # Test Client with no session at all
     with app.test_client() as client:
-        with client.session_transaction() as sess:
-            sess["user_id"] = user_b_id
-            sess["email"] = user_b_email
-
-        # User B attempts to access User A's PDF report -> Must return 404
-        res_pdf = client.get(f"/api/report/{trend_id}")
-        assert res_pdf.status_code == 404, f"BOLA VULNERABILITY! Expected 404 for cross-user report, got {res_pdf.status_code}"
-        assert "not found" in res_pdf.get_json().get("error", "").lower()
-
-        # User B attempts to access User A's CSV report -> Must return 404
+        # Access CSV report -> Succeeds with 200
         res_csv = client.get(f"/api/export-csv/{trend_id}")
-        assert res_csv.status_code == 404, f"BOLA VULNERABILITY! Expected 404 for cross-user CSV, got {res_csv.status_code}"
-        assert "not found" in res_csv.get_json().get("error", "").lower()
+        assert res_csv.status_code == 200
+        assert "text/csv" in res_csv.content_type
 
-    # Test Client logged in as Owner (User A)
-    with app.test_client() as client:
-        with client.session_transaction() as sess:
-            sess["user_id"] = user_a_id
-            sess["email"] = user_a_email
-
-        # User A accesses own CSV report -> Succeeds with 200
-        res_csv_owner = client.get(f"/api/export-csv/{trend_id}")
-        assert res_csv_owner.status_code == 200
-        assert "text/csv" in res_csv_owner.content_type
-
-        # User A accesses own PDF report -> Succeeds with 200 and valid PDF stream
-        res_pdf_owner = client.get(f"/api/report/{trend_id}")
-        assert res_pdf_owner.status_code == 200
-        assert res_pdf_owner.content_type == "application/pdf"
-        assert res_pdf_owner.data.startswith(b"%PDF-"), "Generated report is not a valid PDF stream"
+        # Access PDF report -> Succeeds with 200 and valid PDF stream
+        res_pdf = client.get(f"/api/report/{trend_id}")
+        assert res_pdf.status_code == 200
+        assert res_pdf.content_type == "application/pdf"
+        assert res_pdf.data.startswith(b"%PDF-"), "Generated report is not a valid PDF stream"
 
 
-# ─── 3. GOOGLE OAUTH STATE VALIDATION ───────────────────────────────────────
+# ─── 3. GOOGLE OAUTH ROUTES REMOVED ────────────────────────────────────────
 
-def test_oauth_state_generation_and_validation():
-    """Verify OAuth generates crypto state, binds to session, and validates safely."""
+def test_oauth_routes_removed_in_public_mode():
+    """Verify Google OAuth login and callback routes have been removed in public mode."""
     app = get_flask_app()
     app.config["TESTING"] = True
 
     with app.test_client() as client:
-        # Step 1: Initiate OAuth flow
         res = client.get("/api/channel-seo/auth/google")
-        assert res.status_code == 302, f"Expected 302 redirect, got {res.status_code}"
-        redirect_url = res.headers.get("Location", "")
-        assert "accounts.google.com" in redirect_url
-        assert "state=" in redirect_url
+        assert res.status_code in [404, 405], f"Expected 404/405 for removed OAuth route, got {res.status_code}"
 
-        # Check session has stored oauth_state
-        with client.session_transaction() as sess:
-            state = sess.get("oauth_state")
-            assert state is not None
-            assert len(state) >= 32, "OAuth state must be a high-entropy cryptographically secure string"
-
-        # Step 2: Callback with missing state -> Rejected 400
-        res_missing = client.get("/api/channel-seo/auth/callback?code=fake_code")
-        assert res_missing.status_code == 400
-        assert "OAuth state parameter" in res_missing.get_json().get("error", "")
-
-        # Step 3: Callback with tampered/invalid state -> Rejected 400
-        res_tampered = client.get("/api/channel-seo/auth/callback?code=fake_code&state=attackers_manipulated_state")
-        assert res_tampered.status_code == 400
-        assert "OAuth state parameter" in res_tampered.get_json().get("error", "")
+        res_cb = client.get("/api/channel-seo/auth/callback?code=fake_code&state=attackers_manipulated_state")
+        assert res_cb.status_code in [404, 405], f"Expected 404/405 for removed OAuth callback, got {res_cb.status_code}"
 
 
 # ─── 4. SESSION COOKIE ATTRIBUTES & PROXYFIX ───────────────────────────────
@@ -198,68 +146,24 @@ def test_session_cookie_attributes_and_proxyfix():
     assert app.config.get("SESSION_COOKIE_SAMESITE") == "Lax", "SESSION_COOKIE_SAMESITE must be Lax"
 
 
-# ─── 5. ATOMIC CREDIT DEDUCTION & CONCURRENCY SAFETY ───────────────────────
+# ─── 5. PUBLIC MODE UNLIMITED CREDITS ───────────────────────────────────────
 
-def test_atomic_credit_deduction_and_concurrency():
-    """Verify atomic credit deduction prevents negative balances and race conditions."""
+def test_public_mode_unlimited_credits():
+    """Verify in public mode credits are 100% free and deductions never fail."""
     app = get_flask_app()
     main_mod = sys.modules["main_flask_app"]
-    db = main_mod.db
-    User = main_mod.User
     _deduct_credits_atomic = main_mod._deduct_credits_atomic
     _refund_credits_atomic = main_mod._refund_credits_atomic
 
-    with app.app_context():
-        email = f"credit_test_{int(time.time())}_{secrets.token_hex(3)}@test.com"
-        user = User(name="Credit Tester", email=email, password_hash="hash", credits=5)
-        db.session.add(user)
-        db.session.commit()
-        user_id = user.id
+    # In public mode, any deduction succeeds without error
+    success, err = _deduct_credits_atomic(None, amount=100)
+    assert success is True
+    assert err == ""
 
-        # Test single deduction
-        success, err = _deduct_credits_atomic(user_id, amount=2)
-        assert success is True
-        db.session.expire_all()
-        refreshed_user = db.session.get(User, user_id)
-        assert refreshed_user.credits == 3
-
-        # Test refund compensation
-        ref_success, ref_err = _refund_credits_atomic(user_id, amount=2, reason="Test compensation")
-        assert ref_success is True
-        db.session.expire_all()
-        refreshed_user = db.session.get(User, user_id)
-        assert refreshed_user.credits == 5
-
-        # Test over-spending prevention
-        success_over, err_over = _deduct_credits_atomic(user_id, amount=10)
-        assert success_over is False
-        assert "Insufficient credits" in err_over
-        db.session.expire_all()
-        refreshed_user = db.session.get(User, user_id)
-        assert refreshed_user.credits == 5, "Credits must not change on failed deduction"
-
-        # Test Concurrency Safety: 10 threads trying to deduct 1 credit each when balance is 5
-        results = []
-
-        def worker():
-            with app.app_context():
-                ok, _ = _deduct_credits_atomic(user_id, amount=1)
-                results.append(ok)
-
-        threads = [threading.Thread(target=worker) for _ in range(10)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
-
-        success_count = sum(1 for r in results if r is True)
-        fail_count = sum(1 for r in results if r is False)
-
-        db.session.expire_all()
-        final_user = db.session.get(User, user_id)
-        assert success_count == 5, f"Expected exactly 5 deductions to succeed, got {success_count}"
-        assert fail_count == 5, f"Expected exactly 5 deductions to fail, got {fail_count}"
-        assert final_user.credits == 0, f"Credits balance should be exactly 0, got {final_user.credits}"
+    # Refund succeeds without error
+    ref_ok, ref_err = _refund_credits_atomic(None, amount=100, reason="Public mode test")
+    assert ref_ok is True
+    assert ref_err == ""
 
 
 # ─── 6. IN-MEMORY REPORTLAB GENERATION (NO DISK WRITES) ─────────────────────
