@@ -1164,12 +1164,18 @@ chatInput.addEventListener("input", () => {
   chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + "px";
 });
 
+let chatHistory = [];
+
 async function sendChatMessage() {
   const message = chatInput.value.trim();
   if (!message) return;
   appendChatMessage("user", message);
   chatInput.value = "";
   chatInput.style.height = "auto";
+
+  const historyPayload = chatHistory.slice(-8);
+  chatHistory.push({ role: "user", content: message });
+  if (chatHistory.length > 20) chatHistory.shift();
 
   const typingId = appendTyping();
   chatSendBtn.disabled = true;
@@ -1179,7 +1185,7 @@ async function sendChatMessage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ message, context: chatContext }),
+      body: JSON.stringify({ message, context: chatContext, history: historyPayload }),
     }, 15000);
 
     let data;
@@ -1198,8 +1204,12 @@ async function sendChatMessage() {
       throw new Error(data.error || `Server error (${res.status})`);
     }
 
+    const reply = data.reply || "⚠ No response received.";
+    chatHistory.push({ role: "assistant", content: reply });
+    if (chatHistory.length > 20) chatHistory.shift();
+
     removeTyping(typingId);
-    appendChatMessage("ai", data.reply || "⚠ No response received.");
+    appendChatMessage("ai", reply);
   } catch (err) {
     removeTyping(typingId);
     appendChatMessage("ai", `❌ ${err.message || "Could not reach the backend server."}`);

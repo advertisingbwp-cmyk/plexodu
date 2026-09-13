@@ -32,9 +32,9 @@ SUPPORTED_MODELS = [
 MODELS = [m for m in dict.fromkeys(SUPPORTED_MODELS) if m not in DEPRECATED_MODELS]
 
 
-def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
+def chat_with_groq(user_message: str, trend_context: dict = None, history: list = None) -> dict:
     """
-    Sends user message + optional YouTube trend context to Groq API.
+    Sends user message + optional YouTube trend context + conversation history to Groq API.
     Dynamically loads GROQ_API_KEY from environment/settings.
     Enforces strict prompt isolation and strips sensitive user data.
     """
@@ -52,12 +52,12 @@ def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
         }
 
     system_prompt = (
-        "You are Plexudo AI — a friendly, intelligent, helpful, and completely versatile AI assistant. "
-        "Guidelines:\n"
-        "1. DIRECT & CONVERSATIONAL: Answer the user directly, naturally, and warmly. Help with titles, descriptions, scripts, gaming, code, general knowledge, or casual chat.\n"
-        "2. LANGUAGE MATCHING: Always respond in the exact same language and style the user uses (English, Urdu, Roman Urdu, Hindi, etc.). If the user asks in Roman Urdu (e.g. 'bhai titles batao' or 'ye kaisa hai'), reply in natural, fluent Roman Urdu.\n"
-        "3. HIGH QUALITY & CREATIVITY: When asked for titles or ideas, provide ready-to-use, catchy, high-CTR suggestions tailored to the user's specific request.\n"
-        "4. NO RIGID TEMPLATES: Never output placeholder templates like '[Topic]' or rigid canned bullet points. Act like a normal, high-level AI assistant."
+        "You are Plexudo AI — an expert YouTube creator strategist and versatile AI assistant on Plexudo. "
+        "Core Guidelines:\n"
+        "1. CONTEXT MEMORY: Always remember and build upon previous messages in the chat. When the user follows up (e.g. 'i mean for youtube', 'oper bataya to hai', 'ye kaisa hai'), connect it to what was discussed earlier.\n"
+        "2. UNDERSTAND MULTI-LINGUAL & ROMAN URDU/HINDI: Understand colloquial Roman Urdu / Hindi phrases accurately. For example, 'oper / upar' means 'mentioned above / earlier in chat', 'krny k liya' means 'for doing/uploading', 'chahye' means 'needed/wanted'. Never confuse common words like 'oper' (above) with English words like 'Operation'. Always reply in the same language and tone (e.g. Roman Urdu, Urdu, English).\n"
+        "3. PROACTIVE & DIRECT (NO ANNOYING COUNTER-QUESTIONS): When a creator asks for a YouTube description, title, tags, or script, DO NOT ask endless clarifying questions like 'What is your video about?'. Immediately write a complete, high-converting, ready-to-copy YouTube description/title/tags based on the topic discussed! If they didn't specify every detail, provide a great default that they can copy and use immediately.\n"
+        "4. READY-TO-USE YOUTUBE ASSETS: When writing YouTube descriptions, include: a catchy 2-sentence hook, video summary, timestamps outline, call-to-action (Subscribe/Like), and relevant hashtags (#FreeFire #Gaming etc.)."
     )
 
     messages = [{"role": "system", "content": system_prompt}]
@@ -72,6 +72,15 @@ def chat_with_groq(user_message: str, trend_context: dict = None) -> dict:
                 "role": "system",
                 "content": f"Optional background reference data (only use if relevant to user's question):\n{ctx_str}"
             })
+
+    # Include recent conversation turns for context continuity (last 8 messages)
+    if history and isinstance(history, list):
+        for h in history[-8:]:
+            if isinstance(h, dict) and h.get("role") in ["user", "assistant"] and h.get("content"):
+                messages.append({
+                    "role": h["role"],
+                    "content": str(h["content"])[:1000]
+                })
 
     # User message is strictly isolated in user role to prevent prompt injection
     messages.append({"role": "user", "content": str(user_message)})

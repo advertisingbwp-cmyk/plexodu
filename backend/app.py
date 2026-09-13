@@ -678,13 +678,16 @@ def ai_chat():
 
     message = data.get("message", "").strip()
     trend_context = data.get("context", None)
+    history = data.get("history", [])
+    if not isinstance(history, list):
+        history = []
 
     if not message:
         return jsonify({"error": "Message cannot be empty"}), 400
     if len(message) > 1000:
         return jsonify({"error": "Message exceeds maximum length (1,000 characters)"}), 400
 
-    result = chat_with_groq(message, trend_context)
+    result = chat_with_groq(message, trend_context, history=history)
     _log_action("CHAT", f"msg_preview={message[:80]}")
     return jsonify(result)
 
