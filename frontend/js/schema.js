@@ -30,7 +30,7 @@
         contentUrl: `${BASE_URL}/favicon.png`,
         caption: "Plexudo Logo",
       },
-      description: "Plexudo is a specialized YouTube SEO and channel growth platform providing 50/50 SEO scoring, keyword discovery, competitor analytics, and AI creator titles.",
+      description: "Plexudo is a specialized YouTube SEO and channel growth platform providing real-time video analytics, keyword discovery, competitor analytics, and AI creator titles.",
       email: "advertisingbwp@gmail.com",
       ...custom,
     };
@@ -61,7 +61,7 @@
       "@id": CANONICAL_IDS.software,
       name: "Plexudo - YouTube Creator SEO & Growth Platform",
       url: `${BASE_URL}/`,
-      description: "Comprehensive YouTube creator suite with 50/50 SEO Scoring, keyword discovery, competitor audits, and Groq AI title generators.",
+      description: "Comprehensive YouTube creator suite with real-time video analytics, keyword discovery, competitor audits, and Groq AI title generators.",
       applicationCategory: "BusinessApplication",
       applicationSubCategory: "Video SEO & Creator Analytics",
       operatingSystem: "Web Browser (All Platforms)",

@@ -341,7 +341,7 @@ def analyze_seo():
         "actionableItems": {
             "total": total_score,
             "max": 50,
-            "methodology": "Plexudo 50-Point SEO Audit",
+            "methodology": "Plexudo Metadata Audit",
             "breakdown": {
                 "tagCount": {"score": title_opt_score, "max": 10, "label": "Title Optimization", "reason": title_opt_reason},
                 "tagVolume": {"score": desc_opt_score, "max": 10, "label": "Description Depth", "reason": desc_opt_reason},

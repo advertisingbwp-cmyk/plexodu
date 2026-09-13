@@ -141,7 +141,7 @@ def generate_smart_youtube_fallback(user_message: str, trend_context: dict = Non
         )
     elif any(w in msg for w in ["tag", "seo", "keyword", "rank"]):
         reply = (
-            "📊 **Plexudo 50-Point SEO Optimization Best Practices:**\n\n"
+            "📊 **Plexudo Metadata Optimization Best Practices:**\n\n"
             "1. **Primary Topic in Title:** Place your core search keyword naturally in your title.\n"
             "2. **Structured Description:** Write at least 2–3 paragraphs explaining the video context and key takeaways.\n"
             "3. **Relevant Topic Tags:** Use 8–15 specific tags directly covering your video's main points and long-tail variants.\n"
