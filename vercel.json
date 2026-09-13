@@ -76,9 +76,15 @@
       "dest": "/frontend/assets/$1"
     },
     {
+      "src": "/dashboard(\\.html)?/?",
+      "status": 301,
+      "headers": { "Location": "/tools" }
+    },
+    {
       "src": "/tools/?",
       "dest": "/frontend/tools/index.html"
     },
+
     {
       "src": "/tools/trend-analyzer/?",
       "dest": "/frontend/tools/trend-analyzer.html"
