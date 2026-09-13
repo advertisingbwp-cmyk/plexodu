@@ -2268,6 +2268,12 @@ footer {
   align-items: center;
   gap: 12px;
 }
+.video-description-panel {
+  margin-bottom: 24px;
+}
+.video-description-panel .video-description-box {
+  margin-top: 14px;
+}
 .video-description-container {
   margin-top: 12px;
   width: 100%;

@@ -9,7 +9,7 @@
 <link rel="canonical" href="https://plexudo.vercel.app/tools/video-analyzer">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
-<link rel="stylesheet" href="/css/style.css?v=18.0">
+<link rel="stylesheet" href="/css/style.css?v=19.0">
 </head>
 <body>
 
@@ -97,21 +97,14 @@
           <h2 id="videoTitle" class="video-title-heading">Video Title</h2>
           <button id="copyTitleBtn" class="tool-copy-action-btn" type="button" aria-label="Copy video title">Copy Title</button>
         </div>
-        <div style="font-size:0.85rem; color:#64748b; margin-bottom:10px;">
+        <div style="font-size:0.85rem; color:#64748b;">
           Channel: <strong id="videoChannel" style="color:#0f172a;">&mdash;</strong> &bull;
           Published: <span id="videoDate">&mdash;</span>
-        </div>
-        <div class="video-description-container">
-          <div class="video-description-header">
-            <span class="video-section-label">Description</span>
-            <button id="copyDescBtn" class="tool-copy-action-btn" type="button" aria-label="Copy video description">Copy Description</button>
-          </div>
-          <div id="videoDescription" class="video-description-box">No description available.</div>
         </div>
       </div>
     </div>
 
-    <!-- 4 Metrics Row -->
+    <!-- 3 Metrics Row -->
     <div class="tool-grid-3col" style="margin-bottom:24px;">
       <div class="tool-metric-box">
         <div id="videoViralityVal" class="tool-metric-val">0/100</div>
@@ -125,6 +118,15 @@
         <div id="videoEngagementVal" class="tool-metric-val">0%</div>
         <div class="tool-metric-label">Engagement Ratio</div>
       </div>
+    </div>
+
+    <!-- Dedicated Video Description Panel -->
+    <div class="tool-results-panel video-description-panel">
+      <div class="video-section-header">
+        <h3 style="margin:0; font-size:1.1rem;">📄 Video Description</h3>
+        <button id="copyDescBtn" class="tool-copy-action-btn" type="button" aria-label="Copy video description">Copy Description</button>
+      </div>
+      <div id="videoDescription" class="video-description-box">No description available.</div>
     </div>
 
     <!-- Sentiment & Comments Grid -->
@@ -227,7 +229,7 @@
   </div>
 </footer>
 
-<script src="/js/tools/common.js?v=12.0"></script>
-<script src="/js/tools/video-analyzer.js?v=12.0"></script>
+<script src="/js/tools/common.js?v=13.0"></script>
+<script src="/js/tools/video-analyzer.js?v=13.0"></script>
 </body>
 </html>
