@@ -2089,6 +2089,19 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
   background: var(--primary);
 }
 
+/* Brand logo — no underline */
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #0b192c;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
 /* Hamburger — hidden on desktop, visible on mobile */
 .hamburger-btn {
   display: none;
