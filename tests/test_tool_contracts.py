@@ -422,3 +422,99 @@ def test_video_analyzer_js_xss_safety_and_clipboard():
     assert '"Copied!"' in js, "Must give user temporary 'Copied!' feedback"
 
 
+# --- 13. Competitor Audit Video Count & Clean Copy ---------------------------
+
+def test_competitor_audit_video_count_and_clean_copy():
+    """Verify competitor-audit.html has videoCountVal, tool-grid-4col, and no fake 28-day copy."""
+    html_path = REPO_ROOT / "frontend" / "tools" / "competitor-audit.html"
+    with open(html_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    assert 'id="videoCountVal"' in html, "videoCountVal must be present in HTML"
+    assert "Video Count" in html, "Video Count label must be present in HTML"
+    assert "tool-grid-4col" in html, "tool-grid-4col class must be used for 4-card metric layout"
+    assert "28-day" not in html, "competitor-audit.html must not contain misleading 28-day claims"
+
+    js_path = REPO_ROOT / "frontend" / "js" / "tools" / "competitor-audit.js"
+    with open(js_path, "r", encoding="utf-8") as f:
+        js = f.read()
+    assert "videoCountVal" in js, "competitor-audit.js must reference videoCountVal"
+    assert "data.video_count" in js, "competitor-audit.js must populate from data.video_count"
+
+
+# --- 14. Trend Analyzer First Scan & Plexudo CSV Branding ---------------------
+
+def test_trend_analyzer_first_scan_and_csv_export_branding(client, flask_mod):
+    """Verify trend-analyzer.js has 'First Scan' fallback and /api/export-csv produces Plexudo branding."""
+    js_path = REPO_ROOT / "frontend" / "js" / "tools" / "trend-analyzer.js"
+    with open(js_path, "r", encoding="utf-8") as f:
+        js = f.read()
+
+    assert "First Scan" in js, "trend-analyzer.js must display 'First Scan' for single-point queries"
+
+    # Test CSV export route for Plexudo branding
+    # Mock a trend record or search to generate a trend_id
+    mock_yt_raw = {
+        "status": 200,
+        "videos": [{"video_id": "test1", "title": "Test Gaming", "views": 10000, "likes": 500, "shares": 50, "comments": 25}],
+        "daily_metrics": [{"date": "2026-09-13", "views": 10000, "likes": 500, "shares": 50, "comments_count": 25}],
+        "tags": ["gaming"],
+        "hashtags": ["#gaming"],
+        "related_keywords": ["gaming"],
+        "comments": ["Epic game!"],
+    }
+    mock_sentiment = {
+        "dominant_sentiment": "positive",
+        "positive_score": 80,
+        "negative_score": 10,
+        "neutral_score": 10,
+        "sample_comment": "Epic game!",
+    }
+
+    with patch.object(flask_mod, "fetch_youtube_data", return_value=mock_yt_raw), \
+         patch.object(flask_mod, "analyze_sentiment", return_value=mock_sentiment):
+        search_res = client.post("/api/search", data=json.dumps({"keyword": "pytest-brand-test"}), content_type="application/json")
+
+    assert search_res.status_code == 200
+    s_data = search_res.get_json()
+    trend_id = s_data.get("results", {}).get("YouTube", {}).get("trend_id")
+    assert trend_id is not None, "Search should return a trend_id"
+
+    csv_res = client.get(f"/api/export-csv/{trend_id}")
+    assert csv_res.status_code == 200
+    csv_text = csv_res.get_data(as_text=True)
+
+    assert "Plexudo - YouTube Trend Analysis CSV Export" in csv_text, "CSV header must have Plexudo branding"
+    assert "SMTAS" not in csv_text, "CSV must not contain legacy SMTAS branding"
+    content_disp = csv_res.headers.get("Content-Disposition", "")
+    assert "plexudo_" in content_disp, f"CSV filename must start with plexudo_, got: {content_disp}"
+
+
+# --- 15. Video Analyzer Zero Tags Fallback ------------------------------------
+
+def test_video_analyzer_zero_tags_fallback():
+    """Verify video-analyzer.js displays friendly fallback when a video has zero tags."""
+    js_path = REPO_ROOT / "frontend" / "js" / "tools" / "video-analyzer.js"
+    with open(js_path, "r", encoding="utf-8") as f:
+        js = f.read()
+
+    assert "No tags provided for this upload" in js, "video-analyzer.js must contain zero-tag fallback message"
+
+
+# --- 16. Tools Hub Has Exactly 4 Tools ----------------------------------------
+
+def test_tools_index_has_4_tools_only():
+    """Verify tools/index.html contains exactly the 4 intended tools and no Keyword Tool."""
+    html_path = REPO_ROOT / "frontend" / "tools" / "index.html"
+    with open(html_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    assert "/tools/trend-analyzer" in html
+    assert "/tools/video-analyzer" in html
+    assert "/tools/competitor-audit" in html
+    assert "/tools/ai-strategist" in html
+    assert "/tools/keyword-tool" not in html
+    assert "28-day" not in html, "tools/index.html must not contain misleading 28-day claims"
+
+
+

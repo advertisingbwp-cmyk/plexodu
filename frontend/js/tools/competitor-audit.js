@@ -14,6 +14,7 @@ const channelAge = document.getElementById("channelAge");
 
 const subCountVal = document.getElementById("subCountVal");
 const viewsCountVal = document.getElementById("viewsCountVal");
+const videoCountVal = document.getElementById("videoCountVal");
 const earningsVal = document.getElementById("earningsVal");
 const topVideosBody = document.getElementById("topVideosBody");
 
@@ -69,6 +70,7 @@ function renderAuditResults(data) {
 
   if (subCountVal) subCountVal.textContent = Number(data.subscribers || data.subscriber_count || 0).toLocaleString();
   if (viewsCountVal) viewsCountVal.textContent = Number(data.total_views || 0).toLocaleString();
+  if (videoCountVal) videoCountVal.textContent = Number(data.video_count || 0).toLocaleString();
   if (earningsVal) {
     const minE = data.est_monthly_earnings_min ?? data.earn_min_monthly ?? 0;
     const maxE = data.est_monthly_earnings_max ?? data.earn_max_monthly ?? 0;

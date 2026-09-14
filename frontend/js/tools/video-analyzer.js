@@ -199,7 +199,7 @@ function renderVideoResults(data) {
   if (tagsContainer) {
     const tags = data.tags || [];
     if (tags.length === 0) {
-      tagsContainer.innerHTML = `<span style="font-size:13px; color:#94a3b8;">No tags detected on this video.</span>`;
+      tagsContainer.innerHTML = `<span style="font-size:13px; color:#94a3b8;">No tags provided for this upload</span>`;
     } else {
       tagsContainer.innerHTML = tags.map(t => `
         <span class="panel-badge" style="background:#f1f5f9; color:#0f172a; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(t)}', this)">

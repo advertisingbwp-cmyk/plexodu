@@ -61,7 +61,6 @@ class TestFrontendMarkup:
         tool_pages = [
             "trend-analyzer.html",
             "video-analyzer.html",
-            "keyword-tool.html",
             "competitor-audit.html",
             "ai-strategist.html",
             "index.html",
@@ -85,14 +84,14 @@ class TestFrontendMarkup:
             for pid in prohibited_ids:
                 assert f'id="{pid}"' not in content, f"Prohibited ID '{pid}' in {page}"
 
-    def test_tools_hub_contains_all_5_creator_tools(self):
-        """frontend/tools/index.html must link to the 5 standalone creator tools."""
+    def test_tools_hub_contains_all_4_creator_tools(self):
+        """frontend/tools/index.html must link to the 4 standalone creator tools and not keyword-tool."""
         hub_html = (self.tools_dir / "index.html").read_text(encoding="utf-8")
         assert "/tools/trend-analyzer" in hub_html
         assert "/tools/video-analyzer" in hub_html
-        assert "/tools/keyword-tool" in hub_html
         assert "/tools/competitor-audit" in hub_html
         assert "/tools/ai-strategist" in hub_html
+        assert "/tools/keyword-tool" not in hub_html
 
     def test_common_js_has_no_auth_endpoints_and_has_xss_protection(self):
         """common.js must have zero auth endpoints and provide XSS sanitizers."""

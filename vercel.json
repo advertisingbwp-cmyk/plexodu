@@ -44,6 +44,16 @@
   ],
   "routes": [
     {
+      "src": "/(.*)",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+      },
+      "continue": true
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
     },
@@ -95,7 +105,8 @@
     },
     {
       "src": "/tools/keyword-tool/?",
-      "dest": "/frontend/tools/keyword-tool.html"
+      "status": 301,
+      "headers": { "Location": "/tools/trend-analyzer" }
     },
     {
       "src": "/tools/competitor-audit/?",

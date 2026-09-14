@@ -51,7 +51,6 @@ class TestStandaloneToolRoutes:
     TOOL_SLUGS = [
         "trend-analyzer",
         "video-analyzer",
-        "keyword-tool",
         "competitor-audit",
         "ai-strategist",
     ]
@@ -63,8 +62,9 @@ class TestStandaloneToolRoutes:
         assert "Free YouTube Creator Utilities" in html
         for slug in self.TOOL_SLUGS:
             assert f"/tools/{slug}" in html
+        assert "/tools/keyword-tool" not in html
 
-    def test_all_5_standalone_tool_routes_return_200(self, client):
+    def test_all_4_standalone_tool_routes_return_200(self, client):
         for slug in self.TOOL_SLUGS:
             resp = client.get(f"/tools/{slug}")
             assert resp.status_code == 200, f"Route /tools/{slug} failed with {resp.status_code}"

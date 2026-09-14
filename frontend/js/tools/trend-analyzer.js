@@ -135,7 +135,16 @@ function renderResults(res) {
   currentTrendId = res.trend_id || null;
 
   if (totalViewsVal) totalViewsVal.textContent = Number(res.total_views || 0).toLocaleString();
-  if (growthRateVal) growthRateVal.textContent = `${res.growth_rate > 0 ? "+" : ""}${res.growth_rate}%`;
+  if (growthRateVal) {
+    const daily = res.daily_metrics || [];
+    if (daily.length < 2 || (res.growth_rate === 0 && daily.length <= 1)) {
+      growthRateVal.textContent = "First Scan";
+      growthRateVal.title = "Initial snapshot — recurring tracking calculates day-over-day velocity.";
+    } else {
+      growthRateVal.textContent = `${res.growth_rate > 0 ? "+" : ""}${res.growth_rate}%`;
+      growthRateVal.removeAttribute("title");
+    }
+  }
   if (viralityScoreVal) viralityScoreVal.textContent = `${res.virality_score}/100`;
 
   // Sentiment
