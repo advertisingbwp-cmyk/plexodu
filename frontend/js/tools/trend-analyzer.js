@@ -271,8 +271,12 @@ function renderResults(res) {
   }
 
   // 3. Trend Summary Box
+  const isFirstScan = intel.status === "baseline" || !intel.velocity;
+  if (kpiVelocitySub) {
+    kpiVelocitySub.textContent = isFirstScan ? "First Scan — baseline tracking" : "Day-over-day tracking";
+  }
   if (summaryDirection) summaryDirection.textContent = intel.current_direction_display || res.stage || "Stable";
-  if (summaryVelocity) summaryVelocity.textContent = intel.velocity_display || "Pending (1st scan)";
+  if (summaryVelocity) summaryVelocity.textContent = intel.velocity_display || (isFirstScan ? "First Scan" : "Pending");
   if (summaryAcceleration) summaryAcceleration.textContent = intel.acceleration_display || "Pending";
   if (summaryEngagement) summaryEngagement.textContent = `${res.engagement_rate || 0}%`;
   if (summaryVirality) summaryVirality.textContent = `${res.virality_score || 0}/100`;
@@ -391,7 +395,7 @@ function renderResults(res) {
   if (tagsList) {
     const tags = res.youtube_tags || [];
     tagsList.innerHTML = tags.map(t => `
-      <span class="panel-badge" style="background:#f1f5f9; color:#0f172a; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(t)}', this)">
+      <span class="tag-item-default" data-copy="${escapeAttr(t)}" title="Click to copy">
         🏷️ ${escapeHtml(t)}
       </span>
     `).join("");
@@ -401,7 +405,7 @@ function renderResults(res) {
   if (hashtagsList) {
     const htags = res.youtube_hashtags || [];
     hashtagsList.innerHTML = htags.map(h => `
-      <span class="panel-badge" style="background:#eef2ff; color:#4f46e5; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(h)}', this)">
+      <span class="tag-item-accent" data-copy="${escapeAttr(h)}" title="Click to copy">
         ${escapeHtml(h)}
       </span>
     `).join("");
@@ -413,7 +417,7 @@ function renderResults(res) {
     aiTitlesList.innerHTML = titles.map(title => `
       <div class="flex-between-center p-12 bg-slate-50 border-slate-200 radius-10">
         <span class="font-600 font-0-9 text-slate-900">${escapeHtml(title)}</span>
-        <button class="tool-copy-action-btn" onclick="copyToClipboard('${escapeAttr(title)}', this)">Copy</button>
+        <button class="tool-copy-action-btn" data-copy="${escapeAttr(title)}">Copy</button>
       </div>
     `).join("");
   }
@@ -540,3 +544,14 @@ if (exportCsvBtn) {
     window.location.href = `/api/export-csv/${currentTrendId}`;
   });
 }
+
+// Delegated click listener for tags and titles (no inline onclick handlers)
+document.addEventListener("click", (e) => {
+  const copyTarget = e.target.closest("[data-copy]");
+  if (copyTarget) {
+    const textToCopy = copyTarget.getAttribute("data-copy");
+    if (typeof copyToClipboard === "function") {
+      copyToClipboard(textToCopy, copyTarget);
+    }
+  }
+});

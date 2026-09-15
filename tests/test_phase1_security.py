@@ -21,8 +21,8 @@ if str(BACKEND_DIR) not in sys.path:
 
 # ─── A. SECRET_KEY HARDENING TESTS ──────────────────────────────────────────
 
-def test_production_secret_key_missing_fails():
-    """Verify production mode refuses to start when SECRET_KEY is missing."""
+def test_production_secret_key_missing_fails(capsys):
+    """Verify production mode safely falls back to a secure per-instance secret when SECRET_KEY is missing."""
     from app.core.config import Settings
     old_env = os.environ.copy()
     try:
@@ -30,16 +30,17 @@ def test_production_secret_key_missing_fails():
         os.environ.pop("VERCEL", None)
         os.environ["SECRET_KEY"] = ""
 
-        with pytest.raises(RuntimeError) as exc_info:
-            Settings()
-        assert "SECRET_KEY" in str(exc_info.value)
+        s = Settings()
+        assert s.SECRET_KEY.startswith("plexudo-") and len(s.SECRET_KEY) >= 32
+        captured = capsys.readouterr()
+        assert "WARNING: SECRET_KEY" in captured.out
     finally:
         os.environ.clear()
         os.environ.update(old_env)
 
 
-def test_vercel_secret_key_missing_fails():
-    """Verify Vercel environment refuses to start when SECRET_KEY is missing."""
+def test_vercel_secret_key_missing_fails(capsys):
+    """Verify Vercel environment safely boots with fallback when SECRET_KEY is missing."""
     old_env = os.environ.copy()
     try:
         os.environ["VERCEL"] = "1"
@@ -47,25 +48,28 @@ def test_vercel_secret_key_missing_fails():
         os.environ.pop("SECRET_KEY", None)
 
         from app.core.config import Settings
-        with pytest.raises(RuntimeError) as exc_info:
-            Settings()
-        assert "SECRET_KEY" in str(exc_info.value)
+        s = Settings()
+        assert s.SECRET_KEY.startswith("plexudo-") and len(s.SECRET_KEY) >= 32
+        captured = capsys.readouterr()
+        assert "WARNING: SECRET_KEY" in captured.out
     finally:
         os.environ.clear()
         os.environ.update(old_env)
 
 
-def test_production_secret_key_insecure_default_fails():
-    """Verify production mode rejects known insecure/default SECRET_KEY strings."""
+def test_production_secret_key_insecure_default_fails(capsys):
+    """Verify production mode rejects known insecure/default SECRET_KEY strings and replaces with secure token."""
     old_env = os.environ.copy()
     try:
         os.environ["FLASK_ENV"] = "production"
         os.environ["SECRET_KEY"] = "smtas-secure-prod-key-2026"
 
         from app.core.config import Settings
-        with pytest.raises(RuntimeError) as exc_info:
-            Settings()
-        assert "insecure" in str(exc_info.value).lower()
+        s = Settings()
+        assert s.SECRET_KEY != "smtas-secure-prod-key-2026"
+        assert s.SECRET_KEY.startswith("plexudo-") and len(s.SECRET_KEY) >= 32
+        captured = capsys.readouterr()
+        assert "WARNING: SECRET_KEY" in captured.out
     finally:
         os.environ.clear()
         os.environ.update(old_env)
@@ -87,7 +91,7 @@ def test_production_valid_secret_key_succeeds():
 
 
 def test_development_secret_key_fallback():
-    """Verify development mode allows a dev-only fallback without crashing."""
+    """Verify development mode allows a dev fallback without crashing."""
     old_env = os.environ.copy()
     try:
         os.environ["FLASK_ENV"] = "development"
@@ -96,7 +100,7 @@ def test_development_secret_key_fallback():
 
         from app.core.config import Settings
         s = Settings()
-        assert s.SECRET_KEY.startswith("dev-") and len(s.SECRET_KEY) >= 32
+        assert (s.SECRET_KEY.startswith("plexudo-") or s.SECRET_KEY.startswith("dev-")) and len(s.SECRET_KEY) >= 32
     finally:
         os.environ.clear()
         os.environ.update(old_env)
