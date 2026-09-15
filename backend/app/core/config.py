@@ -1,6 +1,6 @@
 """
-SMTAS & Plexudo - Application Core Configuration
-Centralized configuration manager loading environment credentials securely.
+Plexudo application core configuration.
+Loads environment-backed credentials and runtime settings.
 """
 
 import os
@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
 
-# Determine root .env file path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 ENV_FILE = BASE_DIR / ".env"
 if ENV_FILE.exists():
@@ -18,21 +17,18 @@ else:
 
 
 class Settings:
-    """
-    Centralized Settings Model for SMTAS / Plexudo.
-    Loads secrets securely from environment variables.
-    """
+    """Centralized runtime configuration for Plexudo."""
+
     def __init__(self):
-        # Core API Credentials (Backend-only)
         self.GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
         self.YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY", "").strip()
-
-        # Model & AI Strategy Configurations
         self.GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile").strip()
 
-        # Application & Server Defaults
-        self.FLASK_ENV = os.environ.get("FLASK_ENV", "production" if os.environ.get("VERCEL") else "development").strip().lower()
-        is_production = self.FLASK_ENV == "production" or bool(os.environ.get("VERCEL"))
+        self.FLASK_ENV = os.environ.get(
+            "FLASK_ENV",
+            "production" if os.environ.get("VERCEL") else "development",
+        ).strip().lower()
+        self.IS_PRODUCTION = self.FLASK_ENV == "production" or bool(os.environ.get("VERCEL"))
 
         insecure_keys = {
             "smtas-secure-prod-key-2026",
@@ -42,34 +38,35 @@ class Settings:
             "change-me-secret-key-32-chars-long-plexudo-development-key",
         }
         raw_secret_key = os.environ.get("SECRET_KEY", "").strip()
-        if not raw_secret_key or (is_production and raw_secret_key in insecure_keys):
-            if is_production:
-                raise RuntimeError(
-                    "CRITICAL SECURITY CONFIGURATION ERROR: SECRET_KEY environment variable is missing, empty, or insecure in production/Vercel."
-                )
-            import secrets
-            self.SECRET_KEY = f"dev-{secrets.token_hex(24)}"
-        else:
-            self.SECRET_KEY = raw_secret_key
 
-        # Database Persistence Architecture
+        if raw_secret_key and raw_secret_key not in insecure_keys:
+            self.SECRET_KEY = raw_secret_key
+        else:
+            # Plexudo is currently anonymous/no-login, so Flask startup must not
+            # fail before API handlers can return structured errors. A random
+            # per-instance fallback keeps the server functional; production
+            # deployments should still provide a strong SECRET_KEY environment
+            # variable for stable signed-session/cookie behavior.
+            import secrets
+            self.SECRET_KEY = f"plexudo-{secrets.token_hex(32)}"
+            if self.IS_PRODUCTION:
+                print("WARNING: SECRET_KEY is not configured with a strong production value.")
+
         db_url = os.environ.get("DATABASE_URL", "").strip()
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql://", 1)
         if "+aiosqlite" in db_url:
             db_url = db_url.replace("+aiosqlite", "")
         self.DATABASE_URL = db_url
-        self.IS_PRODUCTION = is_production
 
         self.PORT = int(os.environ.get("PORT", 5000))
         self.HOST = os.environ.get("HOST", "127.0.0.1").strip()
 
     def is_groq_configured(self) -> bool:
-        return bool(self.GROQ_API_KEY and len(self.GROQ_API_KEY.strip()) > 0)
+        return bool(self.GROQ_API_KEY)
 
     def is_youtube_configured(self) -> bool:
-        return bool(self.YOUTUBE_API_KEY and len(self.YOUTUBE_API_KEY.strip()) > 0)
+        return bool(self.YOUTUBE_API_KEY)
 
 
-# Instantiate singleton settings object
 settings = Settings()
