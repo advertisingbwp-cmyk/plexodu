@@ -131,6 +131,34 @@ async function runTrendAnalysis() {
   }
 }
 
+function createCopyBadge(text, className) {
+  const badge = document.createElement("span");
+  badge.className = `panel-badge ${className}`.trim();
+  badge.style.cssText = "padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;";
+  badge.title = "Click to copy";
+  badge.textContent = `🏷️ ${text}`;
+  badge.addEventListener("click", () => copyToClipboard(text, badge));
+  return badge;
+}
+
+function createTitleRow(title) {
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;";
+
+  const label = document.createElement("span");
+  label.style.cssText = "font-weight:600; font-size:14px; color:#0f172a;";
+  label.textContent = title;
+
+  const button = document.createElement("button");
+  button.className = "tool-secondary-btn";
+  button.style.cssText = "padding:6px 12px; font-size:12px;";
+  button.textContent = "Copy";
+  button.addEventListener("click", () => copyToClipboard(title, button));
+
+  row.append(label, button);
+  return row;
+}
+
 function renderResults(res) {
   currentTrendId = res.trend_id || null;
 
@@ -147,50 +175,31 @@ function renderResults(res) {
   }
   if (viralityScoreVal) viralityScoreVal.textContent = `${res.virality_score}/100`;
 
-  // Sentiment
   const s = res.sentiment || {};
-  if (dominantSentimentBadge) {
-    dominantSentimentBadge.textContent = (s.dominant_sentiment || "Neutral").toUpperCase();
-  }
-  if (sentimentBreakdown) {
-    sentimentBreakdown.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
-  }
-  if (sampleCommentText) {
-    sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No sample comment recorded.";
-  }
+  if (dominantSentimentBadge) dominantSentimentBadge.textContent = (s.dominant_sentiment || "Neutral").toUpperCase();
+  if (sentimentBreakdown) sentimentBreakdown.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
+  if (sampleCommentText) sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No sample comment recorded.";
 
-  // Chart
   renderChart(res.daily_metrics || []);
 
-  // Tags
   if (tagsList) {
-    const tags = res.youtube_tags || [];
-    tagsList.innerHTML = tags.map(t => `
-      <span class="panel-badge" style="background:#f1f5f9; color:#0f172a; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(t)}', this)">
-        🏷️ ${escapeHtml(t)}
-      </span>
-    `).join("");
+    tagsList.replaceChildren();
+    (res.youtube_tags || []).forEach(t => tagsList.appendChild(createCopyBadge(t, "")));
   }
 
-  // Hashtags
   if (hashtagsList) {
-    const htags = res.youtube_hashtags || [];
-    hashtagsList.innerHTML = htags.map(h => `
-      <span class="panel-badge" style="background:#eef2ff; color:#4f46e5; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(h)}', this)">
-        ${escapeHtml(h)}
-      </span>
-    `).join("");
+    hashtagsList.replaceChildren();
+    (res.youtube_hashtags || []).forEach(h => {
+      const badge = createCopyBadge(h, "");
+      badge.style.background = "#eef2ff";
+      badge.style.color = "#4f46e5";
+      hashtagsList.appendChild(badge);
+    });
   }
 
-  // AI Titles
   if (aiTitlesList) {
-    const titles = res.seo_title_ideas || [];
-    aiTitlesList.innerHTML = titles.map(title => `
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
-        <span style="font-weight:600; font-size:14px; color:#0f172a;">${escapeHtml(title)}</span>
-        <button class="tool-secondary-btn" style="padding:6px 12px; font-size:12px;" onclick="copyToClipboard('${escapeAttr(title)}', this)">Copy</button>
-      </div>
-    `).join("");
+    aiTitlesList.replaceChildren();
+    (res.seo_title_ideas || []).forEach(title => aiTitlesList.appendChild(createTitleRow(title)));
   }
 
   if (resultsArea) resultsArea.style.display = "block";
@@ -199,21 +208,15 @@ function renderResults(res) {
 function renderChart(daily) {
   const ctx = document.getElementById("viewsChart");
   if (!ctx) return;
-
-  if (viewsChartInstance) {
-    viewsChartInstance.destroy();
-  }
-
-  const labels = daily.map(d => d.date);
-  const data = daily.map(d => d.views);
+  if (viewsChartInstance) viewsChartInstance.destroy();
 
   viewsChartInstance = new Chart(ctx, {
     type: "line",
     data: {
-      labels: labels,
+      labels: daily.map(d => d.date),
       datasets: [{
         label: "Views Trajectory",
-        data: data,
+        data: daily.map(d => d.views),
         borderColor: "#4f46e5",
         backgroundColor: "rgba(79, 70, 229, 0.08)",
         fill: true,
@@ -225,33 +228,19 @@ function renderChart(daily) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: "#f1f5f9" }
-        },
-        x: {
-          grid: { display: false }
-        }
+        y: { beginAtZero: true, grid: { color: "#f1f5f9" } },
+        x: { grid: { display: false } }
       }
     }
   });
 }
 
-// ── Exports ─────────────────────────────────────────────────────────────────
-if (exportPdfBtn) {
-  exportPdfBtn.addEventListener("click", () => {
-    if (!currentTrendId) return;
-    window.location.href = `/api/report/${currentTrendId}`;
-  });
-}
+if (exportPdfBtn) exportPdfBtn.addEventListener("click", () => {
+  if (currentTrendId) window.location.href = `/api/report/${currentTrendId}`;
+});
 
-if (exportCsvBtn) {
-  exportCsvBtn.addEventListener("click", () => {
-    if (!currentTrendId) return;
-    window.location.href = `/api/export-csv/${currentTrendId}`;
-  });
-}
+if (exportCsvBtn) exportCsvBtn.addEventListener("click", () => {
+  if (currentTrendId) window.location.href = `/api/export-csv/${currentTrendId}`;
+});
