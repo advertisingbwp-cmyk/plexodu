@@ -12,6 +12,9 @@ let activeQuery = "";
 let currentVideos = [];
 let viewsChart = null;
 let catChart = null;
+let lowerViewsChart = null;
+let currentTrendId = null;
+let currentKeyword = "";
 let searchDebounce = null;
 
 const CATEGORIES = [
@@ -205,6 +208,11 @@ async function fetchTrendingFeed() {
     renderViewsChart(data.timeSeries || [], activeCategory);
     renderCategoryChart(data.catBreakdown || []);
     renderTrendingList(currentVideos, activeQuery);
+
+    const ytData = data.results && data.results.YouTube ? data.results.YouTube : null;
+    if (ytData) {
+      renderDeepIntelligence(ytData);
+    }
   } catch (err) {
     console.error("Failed to load trending feed:", err);
     // Display graceful state
@@ -505,3 +513,372 @@ function renderTrendingList(videos, query) {
     })
     .join("");
 }
+
+// ── Render Deep Intelligence (Velocity, Virality, Sentiment, Tags) ──────────
+function renderDeepIntelligence(ytData) {
+  const resultsArea = document.getElementById("resultsArea");
+  if (!resultsArea) return;
+
+  currentTrendId = ytData.trend_id || null;
+  currentKeyword = ytData.keyword || activeQuery || "";
+
+  // 1. First Scan / Educational Banner
+  const trendBanner = document.getElementById("trendBanner");
+  const trendBannerText = document.getElementById("trendBannerText");
+  const intel = ytData.trend_intelligence || {};
+  const isBaseline = intel.status === "baseline" || ytData.status === "baseline";
+
+  if (trendBanner && trendBannerText) {
+    if (intel.educational_banner) {
+      trendBannerText.textContent = intel.educational_banner;
+      trendBanner.style.display = "flex";
+    } else if (isBaseline) {
+      // First Scan baseline observation
+      trendBannerText.textContent = "Baseline observation established. Scan again in 24–48 hours to measure real-world growth velocity, momentum, and curve progression.";
+      trendBanner.style.display = "flex";
+    } else {
+      trendBanner.style.display = "none";
+    }
+  }
+
+  // 2. Velocity, Growth Rate & Virality Breakdown
+  const summaryDirection = document.getElementById("summaryDirection");
+  if (summaryDirection) {
+    summaryDirection.textContent = intel.current_direction_display || ytData.stage || "Emerging";
+  }
+
+  const summaryVelocity = document.getElementById("summaryVelocity");
+  if (summaryVelocity) {
+    summaryVelocity.textContent = intel.velocity_display || (ytData.growth_rate !== undefined ? `${ytData.growth_rate > 0 ? "+" : ""}${ytData.growth_rate}% / day` : "—");
+  }
+
+  const summaryAcceleration = document.getElementById("summaryAcceleration");
+  if (summaryAcceleration) {
+    summaryAcceleration.textContent = intel.acceleration_display || "Normal";
+  }
+
+  const summaryEngagement = document.getElementById("summaryEngagement");
+  if (summaryEngagement) {
+    summaryEngagement.textContent = `${ytData.engagement_rate || 0}%`;
+  }
+
+  const summaryVirality = document.getElementById("summaryVirality");
+  if (summaryVirality) {
+    summaryVirality.textContent = `${ytData.virality_score || 0}/100`;
+  }
+
+  // 3. Lower Time-Series Trajectory Chart
+  const timelineData = (intel.timeline && intel.timeline.length > 0) ? intel.timeline : (ytData.daily_metrics || []);
+  renderLowerChart(timelineData);
+
+  // 4. Audience Sentiment Breakdown
+  const sentiment = ytData.sentiment || {};
+  const dominantBadge = document.getElementById("dominantSentimentBadge");
+  if (dominantBadge) {
+    const dom = sentiment.dominant_sentiment || "Neutral";
+    dominantBadge.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
+    dominantBadge.className = "panel-badge " + (dom.toLowerCase() === "positive" ? "badge-rising" : dom.toLowerCase() === "negative" ? "badge-falling" : "badge-stable");
+  }
+
+  const sentimentBreakdown = document.getElementById("sentimentBreakdown");
+  if (sentimentBreakdown) {
+    sentimentBreakdown.innerHTML = `Positive: ${sentiment.positive_score || 0}% &bull; Neutral: ${sentiment.neutral_score || 0}% &bull; Negative: ${sentiment.negative_score || 0}%`;
+  }
+
+  const sampleCommentText = document.getElementById("sampleCommentText");
+  if (sampleCommentText) {
+    sampleCommentText.textContent = sentiment.sample_comment || (ytData.comments && ytData.comments[0]) || "Audience discussion reflects healthy creator momentum.";
+  }
+
+  // 5. Trend Milestones & Events
+  const eventsList = document.getElementById("trendEventsList");
+  if (eventsList) {
+    const events = intel.events || [];
+    if (events.length === 0) {
+      eventsList.innerHTML = `
+        <div class="trend-event-item">
+          <div class="trend-event-icon">📍</div>
+          <div class="trend-event-content">
+            <div class="trend-event-title">Baseline Observation</div>
+            <div class="trend-event-desc">Initial observation recorded. Velocity calculated after future scans.</div>
+          </div>
+          <div class="trend-event-date">Today</div>
+        </div>
+      `;
+    } else {
+      eventsList.innerHTML = events.map(ev => {
+        let icon = "📍";
+        if (ev.type === "spike") icon = "⚡";
+        else if (ev.type === "drop") icon = "📉";
+        else if (ev.type === "shift") icon = "🔄";
+        else if (ev.type === "engagement") icon = "❤️";
+        else if (ev.type === "scan") icon = "🔍";
+
+        return `
+          <div class="trend-event-item">
+            <div class="trend-event-icon">${icon}</div>
+            <div class="trend-event-content">
+              <div class="trend-event-title">${escapeHtml(ev.title)}</div>
+              <div class="trend-event-desc">${escapeHtml(ev.description)}</div>
+            </div>
+            <div class="trend-event-date">${escapeHtml(ev.date || "Today")}</div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  // 6. Historical Change Windows
+  const historyTableBody = document.getElementById("historyTableBody");
+  if (historyTableBody) {
+    const hw = intel.historical_context || {};
+    const windows = [
+      { key: "1d", label: "1 Day" },
+      { key: "7d", label: "7 Days" },
+      { key: "30d", label: "30 Days" },
+      { key: "90d", label: "90 Days" }
+    ];
+
+    historyTableBody.innerHTML = windows.map(w => {
+      const entry = hw[w.key] || { status: "insufficient_history", display: "Insufficient history" };
+      const isAvail = entry.status === "available" && entry.change_pct !== null;
+      const badgeClass = isAvail ? (entry.change_pct >= 0 ? "badge-rising" : "badge-falling") : "badge-stable";
+      const growthDisplay = isAvail ? `${entry.change_pct > 0 ? "+" : ""}${entry.change_pct}%` : "—";
+      const statusText = isAvail ? "Audited" : "Insufficient history";
+
+      return `
+        <tr>
+          <td><strong>${w.label}</strong></td>
+          <td><span class="panel-badge ${badgeClass}">${growthDisplay}</span></td>
+          <td><span class="panel-badge badge-stable">${statusText}</span></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // 7. Conservative 7-Day Forecast
+  const forecastGrid = document.getElementById("forecastGrid");
+  const forecastFallback = document.getElementById("forecastFallback");
+  const fc = intel.forecast || {};
+  if (fc.available && fc.projection_days && fc.projection_days.length > 0) {
+    if (forecastFallback) forecastFallback.style.display = "none";
+    if (forecastGrid) {
+      forecastGrid.style.display = "grid";
+      forecastGrid.innerHTML = fc.projection_days.map(d => `
+        <div class="trend-forecast-card">
+          <div class="trend-forecast-day">${escapeHtml(d.day)}</div>
+          <div class="trend-forecast-val">${Number(d.expected_views).toLocaleString()}</div>
+          <div class="trend-forecast-range">&plusmn;${Number(d.upper_bound - d.expected_views).toLocaleString()}</div>
+        </div>
+      `).join("");
+    }
+  } else {
+    if (forecastGrid) forecastGrid.style.display = "none";
+    if (forecastFallback) forecastFallback.style.display = "block";
+  }
+
+  // 8. High-CTR Tag Combinations
+  const tagsList = document.getElementById("tagsList");
+  if (tagsList) {
+    const tags = ytData.youtube_tags || [];
+    if (tags.length === 0) {
+      tagsList.innerHTML = `<span class="text-slate-400 font-0-85">No specific tags extracted.</span>`;
+    } else {
+      tagsList.innerHTML = tags.map(t => `
+        <span class="tag-item-default" data-copy="${escapeAttr(t)}" title="Click to copy">
+          🏷️ ${escapeHtml(t)}
+        </span>
+      `).join("");
+    }
+  }
+
+  // 9. High-CTR Hashtags
+  const hashtagsList = document.getElementById("hashtagsList");
+  if (hashtagsList) {
+    const htags = ytData.youtube_hashtags || [];
+    if (htags.length > 0) {
+      hashtagsList.innerHTML = htags.map(h => `
+        <span class="tag-item-accent" data-copy="${escapeAttr(h)}" title="Click to copy">
+          ${escapeHtml(h)}
+        </span>
+      `).join("");
+    } else {
+      hashtagsList.innerHTML = "";
+    }
+  }
+
+  // 10. Context-Aware High-CTR Titles
+  const aiTitlesList = document.getElementById("aiTitlesList");
+  if (aiTitlesList) {
+    const titles = ytData.seo_title_ideas || [];
+    if (titles.length === 0) {
+      aiTitlesList.innerHTML = `<span class="text-slate-400 font-0-85">No titles generated yet.</span>`;
+    } else {
+      aiTitlesList.innerHTML = titles.map(title => `
+        <div class="flex-between-center p-12 bg-slate-50 border-slate-200 radius-10">
+          <span class="font-600 font-0-9 text-slate-900">${escapeHtml(title)}</span>
+          <button class="tool-copy-action-btn" data-copy="${escapeAttr(title)}" type="button">Copy</button>
+        </div>
+      `).join("");
+    }
+  }
+
+  resultsArea.style.display = "block";
+}
+
+// ── Render Lower Time-Series Chart ──────────────────────────────────────────
+function renderLowerChart(dataPoints) {
+  const ctx = document.getElementById("viewsChart");
+  if (!ctx || !window.Chart) return;
+
+  if (lowerViewsChart) {
+    lowerViewsChart.destroy();
+  }
+
+  const isBaseline = dataPoints.length <= 1;
+  const chartBaselineNote = document.getElementById("chartBaselineNote");
+  if (chartBaselineNote) {
+    chartBaselineNote.style.display = isBaseline ? "block" : "none";
+  }
+
+  const labels = dataPoints.map(d => d.date || d.label || "Obs 1");
+  const rawViews = dataPoints.map(d => d.views || 0);
+  const smoothedViews = dataPoints.map(d => d.smoothed_views !== undefined ? d.smoothed_views : d.views || 0);
+
+  const datasets = [
+    {
+      label: "Smoothed Trajectory",
+      data: smoothedViews,
+      borderColor: "#4f46e5",
+      backgroundColor: "rgba(79, 70, 229, 0.08)",
+      fill: true,
+      tension: 0.35,
+      pointRadius: isBaseline ? 6 : 3,
+      pointHoverRadius: isBaseline ? 8 : 6,
+      order: 1
+    }
+  ];
+
+  const hasSmoothedVariance = rawViews.some((v, idx) => v !== smoothedViews[idx]);
+  if (hasSmoothedVariance) {
+    datasets.push({
+      label: "Raw Observations",
+      data: rawViews,
+      borderColor: "#94a3b8",
+      backgroundColor: "rgba(148, 163, 184, 0.4)",
+      fill: false,
+      showLine: false,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      order: 2
+    });
+  }
+
+  lowerViewsChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: "index",
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: datasets.length > 1,
+          position: "top",
+          labels: { boxWidth: 12, font: { size: 11 } }
+        },
+        tooltip: {
+          backgroundColor: "#0f172a",
+          titleColor: "#94a3b8",
+          bodyColor: "#ffffff",
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label}: ${Number(context.raw).toLocaleString()} views`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: "#f1f5f9" },
+          ticks: {
+            color: "#64748b",
+            font: { size: 11 },
+            callback: function(val) {
+              if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
+              if (val >= 1000) return (val / 1000).toFixed(0) + "K";
+              return val;
+            }
+          }
+        },
+        x: {
+          grid: { display: false },
+          border: { color: "#e2e8f0" },
+          offset: isBaseline,
+          ticks: { color: "#64748b", font: { size: 11 }, maxRotation: 45, minRotation: 0 }
+        }
+      }
+    }
+  });
+}
+
+// ── Connected Actions & Exports ─────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  const ctaStrat = document.getElementById("ctaStrategistBtn");
+  if (ctaStrat) {
+    ctaStrat.addEventListener("click", () => {
+      const topic = currentKeyword || (document.getElementById("pulseSearchInput")?.value.trim() || "");
+      window.location.href = `/tools/ai-strategist${topic ? "?topic=" + encodeURIComponent(topic) : ""}`;
+    });
+  }
+
+  const ctaComp = document.getElementById("ctaCompetitorBtn");
+  if (ctaComp) {
+    ctaComp.addEventListener("click", () => {
+      const topic = currentKeyword || (document.getElementById("pulseSearchInput")?.value.trim() || "");
+      window.location.href = `/tools/competitor-audit${topic ? "?channel=" + encodeURIComponent(topic) : ""}`;
+    });
+  }
+
+  const expPdf = document.getElementById("exportPdfBtn");
+  if (expPdf) {
+    expPdf.addEventListener("click", () => {
+      if (!currentTrendId) return;
+      window.location.href = `/api/report/${currentTrendId}`;
+    });
+  }
+
+  const expCsv = document.getElementById("exportCsvBtn");
+  if (expCsv) {
+    expCsv.addEventListener("click", () => {
+      if (!currentTrendId) return;
+      window.location.href = `/api/export-csv/${currentTrendId}`;
+    });
+  }
+});
+
+// Delegated click listener for tags and titles clipboard copying
+document.addEventListener("click", (e) => {
+  const copyTarget = e.target.closest("[data-copy]");
+  if (copyTarget) {
+    const textToCopy = copyTarget.getAttribute("data-copy");
+    if (typeof copyToClipboard === "function") {
+      copyToClipboard(textToCopy, copyTarget);
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const prev = copyTarget.textContent;
+        copyTarget.textContent = "Copied!";
+        setTimeout(() => { copyTarget.textContent = prev; }, 1500);
+      });
+    }
+  }
+});
