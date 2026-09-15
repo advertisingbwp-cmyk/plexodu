@@ -34,6 +34,7 @@ from services.trend_engine import (
     classify_trend_stage,
     total_views,
 )
+from services.trend_intelligence import analyze_trend_intelligence
 from services.report_generator import generate_pdf_report, generate_pdf_report_buffer
 from services.groq_service import chat_with_groq          # Groq AI Service (Llama 3.3 70B)
 
@@ -329,14 +330,45 @@ def _process_platform(keyword, platform_name, fetch_fn):
     )
     seo_title_ideas = [t["title"] for t in title_objs]
 
+    # Phase 8 — Trend Intelligence multi-scan analysis
+    past_trends = (
+        Trend.query.filter(
+            db.func.lower(Trend.keyword) == keyword.lower().strip(),
+            Trend.platform == platform_name,
+        )
+        .order_by(Trend.timestamp.asc())
+        .all()
+    )
+
+    trend_intel = analyze_trend_intelligence(
+        keyword=keyword,
+        platform_name=platform_name,
+        current_views=views_sum,
+        current_engagement=engagement,
+        sentiment_result=sentiment_result,
+        past_trends=past_trends,
+    )
+
+    # Clean topic-appropriate fallback for sample comment if empty
+    if not sentiment_result.get("sample_comment"):
+        sentiment_result["sample_comment"] = "No recent audience comments available for this topic."
+
     trend = Trend(
         keyword=keyword,
         platform=platform_name,
         total_views=views_sum,
-        growth_rate=growth_rate,
+        growth_rate=trend_intel["velocity"] if trend_intel["velocity"] is not None else growth_rate,
         virality_score=virality,
         peak_date=datetime.now(timezone.utc),
         created_by=None,
+        first_seen_at=datetime.fromisoformat(trend_intel["first_seen_at"]),
+        last_seen_at=datetime.fromisoformat(trend_intel["last_seen_at"]),
+        scan_count=trend_intel["scan_count"],
+        current_trend_score=trend_intel["current_trend_score"],
+        current_direction=trend_intel["current_direction"],
+        current_confidence=trend_intel["current_confidence"],
+        current_velocity=trend_intel["velocity"] or 0.0,
+        current_acceleration=trend_intel["acceleration"] or 0.0,
     )
     db.session.add(trend)
     db.session.flush()
@@ -349,6 +381,8 @@ def _process_platform(keyword, platform_name, fetch_fn):
             shares=day["shares"],
             comments_count=day["comments_count"],
             recorded_date=datetime.strptime(day["date"], "%Y-%m-%d").date(),
+            engagement_rate=engagement,
+            source="youtube_api",
         ))
 
     db.session.add(Sentiment(
@@ -366,7 +400,7 @@ def _process_platform(keyword, platform_name, fetch_fn):
         "keyword": keyword,
         "platform": platform_name,
         "total_views": views_sum,
-        "growth_rate": growth_rate,
+        "growth_rate": trend_intel["velocity"] if trend_intel["velocity"] is not None else 0.0,
         "virality_score": virality,
         "engagement_rate": engagement,
         "seo_analysis": seo_analysis,
@@ -377,6 +411,26 @@ def _process_platform(keyword, platform_name, fetch_fn):
         "youtube_tags": youtube_tags[:10],
         "youtube_hashtags": hashtag_list,
         "seo_title_ideas": seo_title_ideas,
+        # Phase 8 Intelligence keys
+        "trend_intelligence": trend_intel,
+        "status": trend_intel["status"],
+        "scan_count": trend_intel["scan_count"],
+        "first_seen_at": trend_intel["first_seen_at"],
+        "last_seen_at": trend_intel["last_seen_at"],
+        "current_trend_score": trend_intel["current_trend_score"],
+        "current_trend_score_display": trend_intel["current_trend_score_display"],
+        "current_direction": trend_intel["current_direction"],
+        "current_direction_display": trend_intel["current_direction_display"],
+        "current_confidence": trend_intel["current_confidence"],
+        "velocity": trend_intel["velocity"],
+        "velocity_display": trend_intel["velocity_display"],
+        "acceleration": trend_intel["acceleration"],
+        "acceleration_display": trend_intel["acceleration_display"],
+        "educational_banner": trend_intel["educational_banner"],
+        "historical_context": trend_intel["historical_context"],
+        "timeline": trend_intel["timeline"],
+        "events": trend_intel["events"],
+        "forecast": trend_intel["forecast"],
     }
 
 

@@ -26,6 +26,13 @@ if (channelInput) {
   channelInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") runChannelAudit();
   });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const channelParam = urlParams.get("channel");
+  if (channelParam) {
+    channelInput.value = channelParam;
+    setTimeout(() => runChannelAudit(), 300);
+  }
 }
 
 async function runChannelAudit() {

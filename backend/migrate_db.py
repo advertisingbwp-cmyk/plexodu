@@ -79,7 +79,41 @@ def run_migration(engine):
         else:
             logger.info("Table 'users' is already free of authentication columns.")
 
-    # 3. Verify integrity of preserved application tables
+    # 3. Add Phase 8 columns to trends and metrics if missing
+    TRENDS_NEW_COLUMNS = [
+        ("first_seen_at", "DATETIME"),
+        ("last_seen_at", "DATETIME"),
+        ("scan_count", "INTEGER DEFAULT 1"),
+        ("current_trend_score", "FLOAT"),
+        ("current_direction", "VARCHAR(20) DEFAULT 'STABLE'"),
+        ("current_confidence", "VARCHAR(20) DEFAULT 'Low'"),
+        ("current_velocity", "FLOAT DEFAULT 0.0"),
+        ("current_acceleration", "FLOAT DEFAULT 0.0"),
+    ]
+
+    METRICS_NEW_COLUMNS = [
+        ("captured_at", "DATETIME"),
+        ("engagement_rate", "FLOAT DEFAULT 0.0"),
+        ("source", "VARCHAR(50) DEFAULT 'youtube_api'"),
+    ]
+
+    if "trends" in existing_tables:
+        trend_cols = [c["name"] for c in inspector.get_columns("trends")]
+        with engine.begin() as conn:
+            for col_name, col_type in TRENDS_NEW_COLUMNS:
+                if col_name not in trend_cols:
+                    logger.info(f"Adding column '{col_name}' to 'trends'")
+                    conn.execute(text(f"ALTER TABLE trends ADD COLUMN {col_name} {col_type}"))
+
+    if "metrics" in existing_tables:
+        metric_cols = [c["name"] for c in inspector.get_columns("metrics")]
+        with engine.begin() as conn:
+            for col_name, col_type in METRICS_NEW_COLUMNS:
+                if col_name not in metric_cols:
+                    logger.info(f"Adding column '{col_name}' to 'metrics'")
+                    conn.execute(text(f"ALTER TABLE metrics ADD COLUMN {col_name} {col_type}"))
+
+    # 4. Verify integrity of preserved application tables
     with engine.connect() as conn:
         for preserved_tbl in ["trends", "metrics", "sentiment", "reports", "audit_logs"]:
             if preserved_tbl in existing_tables:

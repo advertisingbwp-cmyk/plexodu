@@ -18,6 +18,13 @@ if (chatInput) {
       handleSendMessage();
     }
   });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const topicParam = urlParams.get("topic");
+  if (topicParam) {
+    chatInput.value = `Help me create a content strategy and viral video ideas for the trending topic: "${topicParam}"`;
+    setTimeout(() => handleSendMessage(), 300);
+  }
 }
 
 function sendChipPrompt(promptText) {

@@ -34,6 +34,16 @@ class Trend(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     timestamp = db.Column(db.DateTime, default=utc_now)
 
+    # Phase 8 — Trend Intelligence Engine additions
+    first_seen_at = db.Column(db.DateTime, default=utc_now)
+    last_seen_at = db.Column(db.DateTime, default=utc_now)
+    scan_count = db.Column(db.Integer, default=1)
+    current_trend_score = db.Column(db.Float, nullable=True)
+    current_direction = db.Column(db.String(20), default="STABLE")
+    current_confidence = db.Column(db.String(20), default="Low")
+    current_velocity = db.Column(db.Float, default=0.0)
+    current_acceleration = db.Column(db.Float, default=0.0)
+
     metrics = db.relationship("Metric", backref="trend", lazy=True)
     sentiments = db.relationship("Sentiment", backref="trend", lazy=True)
 
@@ -47,6 +57,11 @@ class Metric(db.Model):
     shares = db.Column(db.BigInteger, default=0)
     comments_count = db.Column(db.BigInteger, default=0)
     recorded_date = db.Column(db.Date, default=utc_today)
+
+    # Phase 8 — Observation metadata
+    captured_at = db.Column(db.DateTime, default=utc_now)
+    engagement_rate = db.Column(db.Float, default=0.0)
+    source = db.Column(db.String(50), default="youtube_api")
 
 
 class Sentiment(db.Model):

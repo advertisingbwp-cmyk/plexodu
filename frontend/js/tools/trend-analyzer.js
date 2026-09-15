@@ -1,9 +1,12 @@
 /**
- * YouTube Trend Analyzer Client JS
+ * YouTube Trend Analyzer Client JS (Phase 8 Rebuild)
  */
 let currentTrendId = null;
+let currentKeyword = "";
 let viewsChartInstance = null;
 let debounceTimer = null;
+let currentTimelineData = [];
+let activeTimeframe = "all";
 
 const keywordInput = document.getElementById("keywordInput");
 const analyzeBtn = document.getElementById("analyzeBtn");
@@ -12,18 +15,47 @@ const statusLine = document.getElementById("statusLine");
 const loadingArea = document.getElementById("loadingArea");
 const resultsArea = document.getElementById("resultsArea");
 
-const totalViewsVal = document.getElementById("totalViewsVal");
-const growthRateVal = document.getElementById("growthRateVal");
-const viralityScoreVal = document.getElementById("viralityScoreVal");
+// Educational Banner
+const trendBanner = document.getElementById("trendBanner");
+const trendBannerText = document.getElementById("trendBannerText");
 
+// 4 Top KPI Elements
+const kpiTrendScoreVal = document.getElementById("kpiTrendScoreVal");
+const kpiTrendScoreBadge = document.getElementById("kpiTrendScoreBadge");
+const kpiVelocityVal = document.getElementById("kpiVelocityVal");
+const kpiDirectionBadge = document.getElementById("kpiDirectionBadge");
+const kpiViewsVal = document.getElementById("kpiViewsVal");
+const kpiConfidenceVal = document.getElementById("kpiConfidenceVal");
+const kpiScanCountSub = document.getElementById("kpiScanCountSub");
+
+// Trend Summary Box
+const summaryDirection = document.getElementById("summaryDirection");
+const summaryVelocity = document.getElementById("summaryVelocity");
+const summaryAcceleration = document.getElementById("summaryAcceleration");
+const summaryEngagement = document.getElementById("summaryEngagement");
+const summaryVirality = document.getElementById("summaryVirality");
+
+// Audience Sentiment Elements
 const dominantSentimentBadge = document.getElementById("dominantSentimentBadge");
 const sentimentBreakdown = document.getElementById("sentimentBreakdown");
 const sampleCommentText = document.getElementById("sampleCommentText");
 
+// Derived Events & Historical Windows
+const trendEventsList = document.getElementById("trendEventsList");
+const historyTableBody = document.getElementById("historyTableBody");
+
+// Forecast Elements
+const forecastFallback = document.getElementById("forecastFallback");
+const forecastGrid = document.getElementById("forecastGrid");
+
+// Tags & Context Titles
 const tagsList = document.getElementById("tagsList");
 const hashtagsList = document.getElementById("hashtagsList");
 const aiTitlesList = document.getElementById("aiTitlesList");
 
+// Actions & Exports
+const ctaStrategistBtn = document.getElementById("ctaStrategistBtn");
+const ctaCompetitorBtn = document.getElementById("ctaCompetitorBtn");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 
@@ -40,8 +72,11 @@ if (keywordInput) {
       try {
         const res = await fetchWithTimeout(`/api/suggest?q=${encodeURIComponent(query)}`, {}, 5000);
         if (res.ok) {
-          const data = await res.json();
-          renderSuggestions(data.suggestions || []);
+          const raw = await res.text();
+          try {
+            const data = JSON.parse(raw);
+            renderSuggestions(data.suggestions || []);
+          } catch (e) {}
         }
       } catch (err) {
         // silent fail on suggestions
@@ -85,6 +120,40 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// ── Timeframe Tabs ──────────────────────────────────────────────────────────
+document.querySelectorAll(".trend-tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".trend-tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    activeTimeframe = btn.getAttribute("data-range") || "all";
+    applyTimeframeFilter();
+  });
+});
+
+function applyTimeframeFilter() {
+  if (!currentTimelineData || currentTimelineData.length === 0) return;
+  
+  if (activeTimeframe === "all") {
+    renderChart(currentTimelineData);
+    return;
+  }
+
+  const now = new Date();
+  let cutoffDays = 30;
+  if (activeTimeframe === "1d") cutoffDays = 1;
+  else if (activeTimeframe === "7d") cutoffDays = 7;
+  else if (activeTimeframe === "30d") cutoffDays = 30;
+  else if (activeTimeframe === "90d") cutoffDays = 90;
+
+  const cutoffDate = new Date(now.getTime() - (cutoffDays * 24 * 60 * 60 * 1000));
+  const filtered = currentTimelineData.filter(d => {
+    const itemDate = new Date(d.date.replace(" ", "T"));
+    return isNaN(itemDate.getTime()) || itemDate >= cutoffDate;
+  });
+
+  renderChart(filtered.length > 0 ? filtered : currentTimelineData);
+}
+
 // ── Trend Analysis Action ───────────────────────────────────────────────────
 if (analyzeBtn) {
   analyzeBtn.addEventListener("click", runTrendAnalysis);
@@ -97,6 +166,7 @@ async function runTrendAnalysis() {
     return;
   }
 
+  currentKeyword = kw;
   hideStatusBar(statusLine);
   if (loadingArea) loadingArea.style.display = "block";
   if (resultsArea) resultsArea.style.display = "none";
@@ -109,7 +179,14 @@ async function runTrendAnalysis() {
       body: JSON.stringify({ keyword: kw })
     }, 25000);
 
-    const data = await res.json();
+    const rawText = await res.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      throw new Error("Server returned an invalid response. Please try again.");
+    }
+
     if (!res.ok || data.error) {
       const errMsg = data.error || (data.results && data.results.YouTube && data.results.YouTube.message) || "Analysis failed. Please try again.";
       showStatusBar(statusLine, errMsg, true);
@@ -131,116 +208,335 @@ async function runTrendAnalysis() {
   }
 }
 
-function createCopyBadge(text, className) {
-  const badge = document.createElement("span");
-  badge.className = `panel-badge ${className}`.trim();
-  badge.style.cssText = "padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;";
-  badge.title = "Click to copy";
-  badge.textContent = `🏷️ ${text}`;
-  badge.addEventListener("click", () => copyToClipboard(text, badge));
-  return badge;
-}
-
-function createTitleRow(title) {
-  const row = document.createElement("div");
-  row.style.cssText = "display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;";
-
-  const label = document.createElement("span");
-  label.style.cssText = "font-weight:600; font-size:14px; color:#0f172a;";
-  label.textContent = title;
-
-  const button = document.createElement("button");
-  button.className = "tool-secondary-btn";
-  button.style.cssText = "padding:6px 12px; font-size:12px;";
-  button.textContent = "Copy";
-  button.addEventListener("click", () => copyToClipboard(title, button));
-
-  row.append(label, button);
-  return row;
-}
-
 function renderResults(res) {
   currentTrendId = res.trend_id || null;
+  const intel = res.trend_intelligence || {};
 
-  if (totalViewsVal) totalViewsVal.textContent = Number(res.total_views || 0).toLocaleString();
-  if (growthRateVal) {
-    const daily = res.daily_metrics || [];
-    if (daily.length < 2 || (res.growth_rate === 0 && daily.length <= 1)) {
-      growthRateVal.textContent = "First Scan";
-      growthRateVal.title = "Initial snapshot — recurring tracking calculates day-over-day velocity.";
+  // 1. Educational Banner for Baseline Scans
+  if (intel.status === "baseline" && intel.educational_banner) {
+    if (trendBanner) trendBanner.style.display = "flex";
+    if (trendBannerText) trendBannerText.textContent = intel.educational_banner;
+  } else {
+    if (trendBanner) trendBanner.style.display = "none";
+  }
+
+  // 2. 4 Top KPI Cards
+  // KPI 1: Trend Score
+  if (kpiTrendScoreVal) {
+    kpiTrendScoreVal.textContent = intel.current_trend_score_display || "Pending";
+  }
+  if (kpiTrendScoreBadge) {
+    if (intel.status === "baseline") {
+      kpiTrendScoreBadge.className = "panel-badge badge-baseline";
+      kpiTrendScoreBadge.textContent = "Baseline";
     } else {
-      growthRateVal.textContent = `${res.growth_rate > 0 ? "+" : ""}${res.growth_rate}%`;
-      growthRateVal.removeAttribute("title");
+      kpiTrendScoreBadge.className = "panel-badge badge-rising";
+      kpiTrendScoreBadge.textContent = "Live Index";
     }
   }
-  if (viralityScoreVal) viralityScoreVal.textContent = `${res.virality_score}/100`;
 
+  // KPI 2: Velocity & Direction
+  if (kpiVelocityVal) {
+    kpiVelocityVal.textContent = intel.velocity_display || "Pending";
+  }
+  if (kpiDirectionBadge) {
+    const dir = intel.current_direction || "BASELINE";
+    if (dir === "RISING") {
+      kpiDirectionBadge.className = "panel-badge badge-rising";
+      kpiDirectionBadge.textContent = "Rising ↗";
+    } else if (dir === "FALLING") {
+      kpiDirectionBadge.className = "panel-badge badge-falling";
+      kpiDirectionBadge.textContent = "Falling ↘";
+    } else if (dir === "STABLE") {
+      kpiDirectionBadge.className = "panel-badge badge-stable";
+      kpiDirectionBadge.textContent = "Stable →";
+    } else {
+      kpiDirectionBadge.className = "panel-badge badge-baseline";
+      kpiDirectionBadge.textContent = "Baseline";
+    }
+  }
+
+  // KPI 3: Total Views
+  if (kpiViewsVal) {
+    kpiViewsVal.textContent = Number(res.total_views || 0).toLocaleString();
+  }
+
+  // KPI 4: Confidence & Scans
+  if (kpiConfidenceVal) {
+    kpiConfidenceVal.textContent = intel.current_confidence || "Low";
+  }
+  if (kpiScanCountSub) {
+    const sc = intel.scan_count || 1;
+    kpiScanCountSub.textContent = `${sc} scan${sc === 1 ? "" : "s"} recorded`;
+  }
+
+  // 3. Trend Summary Box
+  if (summaryDirection) summaryDirection.textContent = intel.current_direction_display || res.stage || "Stable";
+  if (summaryVelocity) summaryVelocity.textContent = intel.velocity_display || "Pending (1st scan)";
+  if (summaryAcceleration) summaryAcceleration.textContent = intel.acceleration_display || "Pending";
+  if (summaryEngagement) summaryEngagement.textContent = `${res.engagement_rate || 0}%`;
+  if (summaryVirality) summaryVirality.textContent = `${res.virality_score || 0}/100`;
+
+  // 4. Sentiment
   const s = res.sentiment || {};
-  if (dominantSentimentBadge) dominantSentimentBadge.textContent = (s.dominant_sentiment || "Neutral").toUpperCase();
-  if (sentimentBreakdown) sentimentBreakdown.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
-  if (sampleCommentText) sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No sample comment recorded.";
+  if (dominantSentimentBadge) {
+    dominantSentimentBadge.textContent = (s.dominant_sentiment || "Neutral").toUpperCase();
+  }
+  if (sentimentBreakdown) {
+    sentimentBreakdown.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
+  }
+  if (sampleCommentText) {
+    sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No recent audience comments available for this topic.";
+  }
 
-  renderChart(res.daily_metrics || []);
+  // 5. Chart Time-Series Data
+  if (intel.timeline && intel.timeline.length > 1) {
+    currentTimelineData = intel.timeline;
+  } else if (res.daily_metrics && res.daily_metrics.length > 0) {
+    currentTimelineData = res.daily_metrics.map(d => ({
+      date: d.date,
+      views: d.views,
+      smoothed_views: d.views,
+      engagement_rate: res.engagement_rate || 0
+    }));
+  } else {
+    currentTimelineData = [];
+  }
+  applyTimeframeFilter();
 
+  // 6. Trend Milestones & Events
+  if (trendEventsList) {
+    const events = intel.events || [];
+    if (events.length === 0) {
+      trendEventsList.innerHTML = `
+        <div class="trend-event-item">
+          <div class="trend-event-icon">📍</div>
+          <div class="trend-event-content">
+            <div class="trend-event-title">Baseline Recorded</div>
+            <div class="trend-event-desc">Initial snapshot captured.</div>
+          </div>
+          <div class="trend-event-date">Today</div>
+        </div>
+      `;
+    } else {
+      trendEventsList.innerHTML = events.map(ev => {
+        let icon = "📍";
+        if (ev.type === "spike") icon = "⚡";
+        else if (ev.type === "drop") icon = "📉";
+        else if (ev.type === "shift") icon = "🔄";
+        else if (ev.type === "engagement") icon = "❤️";
+        else if (ev.type === "scan") icon = "🔍";
+
+        return `
+          <div class="trend-event-item">
+            <div class="trend-event-icon">${icon}</div>
+            <div class="trend-event-content">
+              <div class="trend-event-title">${escapeHtml(ev.title)}</div>
+              <div class="trend-event-desc">${escapeHtml(ev.description)}</div>
+            </div>
+            <div class="trend-event-date">${escapeHtml(ev.date || "Today")}</div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  // 7. Historical Windows Table
+  if (historyTableBody) {
+    const hw = intel.historical_context || {};
+    const windows = [
+      { key: "1d", label: "1 Day" },
+      { key: "7d", label: "7 Days" },
+      { key: "30d", label: "30 Days" },
+      { key: "90d", label: "90 Days" }
+    ];
+
+    historyTableBody.innerHTML = windows.map(w => {
+      const entry = hw[w.key] || { status: "insufficient_history", display: "Insufficient history" };
+      const isAvail = entry.status === "available" && entry.change_pct !== null;
+      const badgeClass = isAvail ? (entry.change_pct >= 0 ? "badge-rising" : "badge-falling") : "badge-stable";
+      const growthDisplay = isAvail ? `${entry.change_pct > 0 ? "+" : ""}${entry.change_pct}%` : "—";
+      const statusText = isAvail ? "Audited" : "Insufficient history";
+
+      return `
+        <tr>
+          <td><strong>${w.label}</strong></td>
+          <td><span class="panel-badge ${badgeClass}">${growthDisplay}</span></td>
+          <td><span class="panel-badge badge-stable">${statusText}</span></td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  // 8. Conservative 7-Day Forecast
+  const fc = intel.forecast || {};
+  if (fc.available && fc.projection_days && fc.projection_days.length > 0) {
+    if (forecastFallback) forecastFallback.style.display = "none";
+    if (forecastGrid) {
+      forecastGrid.style.display = "grid";
+      forecastGrid.innerHTML = fc.projection_days.map(d => `
+        <div class="trend-forecast-card">
+          <div class="trend-forecast-day">${escapeHtml(d.day)}</div>
+          <div class="trend-forecast-val">${Number(d.expected_views).toLocaleString()}</div>
+          <div class="trend-forecast-range">±${Number(d.upper_bound - d.expected_views).toLocaleString()}</div>
+        </div>
+      `).join("");
+    }
+  } else {
+    if (forecastGrid) forecastGrid.style.display = "none";
+    if (forecastFallback) forecastFallback.style.display = "block";
+  }
+
+  // 9. Tags
   if (tagsList) {
-    tagsList.replaceChildren();
-    (res.youtube_tags || []).forEach(t => tagsList.appendChild(createCopyBadge(t, "")));
+    const tags = res.youtube_tags || [];
+    tagsList.innerHTML = tags.map(t => `
+      <span class="panel-badge" style="background:#f1f5f9; color:#0f172a; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(t)}', this)">
+        🏷️ ${escapeHtml(t)}
+      </span>
+    `).join("");
   }
 
+  // 10. Hashtags
   if (hashtagsList) {
-    hashtagsList.replaceChildren();
-    (res.youtube_hashtags || []).forEach(h => {
-      const badge = createCopyBadge(h, "");
-      badge.style.background = "#eef2ff";
-      badge.style.color = "#4f46e5";
-      hashtagsList.appendChild(badge);
-    });
+    const htags = res.youtube_hashtags || [];
+    hashtagsList.innerHTML = htags.map(h => `
+      <span class="panel-badge" style="background:#eef2ff; color:#4f46e5; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(h)}', this)">
+        ${escapeHtml(h)}
+      </span>
+    `).join("");
   }
 
+  // 11. AI Titles
   if (aiTitlesList) {
-    aiTitlesList.replaceChildren();
-    (res.seo_title_ideas || []).forEach(title => aiTitlesList.appendChild(createTitleRow(title)));
+    const titles = res.seo_title_ideas || [];
+    aiTitlesList.innerHTML = titles.map(title => `
+      <div class="flex-between-center p-12 bg-slate-50 border-slate-200 radius-10">
+        <span class="font-600 font-0-9 text-slate-900">${escapeHtml(title)}</span>
+        <button class="tool-copy-action-btn" onclick="copyToClipboard('${escapeAttr(title)}', this)">Copy</button>
+      </div>
+    `).join("");
   }
 
   if (resultsArea) resultsArea.style.display = "block";
 }
 
-function renderChart(daily) {
+function renderChart(dataPoints) {
   const ctx = document.getElementById("viewsChart");
-  if (!ctx) return;
-  if (viewsChartInstance) viewsChartInstance.destroy();
+  if (!ctx || !window.Chart) return;
+
+  if (viewsChartInstance) {
+    viewsChartInstance.destroy();
+  }
+
+  const labels = dataPoints.map(d => d.date);
+  const rawViews = dataPoints.map(d => d.views);
+  const smoothedViews = dataPoints.map(d => d.smoothed_views !== undefined ? d.smoothed_views : d.views);
+
+  const datasets = [
+    {
+      label: "Smoothed Trajectory",
+      data: smoothedViews,
+      borderColor: "#4f46e5",
+      backgroundColor: "rgba(79, 70, 229, 0.08)",
+      fill: true,
+      tension: 0.35,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      order: 1
+    }
+  ];
+
+  // Show raw observation points if we have multiple observations and raw differs
+  const hasSmoothedVariance = rawViews.some((v, idx) => v !== smoothedViews[idx]);
+  if (hasSmoothedVariance) {
+    datasets.push({
+      label: "Raw Observations",
+      data: rawViews,
+      borderColor: "#94a3b8",
+      backgroundColor: "rgba(148, 163, 184, 0.4)",
+      fill: false,
+      showLine: false,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      order: 2
+    });
+  }
 
   viewsChartInstance = new Chart(ctx, {
     type: "line",
     data: {
-      labels: daily.map(d => d.date),
-      datasets: [{
-        label: "Views Trajectory",
-        data: daily.map(d => d.views),
-        borderColor: "#4f46e5",
-        backgroundColor: "rgba(79, 70, 229, 0.08)",
-        fill: true,
-        tension: 0.35,
-        pointRadius: 4,
-        pointHoverRadius: 6
-      }]
+      labels: labels,
+      datasets: datasets
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      interaction: {
+        mode: "index",
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          display: datasets.length > 1,
+          position: "top",
+          labels: { boxWidth: 12, font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label}: ${Number(context.raw).toLocaleString()} views`;
+            }
+          }
+        }
+      },
       scales: {
-        y: { beginAtZero: true, grid: { color: "#f1f5f9" } },
-        x: { grid: { display: false } }
+        y: {
+          beginAtZero: true,
+          grid: { color: "#f1f5f9" },
+          ticks: {
+            callback: function(val) {
+              if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
+              if (val >= 1000) return (val / 1000).toFixed(0) + "K";
+              return val;
+            }
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { maxRotation: 45, minRotation: 0 }
+        }
       }
     }
   });
 }
 
-if (exportPdfBtn) exportPdfBtn.addEventListener("click", () => {
-  if (currentTrendId) window.location.href = `/api/report/${currentTrendId}`;
-});
+// ── Connected Actions ───────────────────────────────────────────────────────
+if (ctaStrategistBtn) {
+  ctaStrategistBtn.addEventListener("click", () => {
+    const topic = currentKeyword || (keywordInput ? keywordInput.value.trim() : "");
+    window.location.href = `/tools/ai-strategist${topic ? "?topic=" + encodeURIComponent(topic) : ""}`;
+  });
+}
 
-if (exportCsvBtn) exportCsvBtn.addEventListener("click", () => {
-  if (currentTrendId) window.location.href = `/api/export-csv/${currentTrendId}`;
-});
+if (ctaCompetitorBtn) {
+  ctaCompetitorBtn.addEventListener("click", () => {
+    const topic = currentKeyword || (keywordInput ? keywordInput.value.trim() : "");
+    window.location.href = `/tools/competitor-audit${topic ? "?channel=" + encodeURIComponent(topic) : ""}`;
+  });
+}
+
+// ── Exports ─────────────────────────────────────────────────────────────────
+if (exportPdfBtn) {
+  exportPdfBtn.addEventListener("click", () => {
+    if (!currentTrendId) return;
+    window.location.href = `/api/report/${currentTrendId}`;
+  });
+}
+
+if (exportCsvBtn) {
+  exportCsvBtn.addEventListener("click", () => {
+    if (!currentTrendId) return;
+    window.location.href = `/api/export-csv/${currentTrendId}`;
+  });
+}
