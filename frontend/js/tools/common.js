@@ -48,6 +48,43 @@ async function fetchWithTimeout(resource, options = {}, timeoutMs = 20000) {
   }
 }
 
+/**
+ * Parse API responses safely even when the upstream platform returns HTML or
+ * plain text for a 5xx/edge error. Never call response.json() directly in tools.
+ */
+async function readApiResponse(response) {
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+  const rawText = await response.text();
+
+  let data = null;
+  if (contentType.includes("application/json")) {
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (err) {
+      data = null;
+    }
+  } else if (rawText) {
+    try {
+      data = JSON.parse(rawText);
+    } catch (err) {
+      data = null;
+    }
+  }
+
+  if (data && typeof data === "object") {
+    return { data, rawText };
+  }
+
+  let message = "Server returned an unexpected response.";
+  const normalized = rawText.trim();
+  if (normalized) {
+    // Hide generic platform HTML while preserving useful plain-text messages.
+    const looksLikeHtml = /<\/?(?:html|body|!doctype|head)/i.test(normalized);
+    if (!looksLikeHtml) message = normalized.slice(0, 240);
+  }
+  return { data: { error: message }, rawText };
+}
+
 function showStatusBar(statusEl, message, isError = false) {
   if (!statusEl) return;
   statusEl.textContent = message;
@@ -64,9 +101,9 @@ function hideStatusBar(statusEl) {
 function copyToClipboard(text, btn) {
   const onSuccess = () => {
     if (btn) {
-      const orig = btn.innerHTML;
-      btn.innerHTML = "Copied! ✓";
-      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+      const orig = btn.textContent;
+      btn.textContent = "Copied! ✓";
+      setTimeout(() => { btn.textContent = orig; }, 2000);
     }
   };
 
