@@ -2674,6 +2674,503 @@ footer {
   background: #e0e7ff;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Claude Pulsecheck — YouTube Trend Analyzer Dark Theme Styles
+   ───────────────────────────────────────────────────────────────────────── */
+.pulsecheck-wrapper {
+  background-color: #0E1013;
+  color: #EDEFF2;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 32px 24px 48px;
+  min-height: calc(100vh - 70px);
+}
+
+.pulsecheck-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pulsecheck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pulsecheck-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pulsecheck-brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background-color: #FF6B4A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0E1013;
+  box-shadow: 0 2px 6px rgba(255, 107, 74, 0.25);
+  flex-shrink: 0;
+}
+
+.pulsecheck-brand-name {
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #EDEFF2;
+}
+
+.pulsecheck-tagline {
+  color: #8B93A1;
+  font-size: 13px;
+  margin: 6px 0 0;
+  max-width: 460px;
+  line-height: 1.4;
+}
+
+.pulsecheck-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #171A1F;
+  border: 1px solid #262B33;
+  border-radius: 9px;
+  padding: 10px 14px;
+  min-width: 290px;
+  transition: border-color 0.15s ease;
+}
+
+.pulsecheck-search-wrap:focus-within {
+  border-color: #FF6B4A;
+}
+
+.pulsecheck-search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #EDEFF2;
+  font-size: 13px;
+  width: 100%;
+  font-family: inherit;
+}
+
+.pulsecheck-search-input::placeholder {
+  color: #666D79;
+}
+
+/* Filters */
+.pulsecheck-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #1C2027;
+}
+
+.pulsecheck-filter-group {
+  display: flex;
+  gap: 4px;
+  background-color: #171A1F;
+  padding: 3px;
+  border-radius: 9px;
+  border: 1px solid #262B33;
+}
+
+.pulsecheck-pill {
+  border: none;
+  background: transparent;
+  color: #8B93A1;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.pulsecheck-pill:hover {
+  color: #EDEFF2;
+}
+
+.pulsecheck-pill.active {
+  background-color: #262B33;
+  color: #EDEFF2;
+  font-weight: 600;
+}
+
+.pulsecheck-select {
+  background-color: #171A1F;
+  border: 1px solid #262B33;
+  color: #EDEFF2;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: 9px;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.pulsecheck-select option {
+  background-color: #171A1F;
+  color: #EDEFF2;
+}
+
+.pulsecheck-cat-scroller {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  flex: 1;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pulsecheck-cat-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.pulsecheck-cat-chip {
+  border: 1px solid #262B33;
+  background: transparent;
+  color: #8B93A1;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 13px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.pulsecheck-cat-chip:hover {
+  border-color: #4A505C;
+  color: #EDEFF2;
+}
+
+.pulsecheck-cat-chip.active {
+  background-color: #262B33;
+  color: #EDEFF2;
+  border-color: #262B33;
+}
+
+/* KPI Cards */
+.pulsecheck-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pulsecheck-kpi-card {
+  background-color: #141720;
+  border: 1px solid #1C2027;
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.pulsecheck-kpi-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background-color: #1C2027;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8B93A1;
+}
+
+.pulsecheck-kpi-value {
+  font-size: 21px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #EDEFF2;
+  margin-top: 10px;
+  line-height: 1.1;
+}
+
+.pulsecheck-kpi-label {
+  font-size: 11.5px;
+  color: #8B93A1;
+  margin-top: 4px;
+}
+
+.pulsecheck-kpi-delta {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.pulsecheck-kpi-delta.pos {
+  color: #4ADE80;
+}
+
+.pulsecheck-kpi-delta.neg {
+  color: #F87171;
+}
+
+/* Charts */
+.pulsecheck-charts-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.pulsecheck-chart-panel-wide {
+  flex: 1.4;
+  min-width: 320px;
+  background-color: #141720;
+  border: 1px solid #1C2027;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pulsecheck-chart-panel-narrow {
+  flex: 1.0;
+  min-width: 290px;
+  background-color: #141720;
+  border: 1px solid #1C2027;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pulsecheck-panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #C7CCD4;
+}
+
+.pulsecheck-chart-canvas-wrap {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+/* Trending List */
+.pulsecheck-panel {
+  background-color: #141720;
+  border: 1px solid #1C2027;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.pulsecheck-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.pulsecheck-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid #1A1D24;
+  transition: background-color 0.1s ease;
+}
+
+.pulsecheck-row:last-child {
+  border-bottom: none;
+}
+
+.pulsecheck-row:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.pulsecheck-rank {
+  width: 22px;
+  font-size: 12px;
+  color: #4A505C;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.pulsecheck-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pulsecheck-row-main {
+  flex: 1;
+  min-width: 160px;
+}
+
+.pulsecheck-row-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-bottom: 3px;
+  color: #EDEFF2;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pulsecheck-row-meta {
+  font-size: 11.5px;
+  color: #666D79;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.pulsecheck-dot {
+  color: #3A3F48;
+}
+
+.pulsecheck-row-stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #C7CCD4;
+  width: 70px;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.pulsecheck-growth {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  width: 60px;
+  justify-content: flex-end;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.pulsecheck-growth.pos {
+  color: #4ADE80;
+}
+
+.pulsecheck-growth.neg {
+  color: #F87171;
+}
+
+.pulsecheck-empty-state {
+  color: #666D79;
+  font-size: 13px;
+  padding: 32px 12px;
+  text-align: center;
+}
+
+.pulsecheck-footnote {
+  color: #4A505C;
+  font-size: 11px;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.pulsecheck-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+  color: #8B93A1;
+  font-size: 13px;
+}
+
+.pulsecheck-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #262B33;
+  border-top-color: #FF6B4A;
+  border-radius: 50%;
+  animation: pulse-spin 0.7s linear infinite;
+}
+
+@keyframes pulse-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+  .pulsecheck-kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pulsecheck-charts-row {
+    flex-direction: column;
+  }
+  .pulsecheck-chart-panel-wide,
+  .pulsecheck-chart-panel-narrow {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .pulsecheck-wrapper {
+    padding: 20px 14px 36px;
+  }
+  .pulsecheck-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pulsecheck-search-wrap {
+    min-width: 100%;
+  }
+  .pulsecheck-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pulsecheck-filter-group {
+    justify-content: space-between;
+  }
+  .pulsecheck-pill {
+    flex: 1;
+    text-align: center;
+  }
+  .pulsecheck-kpi-row {
+    grid-template-columns: 1fr;
+  }
+  .pulsecheck-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pulsecheck-row-main {
+    flex: 1 1 calc(100% - 70px);
+  }
+  .pulsecheck-row-stat {
+    width: auto;
+    margin-right: 12px;
+  }
+}
+
 
 
 

@@ -23,7 +23,7 @@ sys.path.append(os.path.dirname(__file__))
 from app.core.config import settings
 
 from models import db, User, Trend, Metric, Sentiment, Report, AuditLog
-from services.real_api import fetch_youtube_data, audit_youtube_channel, analyze_youtube_video  # LIVE YouTube Data API v3
+from services.real_api import fetch_youtube_data, audit_youtube_channel, analyze_youtube_video, fetch_youtube_trending_feed  # LIVE YouTube Data API v3
 from services.nlp_engine import analyze_sentiment
 from services.trend_engine import (
     calculate_growth_rate,
@@ -286,6 +286,35 @@ def search_trend():
 
     _log_action("SEARCH", f"keyword={keyword} platform=YouTube")
     return jsonify({"keyword": keyword, "results": results})
+
+
+@app.route("/api/trending-feed", methods=["GET", "POST"])
+def get_trending_feed():
+    client_ip = request.remote_addr or "127.0.0.1"
+    allowed, retry_after = rate_limiter.is_allowed(f"trending_ip_{client_ip}", API_LIMIT_PER_MIN, 60)
+    if not allowed:
+        return jsonify({"error": f"Rate limit exceeded. Please wait {retry_after} seconds."}), 429
+
+    region = "Global"
+    category = "All"
+    query = ""
+    timeframe = "7d"
+
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        region = data.get("region", "Global")
+        category = data.get("category", "All")
+        query = data.get("query") or data.get("q") or ""
+        timeframe = data.get("timeframe", "7d")
+    else:
+        region = request.args.get("region", "Global")
+        category = request.args.get("category", "All")
+        query = request.args.get("query") or request.args.get("q") or ""
+        timeframe = request.args.get("timeframe", "7d")
+
+    feed = fetch_youtube_trending_feed(region=region, category=category, query=query, timeframe=timeframe)
+    _log_action("TRENDING_FEED", f"region={region} category={category} query={query}")
+    return jsonify(feed)
 
 
 
