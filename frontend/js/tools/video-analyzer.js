@@ -30,37 +30,19 @@ const sampleCommentText = document.getElementById("sampleCommentText");
 const tagsContainer = document.getElementById("tagsContainer");
 const commentsList = document.getElementById("commentsList");
 
-if (analyzeVideoBtn) {
-  analyzeVideoBtn.addEventListener("click", runVideoAnalysis);
-}
-
+if (analyzeVideoBtn) analyzeVideoBtn.addEventListener("click", runVideoAnalysis);
 if (videoUrlInput) {
   videoUrlInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") runVideoAnalysis();
   });
 }
 
-// Copy Action Handlers
-if (copyTitleBtn) {
-  copyTitleBtn.addEventListener("click", () => {
-    safeCopyToClipboard(currentVideoTitle, copyTitleBtn);
-  });
-}
-
-if (copyDescBtn) {
-  copyDescBtn.addEventListener("click", () => {
-    safeCopyToClipboard(currentVideoDescription, copyDescBtn);
-  });
-}
-
-if (copyTagsBtn) {
-  copyTagsBtn.addEventListener("click", () => {
-    const tagsText = (currentVideoTags && currentVideoTags.length > 0)
-      ? currentVideoTags.join(", ")
-      : "";
-    safeCopyToClipboard(tagsText, copyTagsBtn);
-  });
-}
+if (copyTitleBtn) copyTitleBtn.addEventListener("click", () => safeCopyToClipboard(currentVideoTitle, copyTitleBtn));
+if (copyDescBtn) copyDescBtn.addEventListener("click", () => safeCopyToClipboard(currentVideoDescription, copyDescBtn));
+if (copyTagsBtn) copyTagsBtn.addEventListener("click", () => {
+  const tagsText = currentVideoTags.length > 0 ? currentVideoTags.join(", ") : "";
+  safeCopyToClipboard(tagsText, copyTagsBtn);
+});
 
 async function safeCopyToClipboard(text, btnElement) {
   if (!text) return false;
@@ -81,11 +63,7 @@ async function safeCopyToClipboard(text, btnElement) {
     textarea.setAttribute("readonly", "");
     document.body.appendChild(textarea);
     textarea.select();
-    try {
-      copied = document.execCommand("copy");
-    } catch (e) {
-      copied = false;
-    }
+    try { copied = document.execCommand("copy"); } catch (e) { copied = false; }
     document.body.removeChild(textarea);
   }
 
@@ -106,6 +84,16 @@ function decodeHtmlEntities(str) {
   const txt = document.createElement("textarea");
   txt.innerHTML = str;
   return txt.value;
+}
+
+function createVideoTag(tag) {
+  const el = document.createElement("span");
+  el.className = "panel-badge";
+  el.style.cssText = "background:#f1f5f9; color:#0f172a; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;";
+  el.title = "Click to copy";
+  el.textContent = `🏷️ ${tag}`;
+  el.addEventListener("click", () => safeCopyToClipboard(tag, el));
+  return el;
 }
 
 async function runVideoAnalysis() {
@@ -132,7 +120,6 @@ async function runVideoAnalysis() {
       showStatusBar(statusLine, data.error || data.message || "Could not analyze video. Please verify the link.", true);
       return;
     }
-
     renderVideoResults(data);
   } catch (err) {
     showStatusBar(statusLine, err.message || "Network error. Please try again.", true);
@@ -154,17 +141,12 @@ function renderVideoResults(data) {
     videoDate.textContent = pubDate ? pubDate.slice(0, 10) : "—";
   }
 
-  // Full Description Handling with Strict XSS Protection
-  const rawDesc = (data.description != null && String(data.description).trim() !== "")
-    ? String(data.description).trim()
-    : "";
-
+  const rawDesc = (data.description != null && String(data.description).trim() !== "") ? String(data.description).trim() : "";
   if (rawDesc) {
-    // Decode HTML entities if any were passed from legacy API, and normalize any raw <br> tags
     const decoded = decodeHtmlEntities(rawDesc).replace(/<br\s*\/?>/gi, "\n");
     currentVideoDescription = decoded;
     if (videoDescription) {
-      videoDescription.textContent = decoded; // textContent guarantees safe rendering with zero XSS!
+      videoDescription.textContent = decoded;
       videoDescription.classList.remove("is-empty");
       videoDescription.style.display = "block";
     }
@@ -179,47 +161,42 @@ function renderVideoResults(data) {
     if (copyDescBtn) copyDescBtn.disabled = true;
   }
 
-  if (copyTagsBtn) {
-    copyTagsBtn.disabled = currentVideoTags.length === 0;
-  }
-
+  if (copyTagsBtn) copyTagsBtn.disabled = currentVideoTags.length === 0;
   if (videoViralityVal) videoViralityVal.textContent = `${data.virality_score || 0}/100`;
   if (videoViewsVal) videoViewsVal.textContent = Number(data.views || data.view_count || 0).toLocaleString();
   if (videoEngagementVal) videoEngagementVal.textContent = `${data.engagement_rate || 0}%`;
 
   const s = data.sentiment || {};
-  if (sentimentStats) {
-    sentimentStats.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
-  }
-  if (sampleCommentText) {
-    sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No sample comment recorded.";
-  }
+  if (sentimentStats) sentimentStats.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
+  if (sampleCommentText) sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No sample comment recorded.";
 
-  // Tags
   if (tagsContainer) {
-    const tags = data.tags || [];
-    if (tags.length === 0) {
-      tagsContainer.innerHTML = `<span style="font-size:13px; color:#94a3b8;">No tags provided for this upload</span>`;
+    tagsContainer.replaceChildren();
+    if (currentVideoTags.length === 0) {
+      const empty = document.createElement("span");
+      empty.style.cssText = "font-size:13px; color:#94a3b8;";
+      empty.textContent = "No tags provided for this upload";
+      tagsContainer.appendChild(empty);
     } else {
-      tagsContainer.innerHTML = tags.map(t => `
-        <span class="panel-badge" style="background:#f1f5f9; color:#0f172a; padding:6px 12px; border-radius:8px; font-size:13px; cursor:pointer;" title="Click to copy" onclick="copyToClipboard('${escapeAttr(t)}', this)">
-          🏷️ ${escapeHtml(t)}
-        </span>
-      `).join("");
+      currentVideoTags.forEach(tag => tagsContainer.appendChild(createVideoTag(tag)));
     }
   }
 
-  // Comments
   if (commentsList) {
-    const comments = data.comments || [];
+    commentsList.replaceChildren();
+    const comments = Array.isArray(data.comments) ? data.comments : [];
     if (comments.length === 0) {
-      commentsList.innerHTML = `<div style="font-size:13px; color:#94a3b8;">No public comments available.</div>`;
+      const empty = document.createElement("div");
+      empty.style.cssText = "font-size:13px; color:#94a3b8;";
+      empty.textContent = "No public comments available.";
+      commentsList.appendChild(empty);
     } else {
-      commentsList.innerHTML = comments.slice(0, 10).map(c => `
-        <div style="padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; font-size:13px; color:#334155; line-height:1.5;">
-          ${escapeHtml(c.text || c)}
-        </div>
-      `).join("");
+      comments.slice(0, 10).forEach(comment => {
+        const item = document.createElement("div");
+        item.style.cssText = "padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; font-size:13px; color:#334155; line-height:1.5;";
+        item.textContent = comment && typeof comment === "object" ? (comment.text || "") : String(comment || "");
+        commentsList.appendChild(item);
+      });
     }
   }
 
