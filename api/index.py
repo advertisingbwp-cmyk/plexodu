@@ -11,13 +11,14 @@ if backend_dir not in sys.path:
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-# Ensure required environment defaults on serverless / Vercel
-if not os.environ.get("SECRET_KEY"):
-    import secrets
-    os.environ["SECRET_KEY"] = f"prod-{secrets.token_hex(32)}"
-
-if not os.environ.get("DATA_DIR") and os.environ.get("VERCEL"):
-    os.environ["DATA_DIR"] = "/tmp"
+# Production must provide stable secrets and persistent database configuration.
+# Do not silently generate per-instance values on Vercel: that can invalidate
+# cryptographic state between serverless instances and hide deployment errors.
+if os.environ.get("VERCEL"):
+    if not os.environ.get("SECRET_KEY", "").strip():
+        raise RuntimeError("SECRET_KEY must be configured in Vercel environment variables")
+    if not os.environ.get("DATABASE_URL", "").strip():
+        raise RuntimeError("DATABASE_URL must point to a persistent PostgreSQL database in Vercel")
 
 app_py_path = os.path.join(backend_dir, 'app.py')
 spec = importlib.util.spec_from_file_location("main_flask_app", app_py_path)
