@@ -90,17 +90,17 @@ function setActiveCategory(catName) {
         if (found) {
           chip.style.backgroundColor = found.hue;
           chip.style.borderColor = found.hue;
-          chip.style.color = "#0E1013";
+          chip.style.color = "#ffffff";
         } else {
-          chip.style.backgroundColor = "#262B33";
-          chip.style.borderColor = "#262B33";
-          chip.style.color = "#EDEFF2";
+          chip.style.backgroundColor = "#4f46e5";
+          chip.style.borderColor = "#4f46e5";
+          chip.style.color = "#ffffff";
         }
       } else {
         chip.classList.remove("active");
-        chip.style.backgroundColor = "transparent";
-        chip.style.borderColor = "#262B33";
-        chip.style.color = "#8B93A1";
+        chip.style.backgroundColor = "#ffffff";
+        chip.style.borderColor = "#e2e8f0";
+        chip.style.color = "#64748b";
       }
     });
   }
@@ -274,9 +274,9 @@ function renderViewsChart(timeSeries, categoryName) {
   }
 
   const ctx = canvas.getContext("2d");
-  const gradient = ctx.createLinearGradient(0, 0, 0, 180);
-  gradient.addColorStop(0, "rgba(255, 107, 74, 0.35)");
-  gradient.addColorStop(1, "rgba(255, 107, 74, 0)");
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, "rgba(79, 70, 229, 0.16)");
+  gradient.addColorStop(1, "rgba(79, 70, 229, 0)");
 
   // Baseline observation / First Scan tracking status
   // Used when single-point queries are evaluated
@@ -290,14 +290,14 @@ function renderViewsChart(timeSeries, categoryName) {
         {
           label: "Volume",
           data: dataPoints,
-          borderColor: "#FF6B4A",
-          borderWidth: 2,
+          borderColor: "#4F46E5",
+          borderWidth: 2.5,
           backgroundColor: gradient,
           fill: true,
           tension: 0.35,
           pointRadius: isFirstScan ? 4 : 0,
           pointHoverRadius: 5,
-          pointHoverBackgroundColor: "#FF6B4A",
+          pointHoverBackgroundColor: "#4F46E5",
           pointHoverBorderColor: "#FFFFFF",
         },
       ],
@@ -312,14 +312,15 @@ function renderViewsChart(timeSeries, categoryName) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "#171A1F",
-          titleColor: "#8B93A1",
-          bodyColor: "#EDEFF2",
-          borderColor: "#262B33",
+          backgroundColor: "#0F172A",
+          titleColor: "#94A3B8",
+          bodyColor: "#FFFFFF",
+          borderColor: "#1E293B",
           borderWidth: 1,
-          padding: 8,
-          titleFont: { size: 11, family: "Inter" },
-          bodyFont: { size: 13, weight: "600", family: "Inter" },
+          padding: 10,
+          cornerRadius: 8,
+          titleFont: { size: 11, family: "Plus Jakarta Sans, Inter, sans-serif" },
+          bodyFont: { size: 13, weight: "700", family: "Plus Jakarta Sans, Inter, sans-serif" },
           callbacks: {
             label: (context) => `${formatCompact(context.parsed.y)} views`,
           },
@@ -328,14 +329,14 @@ function renderViewsChart(timeSeries, categoryName) {
       scales: {
         x: {
           grid: { display: false },
-          border: { color: "#20242C" },
-          ticks: { color: "#666D79", font: { size: 11 } },
+          border: { color: "#E2E8F0" },
+          ticks: { color: "#64748B", font: { size: 11 } },
         },
         y: {
-          grid: { color: "#20242C" },
+          grid: { color: "#F1F5F9" },
           border: { display: false },
           ticks: {
-            color: "#666D79",
+            color: "#64748B",
             font: { size: 11 },
             callback: (val) => formatCompact(val),
           },
@@ -367,9 +368,9 @@ function renderCategoryChart(catBreakdown) {
         {
           data: values,
           backgroundColor: hues,
-          borderRadius: 4,
+          borderRadius: 6,
           borderSkipped: false,
-          barThickness: 10,
+          barThickness: 12,
         },
       ],
     },
@@ -380,12 +381,13 @@ function renderCategoryChart(catBreakdown) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "#171A1F",
-          titleColor: "#8B93A1",
-          bodyColor: "#EDEFF2",
-          borderColor: "#262B33",
+          backgroundColor: "#0F172A",
+          titleColor: "#94A3B8",
+          bodyColor: "#FFFFFF",
+          borderColor: "#1E293B",
           borderWidth: 1,
-          padding: 8,
+          padding: 10,
+          cornerRadius: 8,
           callbacks: {
             label: (context) => `${formatCompact(context.parsed.x)} views`,
           },
@@ -396,7 +398,7 @@ function renderCategoryChart(catBreakdown) {
           grid: { display: false },
           border: { display: false },
           ticks: {
-            color: "#666D79",
+            color: "#64748B",
             font: { size: 10 },
             callback: (val) => formatCompact(val),
           },
@@ -405,8 +407,8 @@ function renderCategoryChart(catBreakdown) {
           grid: { display: false },
           border: { display: false },
           ticks: {
-            color: "#8B93A1",
-            font: { size: 11 },
+            color: "#0F172A",
+            font: { size: 12, weight: "600" },
           },
         },
       },
@@ -442,14 +444,14 @@ function renderTrendingList(videos, query) {
     .map((v) => {
       const isPos = v.growthPct >= 0;
       const absGrowth = Math.abs(v.growthPct);
-      const deltaColor = isPos ? "#4ADE80" : "#F87171";
-      const hue = v.hue || "#38BDF8";
+      const deltaColor = isPos ? "#16A34A" : "#DC2626";
+      const hue = v.hue || "#4F46E5";
 
       return `
       <div class="pulsecheck-row">
         <div class="pulsecheck-rank">${v.rank}</div>
 
-        <div class="pulsecheck-thumb" style="background: linear-gradient(135deg, ${hue}55, ${hue}15);">
+        <div class="pulsecheck-thumb" style="background: ${hue}18; border: 1px solid ${hue}35;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="${hue}" stroke="${hue}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
@@ -460,9 +462,9 @@ function renderTrendingList(videos, query) {
           <div class="pulsecheck-row-meta">
             <span>${escapeHtml(v.channel)}</span>
             <span class="pulsecheck-dot">&bull;</span>
-            <span style="color: ${hue};">${escapeHtml(v.category)}</span>
+            <span style="color: ${hue}; font-weight: 600;">${escapeHtml(v.category)}</span>
             <span class="pulsecheck-dot">&bull;</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;">
               <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
             </svg>
             <span>${v.hoursAgo}h ago</span>
@@ -470,21 +472,21 @@ function renderTrendingList(videos, query) {
         </div>
 
         <div class="pulsecheck-row-stat" title="Total Views">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#666D79" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
           </svg>
           <span>${formatCompact(v.views)}</span>
         </div>
 
         <div class="pulsecheck-row-stat" title="Audience Comments">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#666D79" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
           </svg>
           <span>${formatCompact(v.comments)}</span>
         </div>
 
         <div class="pulsecheck-row-stat" title="Engagement Rate">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#666D79" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>
           </svg>
           <span>${v.engagement.toFixed(1)}%</span>
@@ -496,7 +498,7 @@ function renderTrendingList(videos, query) {
               ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${deltaColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
               : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${deltaColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>`
           }
-          <span>${absGrowth}%</span>
+          <span>${isPos ? "+" : "-"}${absGrowth}%</span>
         </div>
       </div>
     `;

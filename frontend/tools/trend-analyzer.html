@@ -9,7 +9,7 @@
 <link rel="canonical" href="https://plexudo.vercel.app/tools/trend-analyzer">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
-<link rel="stylesheet" href="/css/style.css?v=19.0">
+<link rel="stylesheet" href="/css/style.css?v=21.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -61,44 +61,44 @@
 </header>
 
 <main class="tool-page-main">
-  <!-- Pulsecheck — Live YouTube Trend Analyzer Dashboard -->
+  <div class="tool-hero">
+    <div class="tool-badge">🔥 Market Velocity & Trends</div>
+    <h1 class="tool-title">YouTube Trend Analyzer</h1>
+    <p class="tool-desc">
+      Inspect real-time view velocity, growth trajectories, category breakdowns, and viral breakout videos powered by live YouTube Data API v3.
+    </p>
+  </div>
+
+  <!-- Live YouTube Trend Analyzer Bento Dashboard -->
   <div class="pulsecheck-wrapper">
-    <!-- Header -->
-    <div class="pulsecheck-header">
-      <div>
-        <div class="pulsecheck-brand-row">
-          <div class="pulsecheck-brand-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-          </div>
-          <span class="pulsecheck-brand-name">Pulsecheck</span>
-        </div>
-        <p class="pulsecheck-tagline">Trend analysis, not a subscriber count — see what's actually accelerating in real time on YouTube.</p>
+    <!-- Controls Bar: Search Input & Filter Group -->
+    <div class="pulsecheck-controls-bar">
+      <div class="pulsecheck-search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="pulseSearchInput" class="pulsecheck-search-input" placeholder="Search trending titles, topics or channels…" autocomplete="off" />
+        <button id="analyzeBtn" class="tool-primary-btn" type="button">Search</button>
+        <div id="suggestionsDropdown" class="suggestions-dropdown" style="display:none;"></div>
       </div>
 
-      <div class="pulsecheck-search-wrap">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#666D79" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" id="pulseSearchInput" class="pulsecheck-search-input" placeholder="Search trending titles, topics or channels…" autocomplete="off" />
-        <button id="analyzeBtn" class="pill-btn" style="background:#262B33; color:#EDEFF2; font-size:12px; padding:4px 10px; border-radius:6px; border:none; cursor:pointer;">Search</button>
-        <div id="suggestionsDropdown" class="suggestions-dropdown" style="display:none;"></div>
+      <div class="pulsecheck-filter-bar">
+        <div class="pulsecheck-filter-group" id="pulsecheckTimeframes">
+          <button class="pulsecheck-pill" data-timeframe="24h">Today</button>
+          <button class="pulsecheck-pill active" data-timeframe="7d">This week</button>
+          <button class="pulsecheck-pill" data-timeframe="30d">This month</button>
+        </div>
+
+        <select id="pulseRegionSelect" class="pulsecheck-select">
+          <option value="Global">Global</option>
+          <option value="United States">United States</option>
+          <option value="India">India</option>
+          <option value="Pakistan">Pakistan</option>
+          <option value="United Kingdom">United Kingdom</option>
+        </select>
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="pulsecheck-filter-bar">
-      <div class="pulsecheck-filter-group" id="pulsecheckTimeframes">
-        <button class="pulsecheck-pill" data-timeframe="24h">Today</button>
-        <button class="pulsecheck-pill active" data-timeframe="7d">This week</button>
-        <button class="pulsecheck-pill" data-timeframe="30d">This month</button>
-      </div>
-
-      <select id="pulseRegionSelect" class="pulsecheck-select">
-        <option value="Global">Global</option>
-        <option value="United States">United States</option>
-        <option value="India">India</option>
-        <option value="Pakistan">Pakistan</option>
-        <option value="United Kingdom">United Kingdom</option>
-      </select>
-
+    <!-- Category Chips Scroller -->
+    <div class="pulsecheck-cat-bar">
       <div class="pulsecheck-cat-scroller" id="pulseCatScroller">
         <!-- Rendered dynamically -->
       </div>
@@ -108,7 +108,7 @@
 
     <div id="pulseLoading" class="tool-loading" style="display:none; padding:32px 16px;">
       <div class="tool-spinner"></div>
-      <p style="color:#8B93A1; margin-top:8px;">Connecting to YouTube Data API v3 and calculating view velocity…</p>
+      <p style="color:var(--text-muted); margin-top:8px;">Connecting to YouTube Data API v3 and calculating view velocity…</p>
     </div>
 
     <!-- 4 KPI Cards -->
@@ -482,6 +482,6 @@
 </footer>
 
 <script src="/js/tools/common.js?v=10.0"></script>
-<script src="/js/tools/trend-analyzer.js?v=20.0"></script>
+<script src="/js/tools/trend-analyzer.js?v=21.0"></script>
 </body>
 </html>

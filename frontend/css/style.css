@@ -2677,91 +2677,61 @@ footer {
 /* ══════════════════════════════════════════════════════════════════════════════
    Pulsecheck — YouTube Trend Analyzer Dark Dashboard (Live YouTube API)
    ══════════════════════════════════════════════════════════════════════════════ */
+/* ============================================================
+   YouTube Trend Analyzer — Light Theme Bento Dashboard
+   ============================================================ */
 .pulsecheck-wrapper {
-  background: #0E1013;
-  color: #EDEFF2;
-  border-radius: 16px;
-  border: 1px solid #1C2027;
-  padding: 28px;
-  margin-top: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.36);
-  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg-panel);
+  color: var(--text);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 
-.pulsecheck-header {
+.pulsecheck-controls-bar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 20px;
-}
-
-.pulsecheck-brand-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.pulsecheck-brand-mark {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: #FF6B4A;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #0E1013;
-  box-shadow: 0 2px 8px rgba(255, 107, 74, 0.35);
-  flex-shrink: 0;
-}
-
-.pulsecheck-brand-name {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: #EDEFF2;
-}
-
-.pulsecheck-tagline {
-  color: #8B93A1;
-  font-size: 13px;
-  margin-top: 6px;
-  max-width: 460px;
-  line-height: 1.45;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
 }
 
 .pulsecheck-search-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #171A1F;
-  border: 1px solid #262B33;
-  border-radius: 10px;
-  padding: 9px 14px;
-  min-width: 290px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px 6px 14px;
   flex: 1;
-  max-width: 380px;
-  transition: border-color 0.2s ease;
+  min-width: 280px;
+  max-width: 520px;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
 }
 
 .pulsecheck-search-wrap:focus-within {
-  border-color: #FF6B4A;
-  box-shadow: 0 0 0 2px rgba(255, 107, 74, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
 .pulsecheck-search-input {
   background: transparent;
   border: none;
   outline: none;
-  color: #EDEFF2;
-  font-size: 13px;
+  color: var(--text);
+  font-size: 14px;
   width: 100%;
+  font-family: inherit;
 }
 
 .pulsecheck-search-input::placeholder {
-  color: #666D79;
+  color: var(--text-faint);
 }
 
 .pulsecheck-filter-bar {
@@ -2769,59 +2739,70 @@ footer {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #1C2027;
 }
 
 .pulsecheck-filter-group {
   display: flex;
   gap: 4px;
-  background: #171A1F;
-  padding: 3px;
-  border-radius: 9px;
-  border: 1px solid #262B33;
+  background: var(--bg-2);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
 }
 
 .pulsecheck-pill {
   border: none;
   background: transparent;
-  color: #8B93A1;
-  font-size: 12.5px;
+  color: var(--text-muted);
+  font-size: 13px;
   font-weight: 500;
-  padding: 6px 12px;
-  border-radius: 7px;
+  padding: 6px 14px;
+  border-radius: 8px;
   cursor: pointer;
+  font-family: inherit;
   transition: all 0.15s ease;
 }
 
 .pulsecheck-pill:hover {
-  color: #EDEFF2;
+  color: var(--text);
 }
 
 .pulsecheck-pill.active {
-  background: #262B33;
-  color: #EDEFF2;
-  font-weight: 600;
+  background: #ffffff;
+  color: var(--primary);
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .pulsecheck-select {
-  background: #171A1F;
-  border: 1px solid #262B33;
-  color: #EDEFF2;
-  font-size: 12.5px;
-  padding: 7px 12px;
-  border-radius: 9px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 10px;
   outline: none;
   cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.pulsecheck-select:focus {
+  border-color: var(--primary);
+}
+
+.pulsecheck-cat-bar {
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
 }
 
 .pulsecheck-cat-scroller {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
-  flex: 1;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -2831,115 +2812,131 @@ footer {
 }
 
 .pulsecheck-cat-chip {
-  border: 1px solid #262B33;
-  background: transparent;
-  color: #8B93A1;
-  font-size: 12px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text-muted);
+  font-size: 12.5px;
   font-weight: 500;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
   white-space: nowrap;
   flex-shrink: 0;
   cursor: pointer;
+  font-family: inherit;
   transition: all 0.15s ease;
 }
 
 .pulsecheck-cat-chip:hover {
-  color: #EDEFF2;
-  border-color: #3A404D;
+  background: var(--bg-2);
+  color: var(--text);
+  border-color: var(--border-hover);
 }
 
 .pulsecheck-cat-chip.active {
-  background: #262B33;
-  color: #EDEFF2;
-  border-color: #262B33;
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
 }
 
 .pulsecheck-kpi-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 22px;
 }
 
 .pulsecheck-kpi-card {
-  background: #141720;
-  border: 1px solid #1C2027;
-  border-radius: 12px;
-  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pulsecheck-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
 }
 
 .pulsecheck-kpi-icon-wrap {
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  background: #1C2027;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--pastel-blue);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8B93A1;
+  color: var(--primary);
 }
 
 .pulsecheck-kpi-value {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  color: #EDEFF2;
-  margin-top: 10px;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
 }
 
 .pulsecheck-kpi-label {
-  font-size: 11.5px;
-  color: #8B93A1;
-  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  font-weight: 500;
 }
 
 .pulsecheck-kpi-delta {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 18px;
+  right: 18px;
   display: flex;
   align-items: center;
-  gap: 3px;
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
 .pulsecheck-kpi-delta.good {
-  color: #4ADE80;
+  background: var(--pastel-green);
+  color: var(--green);
 }
 
 .pulsecheck-kpi-delta.warn {
-  color: #F87171;
+  background: var(--pastel-coral);
+  color: var(--red);
 }
 
 .pulsecheck-charts-row {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 22px;
 }
 
 .pulsecheck-panel {
-  background: #141720;
-  border: 1px solid #1C2027;
-  border-radius: 12px;
-  padding: 16px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .pulsecheck-panel-title {
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: #C7CCD4;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2947,7 +2944,7 @@ footer {
 
 .pulsecheck-chart-box {
   width: 100%;
-  height: 200px;
+  height: 220px;
   position: relative;
 }
 
@@ -2959,9 +2956,10 @@ footer {
 .pulsecheck-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 6px;
-  border-bottom: 1px solid #1A1D24;
+  gap: 14px;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--bg-2);
+  border-radius: 8px;
   transition: background 0.15s ease;
 }
 
@@ -2970,13 +2968,13 @@ footer {
 }
 
 .pulsecheck-row:hover {
-  background: #181C24;
+  background: var(--bg-2);
 }
 
 .pulsecheck-rank {
-  width: 22px;
-  font-size: 12px;
-  color: #4A505C;
+  width: 24px;
+  font-size: 13px;
+  color: var(--text-muted);
   font-weight: 700;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -2984,9 +2982,9 @@ footer {
 }
 
 .pulsecheck-thumb {
-  width: 42px;
-  height: 42px;
-  border-radius: 9px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2999,90 +2997,95 @@ footer {
 }
 
 .pulsecheck-row-title {
-  font-size: 13.5px;
-  font-weight: 500;
-  margin-bottom: 3px;
-  color: #EDEFF2;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text);
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .pulsecheck-row-title:hover {
-  color: #FF6B4A;
+  color: var(--primary);
 }
 
 .pulsecheck-row-meta {
-  font-size: 11.5px;
-  color: #666D79;
+  font-size: 12px;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pulsecheck-dot {
-  color: #3A3F48;
+  color: var(--border-hover);
 }
 
 .pulsecheck-row-stat {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: #C7CCD4;
-  width: 76px;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  width: 80px;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+  font-weight: 500;
 }
 
 .pulsecheck-growth {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   font-size: 12px;
   font-weight: 700;
-  width: 64px;
+  padding: 3px 8px;
+  border-radius: 6px;
   justify-content: flex-end;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
 
 .pulsecheck-growth.pos {
-  color: #4ADE80;
+  background: var(--pastel-green);
+  color: var(--green);
 }
 
 .pulsecheck-growth.neg {
-  color: #F87171;
+  background: var(--pastel-coral);
+  color: var(--red);
 }
 
 .pulsecheck-empty {
-  color: #666D79;
-  font-size: 13px;
-  padding: 32px 12px;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 40px 16px;
   text-align: center;
 }
 
 .pulsecheck-footnote {
-  color: #4A505C;
-  font-size: 11px;
-  margin-top: 18px;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 20px;
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .pulsecheck-live-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #4ADE80;
+  background: var(--green);
   display: inline-block;
-  box-shadow: 0 0 6px #4ADE80;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
 
 /* Responsive adjustments */
@@ -3097,9 +3100,9 @@ footer {
 
 @media (max-width: 768px) {
   .pulsecheck-wrapper {
-    padding: 16px 12px;
+    padding: 16px 14px;
   }
-  .pulsecheck-header {
+  .pulsecheck-controls-bar {
     flex-direction: column;
     align-items: stretch;
   }
@@ -3122,12 +3125,6 @@ footer {
 @media (max-width: 480px) {
   .pulsecheck-kpi-row {
     grid-template-columns: 1fr;
-  }
-  .pulsecheck-brand-name {
-    font-size: 17px;
-  }
-  .pulsecheck-tagline {
-    font-size: 12px;
   }
 }
 
