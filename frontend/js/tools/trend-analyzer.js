@@ -137,6 +137,24 @@ function initSearchInput() {
   const inp = document.getElementById("pulseSearchInput");
   if (!inp) return;
 
+  const btn = document.getElementById("analyzeBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      clearTimeout(searchDebounce);
+      activeQuery = inp.value.trim();
+      fetchTrendingFeed();
+    });
+  }
+
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      clearTimeout(searchDebounce);
+      activeQuery = inp.value.trim();
+      fetchTrendingFeed();
+    }
+  });
+
   inp.addEventListener("input", (e) => {
     const val = e.target.value.trim();
     activeQuery = val;

@@ -23,7 +23,7 @@ sys.path.append(os.path.dirname(__file__))
 from app.core.config import settings
 
 from models import db, User, Trend, Metric, Sentiment, Report, AuditLog
-from services.real_api import fetch_youtube_data, audit_youtube_channel, analyze_youtube_video, fetch_youtube_trending_feed  # LIVE YouTube Data API v3
+from services.real_api import fetch_youtube_data, audit_youtube_channel, analyze_youtube_video  # LIVE YouTube Data API v3
 from services.nlp_engine import analyze_sentiment
 from services.trend_engine import (
     calculate_growth_rate,
@@ -271,10 +271,21 @@ def search_trend():
     if not data:
         return jsonify({"error": "Missing payload"}), 400
 
-    keyword = validate_keyword_input(data.get("keyword", ""))
+    raw_kw = data.get("keyword")
+    region = data.get("region", "Global")
+    category = data.get("category", "All")
+    timeframe = data.get("timeframe", "7d")
+
+    if raw_kw is not None:
+        keyword = validate_keyword_input(raw_kw)
+    else:
+        keyword = category if category != "All" else "Trending"
 
     results = {}
-    search_result = _process_platform(keyword, "YouTube", fetch_youtube_data)
+    search_result = _process_platform(
+        keyword, "YouTube", fetch_youtube_data,
+        region=region, category=category, timeframe=timeframe
+    )
     results["YouTube"] = search_result
 
     if search_result.get("error"):
@@ -289,38 +300,53 @@ def search_trend():
 
 
 @app.route("/api/trending-feed", methods=["GET", "POST"])
+@app.route("/api/trending", methods=["GET", "POST"])
 def get_trending_feed():
     client_ip = request.remote_addr or "127.0.0.1"
-    allowed, retry_after = rate_limiter.is_allowed(f"trending_ip_{client_ip}", API_LIMIT_PER_MIN, 60)
+    allowed, retry_after = rate_limiter.is_allowed(f"search_ip_{client_ip}", API_LIMIT_PER_MIN, 60)
     if not allowed:
         return jsonify({"error": f"Rate limit exceeded. Please wait {retry_after} seconds."}), 429
 
-    region = "Global"
-    category = "All"
-    query = ""
-    timeframe = "7d"
-
     if request.method == "POST":
-        data = request.get_json(silent=True) or {}
-        region = data.get("region", "Global")
-        category = data.get("category", "All")
-        query = data.get("query") or data.get("q") or ""
-        timeframe = data.get("timeframe", "7d")
+        data = request.get_json(force=True) or {}
     else:
-        region = request.args.get("region", "Global")
-        category = request.args.get("category", "All")
-        query = request.args.get("query") or request.args.get("q") or ""
-        timeframe = request.args.get("timeframe", "7d")
+        data = request.args
 
-    feed = fetch_youtube_trending_feed(region=region, category=category, query=query, timeframe=timeframe)
-    _log_action("TRENDING_FEED", f"region={region} category={category} query={query}")
-    return jsonify(feed)
+    raw_kw = (data.get("keyword") or data.get("q") or "").strip()
+    region = data.get("region", "Global")
+    category = data.get("category", "All")
+    timeframe = data.get("timeframe", "7d")
+
+    if raw_kw:
+        keyword = validate_keyword_input(raw_kw)
+    else:
+        keyword = category if category != "All" else "Trending"
+
+    results = {}
+    search_result = _process_platform(
+        keyword, "YouTube", fetch_youtube_data,
+        region=region, category=category, timeframe=timeframe
+    )
+    results["YouTube"] = search_result
+
+    kpis = search_result.get("kpis", {})
+    if "topCategory" in kpis and "fastestCategory" not in kpis:
+        kpis["fastestCategory"] = kpis["topCategory"]
+
+    return jsonify({
+        "status": 200,
+        "keyword": keyword,
+        "results": results,
+        "videos": search_result.get("top_videos", []),
+        "kpis": kpis,
+        "catBreakdown": search_result.get("cat_breakdown", []),
+        "timeSeries": search_result.get("time_series", []),
+    })
 
 
-
-def _process_platform(keyword, platform_name, fetch_fn):
+def _process_platform(keyword, platform_name, fetch_fn, region="Global", category="All", timeframe="7d"):
     try:
-        raw = fetch_fn(keyword)
+        raw = fetch_fn(keyword, region=region, category=category, timeframe=timeframe)
     except Exception as e:
         app.logger.error(f"Error fetching {platform_name} data: {e}")
         return {"error": True, "message": f"Could not fetch {platform_name} data. Please try again later.", "status": 500}
@@ -460,6 +486,14 @@ def _process_platform(keyword, platform_name, fetch_fn):
         "timeline": trend_intel["timeline"],
         "events": trend_intel["events"],
         "forecast": trend_intel["forecast"],
+        # Rich trending set & charts breakdown
+        "top_videos": raw.get("top_videos", []),
+        "kpis": raw.get("kpis", {}),
+        "cat_breakdown": raw.get("cat_breakdown", []),
+        "time_series": raw.get("time_series", []),
+        "region": region,
+        "category": category,
+        "timeframe": timeframe,
     }
 
 
