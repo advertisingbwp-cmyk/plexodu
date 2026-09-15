@@ -44,6 +44,17 @@ def analyze_sentiment(comment_list):
     Processes a list of real YouTube comments and returns aggregate sentiment scores,
     and extracts 3 distinct audience sample comments (positive, negative, neutral).
     """
+    if not comment_list:
+        return {
+            "positive_score": 0.0,
+            "negative_score": 0.0,
+            "neutral_score": 100.0,
+            "average_polarity": 0.0,
+            "dominant_sentiment": "neutral",
+            "sample_comment": "",
+            "sample_comments": [],
+        }
+
     counts = {"positive": 0, "negative": 0, "neutral": 0, "unclassified": 0}
     running_total = 0.0
 

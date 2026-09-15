@@ -198,7 +198,7 @@ def fetch_youtube_data(keyword: str):
         pass
 
     if not comments:
-        comments = ["No comments available for this video."]
+        comments = []
 
     related_keywords = _fetch_related_keywords(keyword)
 

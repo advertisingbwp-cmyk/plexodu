@@ -283,14 +283,18 @@ function renderResults(res) {
 
   // 4. Sentiment
   const s = res.sentiment || {};
+  const domSent = (s.dominant_sentiment || "Neutral").toLowerCase();
   if (dominantSentimentBadge) {
-    dominantSentimentBadge.textContent = (s.dominant_sentiment || "Neutral").toUpperCase();
+    dominantSentimentBadge.textContent = domSent.toUpperCase();
+    dominantSentimentBadge.className = `panel-badge badge-${domSent === "positive" ? "rising" : (domSent === "negative" ? "falling" : "stable")}`;
   }
   if (sentimentBreakdown) {
     sentimentBreakdown.textContent = `Positive: ${s.positive_score || 0}% • Neutral: ${s.neutral_score || 0}% • Negative: ${s.negative_score || 0}%`;
   }
   if (sampleCommentText) {
-    sampleCommentText.textContent = s.sample_comment ? `"${s.sample_comment}"` : "No recent audience comments available for this topic.";
+    const rawComment = s.sample_comment || "";
+    const isFakeComment = !rawComment || rawComment.toLowerCase().includes("no comments available") || rawComment.toLowerCase().includes("for this video");
+    sampleCommentText.textContent = isFakeComment ? "No recent audience comments available for this topic." : `"${rawComment}"`;
   }
 
   // 5. Chart Time-Series Data
@@ -433,6 +437,12 @@ function renderChart(dataPoints) {
     viewsChartInstance.destroy();
   }
 
+  const isBaseline = dataPoints.length <= 1;
+  const chartBaselineNote = document.getElementById("chartBaselineNote");
+  if (chartBaselineNote) {
+    chartBaselineNote.style.display = isBaseline ? "block" : "none";
+  }
+
   const labels = dataPoints.map(d => d.date);
   const rawViews = dataPoints.map(d => d.views);
   const smoothedViews = dataPoints.map(d => d.smoothed_views !== undefined ? d.smoothed_views : d.views);
@@ -445,8 +455,8 @@ function renderChart(dataPoints) {
       backgroundColor: "rgba(79, 70, 229, 0.08)",
       fill: true,
       tension: 0.35,
-      pointRadius: 3,
-      pointHoverRadius: 6,
+      pointRadius: isBaseline ? 6 : 3,
+      pointHoverRadius: isBaseline ? 8 : 6,
       order: 1
     }
   ];
@@ -508,6 +518,7 @@ function renderChart(dataPoints) {
         },
         x: {
           grid: { display: false },
+          offset: isBaseline,
           ticks: { maxRotation: 45, minRotation: 0 }
         }
       }
