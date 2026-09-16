@@ -221,8 +221,27 @@
     <!-- 2. Virality Index (hero-sized) + Trajectory -->
     <div class="tool-grid-2col mb-24">
       <div class="virality-hero">
-        <div class="virality-number" id="viralityScore">0</div>
-        <div class="virality-label">Virality Index</div>
+        <div class="virality-ring-wrap">
+          <svg viewBox="0 0 100 100" class="virality-ring">
+            <circle cx="50" cy="50" r="40" class="ring-track" />
+            <circle cx="50" cy="50" r="40" class="ring-fill" id="viralityRingFill" />
+          </svg>
+          <div class="virality-ring-label">
+            <span class="virality-number" id="viralityScore">0</span>
+            <small class="virality-label">Virality Index</small>
+          </div>
+        </div>
+
+        <div class="virality-stats">
+          <div class="virality-stat-line">
+            <span class="stat-icon"><i data-lucide="eye"></i></span>
+            <span id="viralityViewsText">0 views tracked</span>
+          </div>
+          <div class="virality-stat-line">
+            <span class="stat-icon"><i data-lucide="zap"></i></span>
+            <span id="viralityEngText">0% engagement</span>
+          </div>
+        </div>
       </div>
 
       <div class="tool-results-panel">
