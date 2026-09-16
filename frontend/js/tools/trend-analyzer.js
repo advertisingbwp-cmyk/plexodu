@@ -44,6 +44,11 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function escapeAttr(str) {
+  if (!str) return "";
+  return String(str).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 // ── DOM Initialization ───────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   initCategories();
@@ -514,6 +519,36 @@ function renderTrendingList(videos, query) {
     .join("");
 }
 
+function renderTrajectory(container, response) {
+  const snapshot_count = response.snapshot_count ?? response.scan_count ?? 1;
+  const history = response.timeline || response.daily_metrics || [];
+
+  if (!container) return;
+
+  if (snapshot_count < 2) {
+    container.innerHTML = `
+      <div class="trajectory-empty">
+        <div class="baseline-dot"></div>
+        <p>First observation recorded. This becomes a trend line once the next scan lands.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="chart-container-box"><canvas id="viewsChart"></canvas></div>`;
+  renderLowerChart(history);
+}
+
+function renderGrowthWindow(el, value, label) {
+  if (!el) return;
+  if (value === null || value === undefined) {
+    el.innerHTML = `<span class="window-label">${escapeHtml(label)}</span><span class="window-empty">—</span>`;
+    return;
+  }
+  const cls = value >= 0 ? 'growth-up' : 'growth-down';
+  const sign = value >= 0 ? '+' : '';
+  el.innerHTML = `<span class="window-label">${escapeHtml(label)}</span><span class="${cls}">${sign}${value}%</span>`;
+}
+
 // ── Render Deep Intelligence (Velocity, Virality, Sentiment, Tags) ──────────
 function renderDeepIntelligence(ytData) {
   const resultsArea = document.getElementById("resultsArea");
@@ -522,26 +557,42 @@ function renderDeepIntelligence(ytData) {
   currentTrendId = ytData.trend_id || null;
   currentKeyword = ytData.keyword || activeQuery || "";
 
-  // 1. First Scan / Educational Banner
-  const trendBanner = document.getElementById("trendBanner");
-  const trendBannerText = document.getElementById("trendBannerText");
+  const snapshotCount = ytData.snapshot_count ?? ytData.scan_count ?? 1;
   const intel = ytData.trend_intelligence || {};
-  const isBaseline = intel.status === "baseline" || ytData.status === "baseline";
 
-  if (trendBanner && trendBannerText) {
-    if (intel.educational_banner) {
-      trendBannerText.textContent = intel.educational_banner;
-      trendBanner.style.display = "flex";
-    } else if (isBaseline) {
-      // First Scan baseline observation
-      trendBannerText.textContent = "Baseline observation established. Scan again in 24–48 hours to measure real-world growth velocity, momentum, and curve progression.";
-      trendBanner.style.display = "flex";
+  // 1. Compact baseline / status line
+  const statusLine = document.getElementById("statusLine");
+  if (statusLine) {
+    if (intel.educational_banner || snapshotCount === 1) {
+      statusLine.textContent = intel.educational_banner || "Baseline observation established. Scan again in 24–48 hours to measure real-world growth velocity.";
+      statusLine.className = "tool-status-bar success";
+      statusLine.style.display = "block";
     } else {
-      trendBanner.style.display = "none";
+      statusLine.style.display = "none";
     }
   }
 
-  // 2. Velocity, Growth Rate & Virality Breakdown
+  // 2. Virality Score Hero
+  const viralityScoreEl = document.getElementById("viralityScore");
+  if (viralityScoreEl) {
+    viralityScoreEl.textContent = ytData.virality_score != null ? ytData.virality_score : "0";
+  }
+
+  const summaryVirality = document.getElementById("summaryVirality");
+  if (summaryVirality) {
+    summaryVirality.textContent = `${ytData.virality_score || 0}/100`;
+  }
+
+  // 3. Trajectory rendering
+  const trajectoryContainer = document.getElementById("trajectoryContainer");
+  const timelineData = (intel.timeline && intel.timeline.length > 0) ? intel.timeline : (ytData.daily_metrics || []);
+  if (trajectoryContainer) {
+    renderTrajectory(trajectoryContainer, { snapshot_count: snapshotCount, scan_count: snapshotCount, timeline: timelineData });
+  } else {
+    renderLowerChart(timelineData);
+  }
+
+  // 4. Velocity & Summary breakdown
   const summaryDirection = document.getElementById("summaryDirection");
   if (summaryDirection) {
     summaryDirection.textContent = intel.current_direction_display || ytData.stage || "Emerging";
@@ -562,16 +613,7 @@ function renderDeepIntelligence(ytData) {
     summaryEngagement.textContent = `${ytData.engagement_rate || 0}%`;
   }
 
-  const summaryVirality = document.getElementById("summaryVirality");
-  if (summaryVirality) {
-    summaryVirality.textContent = `${ytData.virality_score || 0}/100`;
-  }
-
-  // 3. Lower Time-Series Trajectory Chart
-  const timelineData = (intel.timeline && intel.timeline.length > 0) ? intel.timeline : (ytData.daily_metrics || []);
-  renderLowerChart(timelineData);
-
-  // 4. Audience Sentiment Breakdown
+  // 5. Audience Sentiment
   const sentiment = ytData.sentiment || {};
   const dominantBadge = document.getElementById("dominantSentimentBadge");
   if (dominantBadge) {
@@ -590,14 +632,14 @@ function renderDeepIntelligence(ytData) {
     sampleCommentText.textContent = sentiment.sample_comment || (ytData.comments && ytData.comments[0]) || "Audience discussion reflects healthy creator momentum.";
   }
 
-  // 5. Trend Milestones & Events
+  // 6. Milestones & Events
   const eventsList = document.getElementById("trendEventsList");
   if (eventsList) {
     const events = intel.events || [];
     if (events.length === 0) {
       eventsList.innerHTML = `
         <div class="trend-event-item">
-          <div class="trend-event-icon">📍</div>
+          <div class="trend-event-icon"><i data-lucide="map-pin"></i></div>
           <div class="trend-event-content">
             <div class="trend-event-title">Baseline Observation</div>
             <div class="trend-event-desc">Initial observation recorded. Velocity calculated after future scans.</div>
@@ -607,16 +649,16 @@ function renderDeepIntelligence(ytData) {
       `;
     } else {
       eventsList.innerHTML = events.map(ev => {
-        let icon = "📍";
-        if (ev.type === "spike") icon = "⚡";
-        else if (ev.type === "drop") icon = "📉";
-        else if (ev.type === "shift") icon = "🔄";
-        else if (ev.type === "engagement") icon = "❤️";
-        else if (ev.type === "scan") icon = "🔍";
+        let lucideName = "map-pin";
+        if (ev.type === "spike") lucideName = "zap";
+        else if (ev.type === "drop") lucideName = "trending-down";
+        else if (ev.type === "shift") lucideName = "repeat";
+        else if (ev.type === "engagement") lucideName = "heart";
+        else if (ev.type === "scan") lucideName = "search";
 
         return `
           <div class="trend-event-item">
-            <div class="trend-event-icon">${icon}</div>
+            <div class="trend-event-icon"><i data-lucide="${lucideName}"></i></div>
             <div class="trend-event-content">
               <div class="trend-event-title">${escapeHtml(ev.title)}</div>
               <div class="trend-event-desc">${escapeHtml(ev.description)}</div>
@@ -628,9 +670,9 @@ function renderDeepIntelligence(ytData) {
     }
   }
 
-  // 6. Historical Change Windows
-  const historyTableBody = document.getElementById("historyTableBody");
-  if (historyTableBody) {
+  // 7. Compact Growth Windows
+  const historyContainer = document.getElementById("historyWindowsContainer");
+  if (historyContainer) {
     const hw = intel.historical_context || {};
     const windows = [
       { key: "1d", label: "1 Day" },
@@ -639,45 +681,40 @@ function renderDeepIntelligence(ytData) {
       { key: "90d", label: "90 Days" }
     ];
 
-    historyTableBody.innerHTML = windows.map(w => {
-      const entry = hw[w.key] || { status: "insufficient_history", display: "Insufficient history" };
-      const isAvail = entry.status === "available" && entry.change_pct !== null;
-      const badgeClass = isAvail ? (entry.change_pct >= 0 ? "badge-rising" : "badge-falling") : "badge-stable";
-      const growthDisplay = isAvail ? `${entry.change_pct > 0 ? "+" : ""}${entry.change_pct}%` : "—";
-      const statusText = isAvail ? "Audited" : "Insufficient history";
+    historyContainer.innerHTML = windows.map(w => {
+      const entry = hw[w.key] || {};
+      const val = (entry.status === "available" && entry.change_pct !== null) ? entry.change_pct : null;
+      const cls = val !== null ? (val >= 0 ? 'growth-up' : 'growth-down') : 'window-empty';
+      const sign = (val !== null && val >= 0) ? '+' : '';
+      const valText = val !== null ? `${sign}${val}%` : '—';
 
       return `
-        <tr>
-          <td><strong>${w.label}</strong></td>
-          <td><span class="panel-badge ${badgeClass}">${growthDisplay}</span></td>
-          <td><span class="panel-badge badge-stable">${statusText}</span></td>
-        </tr>
+        <div class="window-row">
+          <span class="window-label">${w.label}</span>
+          <span class="${cls}">${valText}</span>
+        </div>
       `;
     }).join("");
   }
 
-  // 7. Conservative 7-Day Forecast
-  const forecastGrid = document.getElementById("forecastGrid");
-  const forecastFallback = document.getElementById("forecastFallback");
-  const fc = intel.forecast || {};
-  if (fc.available && fc.projection_days && fc.projection_days.length > 0) {
-    if (forecastFallback) forecastFallback.style.display = "none";
-    if (forecastGrid) {
-      forecastGrid.style.display = "grid";
-      forecastGrid.innerHTML = fc.projection_days.map(d => `
-        <div class="trend-forecast-card">
-          <div class="trend-forecast-day">${escapeHtml(d.day)}</div>
-          <div class="trend-forecast-val">${Number(d.expected_views).toLocaleString()}</div>
-          <div class="trend-forecast-range">&plusmn;${Number(d.upper_bound - d.expected_views).toLocaleString()}</div>
-        </div>
-      `).join("");
+  // 8. Projection Box — strictly rendered only when snapshot_count >= 3
+  const projectionEl = document.getElementById("projectionBox");
+  if (projectionEl) {
+    if (snapshotCount >= 3 && intel.forecast && intel.forecast.available) {
+      projectionEl.classList.remove("hidden");
+      const forecastVal = (intel.forecast.projection_days && intel.forecast.projection_days[0])
+        ? formatCompact(intel.forecast.projection_days[0].expected_views)
+        : formatCompact(ytData.total_views);
+      const projValueEl = projectionEl.querySelector(".projection-value");
+      if (projValueEl) {
+        projValueEl.textContent = `≈ ${forecastVal} views`;
+      }
+    } else {
+      projectionEl.classList.add("hidden");
     }
-  } else {
-    if (forecastGrid) forecastGrid.style.display = "none";
-    if (forecastFallback) forecastFallback.style.display = "block";
   }
 
-  // 8. High-CTR Tag Combinations
+  // 9. High-CTR Tag Combinations
   const tagsList = document.getElementById("tagsList");
   if (tagsList) {
     const tags = ytData.youtube_tags || [];
@@ -686,13 +723,13 @@ function renderDeepIntelligence(ytData) {
     } else {
       tagsList.innerHTML = tags.map(t => `
         <span class="tag-item-default" data-copy="${escapeAttr(t)}" title="Click to copy">
-          🏷️ ${escapeHtml(t)}
+          <i data-lucide="tag"></i> ${escapeHtml(t)}
         </span>
       `).join("");
     }
   }
 
-  // 9. High-CTR Hashtags
+  // 10. High-CTR Hashtags
   const hashtagsList = document.getElementById("hashtagsList");
   if (hashtagsList) {
     const htags = ytData.youtube_hashtags || [];
@@ -707,7 +744,7 @@ function renderDeepIntelligence(ytData) {
     }
   }
 
-  // 10. Context-Aware High-CTR Titles
+  // 11. Context-Aware High-CTR Titles
   const aiTitlesList = document.getElementById("aiTitlesList");
   if (aiTitlesList) {
     const titles = ytData.seo_title_ideas || [];
@@ -724,6 +761,10 @@ function renderDeepIntelligence(ytData) {
   }
 
   resultsArea.style.display = "block";
+
+  if (typeof lucide !== "undefined" && lucide.createIcons) {
+    lucide.createIcons();
+  }
 }
 
 // ── Render Lower Time-Series Chart ──────────────────────────────────────────

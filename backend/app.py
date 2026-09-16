@@ -470,6 +470,7 @@ def _process_platform(keyword, platform_name, fetch_fn, region="Global", categor
         "trend_intelligence": trend_intel,
         "status": trend_intel["status"],
         "scan_count": trend_intel["scan_count"],
+        "snapshot_count": trend_intel["scan_count"],
         "first_seen_at": trend_intel["first_seen_at"],
         "last_seen_at": trend_intel["last_seen_at"],
         "current_trend_score": trend_intel["current_trend_score"],
