@@ -11,6 +11,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
 <link rel="stylesheet" href="/css/style.css?v=21.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -209,59 +210,24 @@
   </div>
 
   <div id="resultsArea" style="display:none; margin-top:24px;">
-    <!-- Educational Banner (First Scan / Baseline) -->
+    <!-- 1. Compact baseline/status line -->
     <div id="trendBanner" class="trend-banner" style="display:none;">
-      <div class="trend-banner-icon">ℹ️</div>
+      <div class="trend-banner-icon"><i data-lucide="info"></i></div>
       <p id="trendBannerText" class="trend-banner-text">
-        Baseline observation established. Scan again in 24–48 hours to measure real-world growth velocity, momentum, and curve progression.
+        Baseline observation established. Scan again in 24–48 hours to measure real-world growth velocity.
       </p>
     </div>
 
-    <!-- 4 Top KPI Cards (Legacy Sync) -->
-    <div class="trend-grid-4col" style="display:none;">
-      <div class="trend-kpi-card">
-        <div class="trend-kpi-header">
-          <span class="trend-kpi-title">Trend Score</span>
-          <span id="kpiTrendScoreBadge" class="panel-badge badge-baseline">Index</span>
-        </div>
-        <div id="kpiTrendScoreVal" class="trend-kpi-value">Pending</div>
-        <div id="kpiTrendScoreSub" class="trend-kpi-sub">Multi-factor 0–100 momentum</div>
-      </div>
-
-      <div class="trend-kpi-card">
-        <div class="trend-kpi-header">
-          <span class="trend-kpi-title">Velocity</span>
-          <span id="kpiDirectionBadge" class="panel-badge badge-baseline">Baseline</span>
-        </div>
-        <div id="kpiVelocityVal" class="trend-kpi-value">Pending</div>
-        <div id="kpiVelocitySub" class="trend-kpi-sub">Day-over-day tracking</div>
-      </div>
-
-      <div class="trend-kpi-card">
-        <div class="trend-kpi-header">
-          <span class="trend-kpi-title">Total Views</span>
-          <span class="panel-badge badge-stable">Live</span>
-        </div>
-        <div id="kpiViewsVal" class="trend-kpi-value">0</div>
-        <div id="kpiViewsSub" class="trend-kpi-sub">Top search results volume</div>
-      </div>
-
-      <div class="trend-kpi-card">
-        <div class="trend-kpi-header">
-          <span class="trend-kpi-title">Confidence</span>
-          <span id="kpiConfidenceBadge" class="panel-badge badge-stable">Audited</span>
-        </div>
-        <div id="kpiConfidenceVal" class="trend-kpi-value">Low</div>
-        <div id="kpiScanCountSub" class="trend-kpi-sub">1 scan recorded</div>
-      </div>
-    </div>
-
-    <!-- Charts & Sentiment 2-Col Grid -->
+    <!-- 2. Virality Index (hero-sized) + Trajectory -->
     <div class="tool-grid-2col mb-24">
-      <!-- Left: Interactive Trend Graph -->
+      <div class="virality-hero">
+        <div class="virality-number" id="viralityScore">0</div>
+        <div class="virality-label">Virality Index</div>
+      </div>
+
       <div class="tool-results-panel">
         <div class="trend-graph-header">
-          <h3 class="m-0 font-1-1">📈 Time-Series View Trajectory</h3>
+          <h3 class="m-0 font-1-1"><i data-lucide="trending-up"></i> Time-Series View Trajectory</h3>
           <div class="trend-timeframe-tabs">
             <button class="trend-tab-btn active" data-range="all">All</button>
             <button class="trend-tab-btn" data-range="1d">1D</button>
@@ -271,11 +237,13 @@
           </div>
         </div>
 
-        <div class="chart-container-box">
-          <canvas id="viewsChart"></canvas>
+        <div id="trajectoryContainer">
+          <div class="chart-container-box">
+            <canvas id="viewsChart"></canvas>
+          </div>
         </div>
         <div id="chartBaselineNote" class="text-slate-500 font-0-8 text-center mt-8" style="display:none;">
-          📍 Initial baseline recorded today. Recurring scans connect future observations into an audited trajectory curve.
+          Initial baseline recorded today. Recurring scans connect future observations into an audited trajectory curve.
         </div>
 
         <div class="trend-summary-box">
@@ -301,113 +269,97 @@
           </div>
         </div>
       </div>
-
-      <!-- Right: Sentiment & Derived Trend Events -->
-      <div class="tool-results-panel">
-        <h3 class="mb-16 font-1-1">💬 Audience Sentiment</h3>
-        <div id="sentimentSummary" class="mb-16">
-          <div class="flex-between-center mb-8">
-            <span>Dominant Sentiment:</span>
-            <span id="dominantSentimentBadge" class="panel-badge badge-stable">Neutral</span>
-          </div>
-          <div id="sentimentBreakdown" class="text-slate-500 font-0-9">
-            Positive: 0% &bull; Neutral: 0% &bull; Negative: 0%
-          </div>
-        </div>
-        <div class="quote-box mb-24">
-          <strong>Sample Audience Voice:</strong>
-          <p id="sampleCommentText" class="mt-6 text-italic">No comments analyzed yet.</p>
-        </div>
-
-        <h3 class="mb-12 font-1-1">⚡ Trend Milestones & Events</h3>
-        <div id="trendEventsList" class="trend-events-list">
-          <div class="trend-event-item">
-            <div class="trend-event-icon">📍</div>
-            <div class="trend-event-content">
-              <div class="trend-event-title">Baseline Created</div>
-              <div class="trend-event-desc">Initial observation recorded.</div>
-            </div>
-            <div class="trend-event-date">Today</div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Historical Context Table & 7-Day Forecast 2-Col Grid -->
-    <div class="tool-grid-2col mb-24">
-      <div class="tool-results-panel">
-        <h3 class="mb-12 font-1-1">⏱️ Historical Change Windows</h3>
-        <table class="trend-history-table">
-          <thead>
-            <tr>
-              <th>Window</th>
-              <th>Observed Growth</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="historyTableBody">
-            <tr>
-              <td><strong>1 Day</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-            <tr>
-              <td><strong>7 Days</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-            <tr>
-              <td><strong>30 Days</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-            <tr>
-              <td><strong>90 Days</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="tool-results-panel">
-        <h3 class="mb-12 font-1-1">🔮 Conservative 7-Day Projection</h3>
-        <div id="forecastContainer">
-          <div id="forecastFallback" class="p-16 text-slate-500 text-center font-0-9">
-            Projection engine activates after 3+ historical observations to ensure dampening precision without speculative extrapolation.
-          </div>
-          <div id="forecastGrid" class="trend-forecast-grid" style="display:none;"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tags & AI Titles -->
+    <!-- 3. Generated Tags + High-CTR Titles (MOVED UP) -->
     <div class="tool-results-panel mb-24">
-      <h3 class="mb-12 font-1-1">🏷️ Generated YouTube Tags</h3>
+      <h3 class="mb-12 font-1-1"><i data-lucide="tag"></i> Generated YouTube Tags</h3>
       <div id="tagsList" class="tags-wrap mb-16"></div>
       <div id="hashtagsList" class="tags-wrap mb-24"></div>
 
-      <h3 class="mb-12 font-1-1">💡 Context-Aware High-CTR Titles</h3>
+      <h3 class="mb-12 font-1-1"><i data-lucide="sparkles"></i> Context-Aware High-CTR Titles</h3>
       <div id="aiTitlesList" class="flex-col-gap"></div>
     </div>
 
-    <!-- Cross-Tool Action Links & Export Actions -->
+    <!-- 4. Audience Sentiment & Milestones -->
     <div class="tool-results-panel mb-24">
-      <h3 class="mb-12 font-1-1">🚀 Connected Workflows & Actions</h3>
+      <h3 class="mb-16 font-1-1"><i data-lucide="message-square"></i> Audience Sentiment</h3>
+      <div id="sentimentSummary" class="mb-16">
+        <div class="flex-between-center mb-8">
+          <span>Dominant Sentiment:</span>
+          <span id="dominantSentimentBadge" class="panel-badge badge-stable">Neutral</span>
+        </div>
+        <div id="sentimentBreakdown" class="text-slate-500 font-0-9">
+          Positive: 0% &bull; Neutral: 0% &bull; Negative: 0%
+        </div>
+      </div>
+      <div class="quote-box mb-24">
+        <strong>Sample Audience Voice:</strong>
+        <p id="sampleCommentText" class="mt-6 text-italic">No comments analyzed yet.</p>
+      </div>
+
+      <h3 class="mb-12 font-1-1"><i data-lucide="zap"></i> Trend Milestones &amp; Events</h3>
+      <div id="trendEventsList" class="trend-events-list">
+        <div class="trend-event-item">
+          <div class="trend-event-icon"><i data-lucide="map-pin"></i></div>
+          <div class="trend-event-content">
+            <div class="trend-event-title">Baseline Created</div>
+            <div class="trend-event-desc">Initial observation recorded.</div>
+          </div>
+          <div class="trend-event-date">Today</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Growth Windows (compact) + Projection Box (rendered only when snapshot_count >= 3) -->
+    <div class="tool-grid-2col mb-24">
+      <div class="tool-results-panel">
+        <h3 class="mb-12 font-1-1"><i data-lucide="calendar"></i> Historical Change Windows</h3>
+        <div id="historyWindowsContainer" class="flex-col-gap">
+          <div class="window-row">
+            <span class="window-label">1 Day</span>
+            <span class="window-empty">—</span>
+          </div>
+          <div class="window-row">
+            <span class="window-label">7 Days</span>
+            <span class="window-empty">—</span>
+          </div>
+          <div class="window-row">
+            <span class="window-label">30 Days</span>
+            <span class="window-empty">—</span>
+          </div>
+          <div class="window-row">
+            <span class="window-label">90 Days</span>
+            <span class="window-empty">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="projectionBox" class="tool-results-panel hidden">
+        <h3 class="mb-12 font-1-1"><i data-lucide="bar-chart-2"></i> Conservative 7-Day Projection</h3>
+        <div class="projection-box">
+          <span class="projection-value">≈ 0 views</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Connected Workflows & Export Actions -->
+    <div class="tool-results-panel mb-24">
+      <h3 class="mb-12 font-1-1"><i data-lucide="workflow"></i> Connected Workflows &amp; Actions</h3>
       <div class="trend-action-links">
-        <button id="ctaStrategistBtn" class="tool-primary-btn">
-          ✨ Generate Content Strategy for This Topic ➔
+        <button id="ctaStrategistBtn" class="tool-primary-btn" type="button">
+          Generate Content Strategy for This Topic ➔
         </button>
-        <button id="ctaCompetitorBtn" class="tool-secondary-btn">
-          🔍 Compare Competitors in This Niche ➔
+        <button id="ctaCompetitorBtn" class="tool-secondary-btn" type="button">
+          Compare Competitors in This Niche ➔
         </button>
       </div>
     </div>
 
     <!-- Export Action Row -->
     <div class="tool-actions-row">
-      <button id="exportPdfBtn" class="tool-secondary-btn">📄 Export PDF Report</button>
-      <button id="exportCsvBtn" class="tool-secondary-btn">📊 Export CSV Data</button>
+      <button id="exportPdfBtn" class="tool-secondary-btn" type="button"><i data-lucide="file-text"></i> Export PDF Report</button>
+      <button id="exportCsvBtn" class="tool-secondary-btn" type="button"><i data-lucide="file-spreadsheet"></i> Export CSV Data</button>
     </div>
   </div>
 </main>
