@@ -455,8 +455,9 @@ function renderTrendingList(videos, query) {
 
   listEl.innerHTML = videos
     .map((v) => {
-      const isPos = v.growthPct >= 0;
-      const absGrowth = Math.abs(v.growthPct);
+      const momentum = v.momentumScore !== undefined ? v.momentumScore : (v.growthPct || 0);
+      const isPos = momentum >= 0;
+      const absGrowth = Math.abs(momentum);
       const deltaColor = isPos ? "#16A34A" : "#DC2626";
       const hue = v.hue || "#4F46E5";
 
@@ -505,7 +506,7 @@ function renderTrendingList(videos, query) {
           <span>${v.engagement.toFixed(1)}%</span>
         </div>
 
-        <div class="pulsecheck-growth ${isPos ? "pos" : "neg"}" title="Velocity Growth">
+        <div class="pulsecheck-growth ${isPos ? "pos" : "neg"}" title="Estimated from current view velocity vs. a typical baseline — not measured growth over time.">
           ${
             isPos
               ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${deltaColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
@@ -549,6 +550,28 @@ function renderGrowthWindow(el, value, label) {
   el.innerHTML = `<span class="window-label">${escapeHtml(label)}</span><span class="${cls}">${sign}${value}%</span>`;
 }
 
+function renderViralityRing(score, viewsText, engText) {
+  const circumference = 251.2;
+  const numScore = Number(score) || 0;
+  const offset = circumference - (Math.min(100, Math.max(0, numScore)) / 100) * circumference;
+
+  const ringFill = document.getElementById("viralityRingFill");
+  if (ringFill) {
+    ringFill.style.strokeDashoffset = offset;
+    const color = numScore >= 70 ? "#16A34A" : numScore >= 40 ? "#D97706" : "#DC2626";
+    ringFill.style.stroke = color;
+  }
+
+  const scoreTextEl = document.getElementById("viralityScore");
+  if (scoreTextEl) scoreTextEl.textContent = numScore.toFixed(1);
+
+  const viewsTextEl = document.getElementById("viralityViewsText");
+  if (viewsTextEl && viewsText) viewsTextEl.textContent = viewsText;
+
+  const engTextEl = document.getElementById("viralityEngText");
+  if (engTextEl && engText) engTextEl.textContent = engText;
+}
+
 // ── Render Deep Intelligence (Velocity, Virality, Sentiment, Tags) ──────────
 function renderDeepIntelligence(ytData) {
   const resultsArea = document.getElementById("resultsArea");
@@ -573,14 +596,14 @@ function renderDeepIntelligence(ytData) {
   }
 
   // 2. Virality Score Hero
-  const viralityScoreEl = document.getElementById("viralityScore");
-  if (viralityScoreEl) {
-    viralityScoreEl.textContent = ytData.virality_score != null ? ytData.virality_score : "0";
-  }
+  const viralityVal = ytData.virality_score != null ? ytData.virality_score : 0;
+  const viewsTrackedText = `${formatCompact(ytData.total_views || 0)} views tracked`;
+  const engagementText = `${ytData.engagement_rate || 0}% engagement`;
+  renderViralityRing(viralityVal, viewsTrackedText, engagementText);
 
   const summaryVirality = document.getElementById("summaryVirality");
   if (summaryVirality) {
-    summaryVirality.textContent = `${ytData.virality_score || 0}/100`;
+    summaryVirality.textContent = `${viralityVal}/100`;
   }
 
   // 3. Trajectory rendering

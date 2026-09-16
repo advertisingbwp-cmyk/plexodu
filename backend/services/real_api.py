@@ -298,9 +298,13 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
 
         v_eng = round(((v_likes + v_comments) / max(1, v_views)) * 100, 1)
         velocity = v_views / max(1, hours_ago)
-        growth_pct = round((velocity / 1500 - 1) * 100)
-        growth_pct = max(-95, min(950, growth_pct))
-        trend_score = round(velocity / 100 + growth_pct * 8)
+        # Single-snapshot estimate: current view velocity relative to a fixed
+        # baseline (1500 views/hr), NOT growth measured between two points in
+        # time. Do not rename this back to "growth" without adding real
+        # snapshot-over-time tracking first.
+        momentum_score = round((velocity / 1500 - 1) * 100)
+        momentum_score = max(-95, min(950, momentum_score))
+        trend_score = round(velocity / 100 + momentum_score * 8)
 
         top_videos.append({
             "id": v_id,
@@ -315,7 +319,7 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
             "likes": v_likes,
             "comments": v_comments,
             "engagement": v_eng,
-            "growthPct": growth_pct,
+            "momentumScore": momentum_score,
             "trendScore": trend_score,
             "published_at": v_published[:10] if v_published else "—",
         })
@@ -328,7 +332,7 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
     # Aggregate KPIs & Category Breakdown
     total_views_sum = sum(v["views"] for v in top_videos) if top_videos else int(items[0].get("statistics", {}).get("viewCount", 0))
     avg_eng = round(sum(v["engagement"] for v in top_videos) / max(1, len(top_videos)), 1)
-    rising_count = len([v for v in top_videos if v["growthPct"] > 40])
+    rising_count = len([v for v in top_videos if v["momentumScore"] > 40])
 
     cat_breakdown = []
     for c in DEFAULT_CATEGORIES:
