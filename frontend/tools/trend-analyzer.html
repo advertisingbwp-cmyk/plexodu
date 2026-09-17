@@ -77,7 +77,7 @@
       <div class="pulsecheck-search-wrap">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="text" id="pulseSearchInput" class="pulsecheck-search-input" placeholder="Search any keyword or hashtag (e.g. #gaming, minecraft, tech)…" autocomplete="off" />
-        <button id="analyzeBtn" class="tool-primary-btn" type="button">Search</button>
+        <button id="analyzeBtn" class="tool-primary-btn" type="button"><i data-lucide="search"></i> Search</button>
         <div id="suggestionsDropdown" class="suggestions-dropdown" style="display:none;"></div>
       </div>
 
@@ -88,7 +88,7 @@
           <button class="pulsecheck-pill" data-timeframe="30d">This month</button>
         </div>
 
-        <select id="pulseRegionSelect" class="pulsecheck-select">
+        <select id="pulseRegionSelect" class="pulsecheck-select" aria-label="Select Region">
           <option value="Global">Global</option>
           <option value="United States">United States</option>
           <option value="India">India</option>
@@ -195,8 +195,23 @@
       <div class="pulsecheck-panel-title">
         <span id="trendingListTitle">Trending now</span>
       </div>
+      <!-- Metric Table Headers -->
+      <div class="pulsecheck-table-header">
+        <div class="col-rank">#</div>
+        <div class="col-thumb"></div>
+        <div class="col-title">Video Title &amp; Creator</div>
+        <div class="col-stat">Views</div>
+        <div class="col-stat">Comments</div>
+        <div class="col-stat">Engagement</div>
+        <div class="col-growth">Growth</div>
+      </div>
       <div id="pulseList" class="pulsecheck-list">
         <!-- Rendered dynamically from real YouTube Data API -->
+      </div>
+      <div class="pulsecheck-expand-wrap">
+        <button id="pulseExpandBtn" class="tool-secondary-btn" type="button" style="display:none;">
+          <i data-lucide="chevron-down"></i> <span id="pulseExpandBtnText">View All (18)</span>
+        </button>
       </div>
       <div id="pulseEmptyState" class="pulsecheck-empty" style="display:none;">
         Nothing matches "<span id="pulseEmptyQuery"></span>" in this view. Try clearing the search or switching category.
@@ -246,7 +261,7 @@
 
       <div class="tool-results-panel">
         <div class="trend-graph-header">
-          <h3 class="m-0 font-1-1"><i data-lucide="trending-up"></i> Time-Series View Trajectory</h3>
+          <h2 class="m-0 font-1-1"><i data-lucide="trending-up"></i> Time-Series View Trajectory</h2>
           <div class="trend-timeframe-tabs">
             <button class="trend-tab-btn active" data-range="all">All</button>
             <button class="trend-tab-btn" data-range="1d">1D</button>
@@ -292,7 +307,7 @@
 
     <!-- 3. Generated Tags + High-CTR Titles (MOVED UP) -->
     <div class="tool-results-panel mb-24">
-      <h3 class="mb-12 font-1-1"><i data-lucide="tag"></i> Generated YouTube Tags</h3>
+      <h2 class="mb-12 font-1-1"><i data-lucide="tag"></i> Generated YouTube Tags</h2>
       <div id="tagsList" class="tags-wrap mb-16"></div>
       <div id="hashtagsList" class="tags-wrap mb-24"></div>
 
@@ -300,9 +315,9 @@
       <div id="aiTitlesList" class="flex-col-gap"></div>
     </div>
 
-    <!-- 4. Audience Sentiment & Milestones -->
+    <!-- 4. Audience Sentiment -->
     <div class="tool-results-panel mb-24">
-      <h3 class="mb-16 font-1-1"><i data-lucide="message-square"></i> Audience Sentiment</h3>
+      <h2 class="mb-16 font-1-1"><i data-lucide="message-square"></i> Audience Sentiment</h2>
       <div id="sentimentSummary" class="mb-16">
         <div class="flex-between-center mb-8">
           <span>Dominant Sentiment:</span>
@@ -312,12 +327,15 @@
           Positive: 0% &bull; Neutral: 0% &bull; Negative: 0%
         </div>
       </div>
-      <div class="quote-box mb-24">
+      <div class="quote-box">
         <strong>Sample Audience Voice:</strong>
         <p id="sampleCommentText" class="mt-6 text-italic">No comments analyzed yet.</p>
       </div>
+    </div>
 
-      <h3 class="mb-12 font-1-1"><i data-lucide="zap"></i> Trend Milestones &amp; Events</h3>
+    <!-- 4b. Trend Milestones & Events (Separated into own card) -->
+    <div class="tool-results-panel mb-24">
+      <h2 class="mb-16 font-1-1"><i data-lucide="zap"></i> Trend Milestones &amp; Events</h2>
       <div id="trendEventsList" class="trend-events-list">
         <div class="trend-event-item">
           <div class="trend-event-icon"><i data-lucide="map-pin"></i></div>
@@ -333,7 +351,7 @@
     <!-- 5. Growth Windows (compact) + Projection Box (rendered only when snapshot_count >= 3) -->
     <div class="tool-grid-2col mb-24">
       <div class="tool-results-panel">
-        <h3 class="mb-12 font-1-1"><i data-lucide="calendar"></i> Historical Change Windows</h3>
+        <h2 class="mb-12 font-1-1"><i data-lucide="calendar"></i> Historical Change Windows</h2>
         <div id="historyWindowsContainer" class="flex-col-gap">
           <div class="window-row">
             <span class="window-label">1 Day</span>
@@ -355,30 +373,28 @@
       </div>
 
       <div id="projectionBox" class="tool-results-panel hidden">
-        <h3 class="mb-12 font-1-1"><i data-lucide="bar-chart-2"></i> Conservative 7-Day Projection</h3>
+        <h2 class="mb-12 font-1-1"><i data-lucide="bar-chart-2"></i> Conservative 7-Day Projection</h2>
         <div class="projection-box">
           <span class="projection-value">≈ 0 views</span>
         </div>
       </div>
     </div>
 
-    <!-- 6. Connected Workflows & Export Actions -->
+    <!-- 6. Connected Workflows & Export Actions (Unified Section) -->
     <div class="tool-results-panel mb-24">
-      <h3 class="mb-12 font-1-1"><i data-lucide="workflow"></i> Connected Workflows &amp; Actions</h3>
-      <div class="trend-action-links">
+      <h2 class="mb-12 font-1-1"><i data-lucide="workflow"></i> Connected Workflows &amp; Actions</h2>
+      <div class="trend-action-links mb-16">
         <button id="ctaStrategistBtn" class="tool-primary-btn" type="button">
-          Generate Content Strategy for This Topic ➔
+          <i data-lucide="sparkles"></i> Generate Content Strategy for This Topic
         </button>
         <button id="ctaCompetitorBtn" class="tool-secondary-btn" type="button">
-          Compare Competitors in This Niche ➔
+          <i data-lucide="users"></i> Compare Competitors in This Niche
         </button>
       </div>
-    </div>
-
-    <!-- Export Action Row -->
-    <div class="tool-actions-row">
-      <button id="exportPdfBtn" class="tool-secondary-btn" type="button"><i data-lucide="file-text"></i> Export PDF Report</button>
-      <button id="exportCsvBtn" class="tool-secondary-btn" type="button"><i data-lucide="file-spreadsheet"></i> Export CSV Data</button>
+      <div class="tool-actions-row">
+        <button id="exportPdfBtn" class="tool-secondary-btn" type="button"><i data-lucide="file-text"></i> Export PDF Report</button>
+        <button id="exportCsvBtn" class="tool-secondary-btn" type="button"><i data-lucide="file-spreadsheet"></i> Export CSV Data</button>
+      </div>
     </div>
   </div>
 </main>
