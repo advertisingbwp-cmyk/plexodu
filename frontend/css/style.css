@@ -1509,12 +1509,15 @@ table.history-table tbody tr:hover {
 
 .virality-hero {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 20px 24px;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  padding: 24px;
   background: var(--bg-panel, #ffffff);
   border: 1px solid var(--border, #e2e8f0);
-  border-radius: 16px;
+  border-radius: var(--radius, 12px);
   box-shadow: var(--shadow-sm, 0 1px 3px rgba(15, 23, 42, 0.04));
 }
 
@@ -2019,23 +2022,26 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
 
 .tool-secondary-btn {
   padding: 10px 18px;
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
+  background: #ffffff;
+  color: var(--text, #0f172a);
+  border: 1.5px solid var(--border-hover, #94a3b8);
+  border-radius: var(--radius-sm, 8px);
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: background 0.2s, border-color 0.2s;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
   text-decoration: none;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .tool-secondary-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
+  background: var(--bg-2, #f8fafc);
+  border-color: var(--primary, #4f46e5);
+  color: var(--primary, #4f46e5);
 }
 
 /* Responsive adjustments */
@@ -2520,6 +2526,31 @@ footer {
   color: #047857;
 }
 
+.tool-copy-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #ffffff;
+  border: 1px solid var(--border, #cbd5e1);
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  flex-shrink: 0;
+}
+.tool-copy-icon-btn:hover {
+  background: var(--bg-2, #f1f5f9);
+  border-color: var(--border-hover, #94a3b8);
+  color: var(--primary, #4f46e5);
+}
+.tool-copy-icon-btn.copied {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+}
+
 /* ==========================================================================
    Phase 8 — YouTube Trend Intelligence Rebuild
    ========================================================================== */
@@ -2814,33 +2845,45 @@ footer {
 }
 
 .tag-item-default {
-  background: #f1f5f9;
-  color: #0f172a;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  background: var(--bg-2, #f1f5f9);
+  color: var(--text, #0f172a);
+  border: 1px solid var(--border, #e2e8f0);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .tag-item-default:hover {
-  background: #e2e8f0;
+  background: var(--border-hover, #e2e8f0);
+  border-color: var(--border-hover, #cbd5e1);
 }
 
 .tag-item-accent {
-  background: #eef2ff;
-  color: #4f46e5;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  background: rgba(79, 70, 229, 0.08);
+  color: var(--primary, #4f46e5);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .tag-item-accent:hover {
-  background: #e0e7ff;
+  background: rgba(79, 70, 229, 0.15);
+  border-color: var(--primary, #4f46e5);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -2864,7 +2907,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 18px;
 }
@@ -2875,11 +2918,13 @@ footer {
   gap: 10px;
   background: #ffffff;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px 6px 14px;
+  border-radius: var(--radius-sm, 8px);
+  padding: 4px 6px 4px 14px;
   flex: 1;
   min-width: 280px;
   max-width: 520px;
+  height: 42px;
+  box-sizing: border-box;
   color: var(--text-muted);
   transition: all 0.2s ease;
 }
@@ -2887,6 +2932,13 @@ footer {
 .pulsecheck-search-wrap:focus-within {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.pulsecheck-search-wrap .tool-primary-btn {
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-radius: var(--radius-sm, 8px);
 }
 
 .pulsecheck-search-input {
@@ -2912,21 +2964,24 @@ footer {
 
 .pulsecheck-filter-group {
   display: flex;
+  align-items: center;
   gap: 4px;
   background: var(--bg-2);
-  padding: 4px;
-  border-radius: 10px;
+  padding: 3px;
+  border-radius: var(--radius-sm, 8px);
   border: 1px solid var(--border);
+  height: 42px;
+  box-sizing: border-box;
 }
 
 .pulsecheck-pill {
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
   padding: 6px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm, 8px);
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s ease;
@@ -2937,10 +2992,11 @@ footer {
 }
 
 .pulsecheck-pill.active {
-  background: #ffffff;
-  color: var(--primary);
-  font-weight: 700;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
 }
 
 .pulsecheck-select {
@@ -2949,8 +3005,10 @@ footer {
   color: var(--text);
   font-size: 13px;
   font-weight: 500;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 0 14px;
+  height: 42px;
+  box-sizing: border-box;
+  border-radius: var(--radius-sm, 8px);
   outline: none;
   cursor: pointer;
   font-family: inherit;
@@ -3117,6 +3175,25 @@ footer {
   position: relative;
 }
 
+.pulsecheck-table-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-2, #f8fafc);
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  gap: 14px;
+}
+.pulsecheck-table-header .col-rank { width: 24px; text-align: center; }
+.pulsecheck-table-header .col-thumb { width: 32px; }
+.pulsecheck-table-header .col-title { flex: 1; }
+.pulsecheck-table-header .col-stat { width: 80px; text-align: right; }
+.pulsecheck-table-header .col-growth { width: 70px; text-align: right; }
+
 .pulsecheck-list {
   display: flex;
   flex-direction: column;
@@ -3126,10 +3203,16 @@ footer {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 12px 10px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--bg-2);
   border-radius: 8px;
   transition: background 0.15s ease;
+}
+
+.pulsecheck-expand-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 4px;
 }
 
 .pulsecheck-row:last-child {

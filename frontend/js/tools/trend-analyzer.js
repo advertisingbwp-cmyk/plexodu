@@ -16,6 +16,7 @@ let lowerViewsChart = null;
 let currentTrendId = null;
 let currentKeyword = "";
 let searchDebounce = null;
+let isTrendingExpanded = false;
 
 const CATEGORIES = [
   { name: "Music", hue: "#FF6B4A" },
@@ -49,14 +50,37 @@ function escapeAttr(str) {
   return String(str).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+function formatRelativeTime(hoursAgo) {
+  const h = Number(hoursAgo);
+  if (isNaN(h) || h < 0) return "recently";
+  if (h < 1) return "just now";
+  if (h < 24) return `${Math.round(h)}h ago`;
+  const days = Math.floor(h / 24);
+  if (days < 30) return `${days}d ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} mo ago`;
+  const years = (days / 365).toFixed(1).replace(/\.0$/, "");
+  return `${years}y ago`;
+}
+
 // ── DOM Initialization ───────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   initCategories();
   initTimeframePills();
   initRegionSelect();
   initSearchInput();
+  initExpandButton();
   fetchTrendingFeed();
 });
+
+function initExpandButton() {
+  const expandBtn = document.getElementById("pulseExpandBtn");
+  if (!expandBtn) return;
+  expandBtn.addEventListener("click", () => {
+    isTrendingExpanded = !isTrendingExpanded;
+    filterCurrentVideos(activeQuery);
+  });
+}
 
 // ── Category Scroller ────────────────────────────────────────────────────────
 function initCategories() {
@@ -439,6 +463,8 @@ function renderTrendingList(videos, query) {
   const listEl = document.getElementById("pulseList");
   const emptyEl = document.getElementById("pulseEmptyState");
   const emptyQueryEl = document.getElementById("pulseEmptyQuery");
+  const expandBtn = document.getElementById("pulseExpandBtn");
+  const expandBtnText = document.getElementById("pulseExpandBtnText");
 
   if (!listEl) return;
 
@@ -448,18 +474,36 @@ function renderTrendingList(videos, query) {
       if (emptyQueryEl) emptyQueryEl.textContent = query || "this filter";
       emptyEl.style.display = "block";
     }
+    if (expandBtn) expandBtn.style.display = "none";
     return;
   }
 
   if (emptyEl) emptyEl.style.display = "none";
 
-  listEl.innerHTML = videos
+  // Truncation logic (Top 5 unless expanded)
+  const defaultLimit = 5;
+  const shouldTruncate = videos.length > defaultLimit;
+  const visibleVideos = (shouldTruncate && !isTrendingExpanded) ? videos.slice(0, defaultLimit) : videos;
+
+  if (expandBtn) {
+    if (shouldTruncate) {
+      expandBtn.style.display = "inline-flex";
+      if (expandBtnText) {
+        expandBtnText.textContent = isTrendingExpanded ? "Show Less" : `View All (${videos.length})`;
+      }
+    } else {
+      expandBtn.style.display = "none";
+    }
+  }
+
+  listEl.innerHTML = visibleVideos
     .map((v) => {
       const momentum = v.momentumScore !== undefined ? v.momentumScore : (v.growthPct || 0);
       const isPos = momentum >= 0;
       const absGrowth = Math.abs(momentum);
       const deltaColor = isPos ? "#16A34A" : "#DC2626";
       const hue = v.hue || "#4F46E5";
+      const formattedTime = formatRelativeTime(v.hoursAgo);
 
       return `
       <div class="pulsecheck-row">
@@ -481,7 +525,7 @@ function renderTrendingList(videos, query) {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;">
               <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
             </svg>
-            <span>${v.hoursAgo}h ago</span>
+            <span>${formattedTime}</span>
           </div>
         </div>
 
@@ -777,7 +821,9 @@ function renderDeepIntelligence(ytData) {
       aiTitlesList.innerHTML = titles.map(title => `
         <div class="flex-between-center p-12 bg-slate-50 border-slate-200 radius-10">
           <span class="font-600 font-0-9 text-slate-900">${escapeHtml(title)}</span>
-          <button class="tool-copy-action-btn" data-copy="${escapeAttr(title)}" type="button">Copy</button>
+          <button class="tool-copy-icon-btn" data-copy="${escapeAttr(title)}" type="button" aria-label="Copy title">
+            <i data-lucide="copy"></i>
+          </button>
         </div>
       `).join("");
     }
