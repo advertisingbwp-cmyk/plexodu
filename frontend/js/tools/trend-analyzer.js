@@ -15,6 +15,8 @@ let catChart = null;
 let lowerViewsChart = null;
 let currentTrendId = null;
 let currentKeyword = "";
+let currentTimelineRaw = [];
+let currentLowerRange = "all";
 let searchDebounce = null;
 
 const CATEGORIES = [
@@ -607,8 +609,8 @@ function renderDeepIntelligence(ytData) {
   }
 
   // 3. Lower Time-Series Trajectory Chart
-  const timelineData = (intel.timeline && intel.timeline.length > 0) ? intel.timeline : (ytData.daily_metrics || []);
-  renderLowerChart(timelineData);
+  currentTimelineRaw = (intel.timeline && intel.timeline.length > 0) ? intel.timeline : (ytData.daily_metrics || []);
+  updateLowerChartWithRange(currentLowerRange);
 
   // 4. Audience Sentiment Breakdown
   const sentiment = ytData.sentiment || {};
@@ -769,113 +771,341 @@ function renderDeepIntelligence(ytData) {
   resultsArea.style.display = "block";
 }
 
+// ── Filter and Update Lower Chart with Range ────────────────────────────────
+function filterTimelineByRange(timeline, range) {
+  if (!timeline || timeline.length === 0) return [];
+  if (range === "all") return timeline;
+
+  const daysMap = { "1d": 1, "7d": 7, "30d": 30, "90d": 90 };
+  const maxDays = daysMap[range] || 90;
+  const now = new Date().getTime();
+  const cutoff = now - maxDays * 24 * 60 * 60 * 1000;
+
+  return timeline.filter((item) => {
+    if (!item.date) return true;
+    const itemTime = new Date(item.date).getTime();
+    if (isNaN(itemTime)) return true;
+    return itemTime >= cutoff;
+  });
+}
+
+function updateLowerChartWithRange(range) {
+  currentLowerRange = range;
+
+  // Update tabs active / dimmed status
+  const tabs = document.querySelectorAll(".trend-tab-btn");
+  tabs.forEach((tab) => {
+    const r = tab.getAttribute("data-range") || "all";
+    if (r === range) {
+      tab.classList.add("active");
+    } else {
+      tab.classList.remove("active");
+    }
+
+    const testPoints = filterTimelineByRange(currentTimelineRaw, r);
+    if (testPoints.length === 0) {
+      tab.classList.add("dimmed");
+      tab.title = `No scans recorded in ${r.toUpperCase()} window`;
+    } else {
+      tab.classList.remove("dimmed");
+      tab.title = `Show ${r.toUpperCase()} trajectory`;
+    }
+  });
+
+  const filtered = filterTimelineByRange(currentTimelineRaw, range);
+  renderLowerChart(filtered, range);
+}
+
 // ── Render Lower Time-Series Chart ──────────────────────────────────────────
-function renderLowerChart(dataPoints) {
-  const ctx = document.getElementById("viewsChart");
-  if (!ctx || !window.Chart) return;
+function renderLowerChart(dataPoints, range = "all") {
+  const canvas = document.getElementById("viewsChart");
+  const emptyEl = document.getElementById("viewsChartEmpty");
+  const chartBaselineNote = document.getElementById("chartBaselineNote");
+  if (!canvas || !window.Chart) return;
 
   if (lowerViewsChart) {
     lowerViewsChart.destroy();
+    lowerViewsChart = null;
   }
 
+  // Handle empty range window (e.g. 1D when observation was recorded outside 24h)
+  if (!dataPoints || dataPoints.length === 0) {
+    canvas.style.display = "none";
+    if (emptyEl) {
+      const firstDate = currentTimelineRaw[0]?.date ? currentTimelineRaw[0].date.split(" ")[0] : "a previous date";
+      emptyEl.innerHTML = `
+        <div class="text-center p-16">
+          <div style="font-size: 26px; margin-bottom: 8px;">⏳</div>
+          <strong style="color: var(--text); font-size: 0.95rem;">No scans recorded within the ${range.toUpperCase()} window</strong>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 6px; max-width: 380px;">
+            The baseline observation for this trend was recorded on <strong>${firstDate}</strong>. Select <strong>All</strong> or a wider window to view the trajectory curve.
+          </p>
+        </div>
+      `;
+      emptyEl.style.display = "flex";
+    }
+    if (chartBaselineNote) chartBaselineNote.style.display = "none";
+    return;
+  }
+
+  canvas.style.display = "block";
+  if (emptyEl) emptyEl.style.display = "none";
+
+  // Baseline observation / First Scan tracking status
   const isBaseline = dataPoints.length <= 1;
-  const chartBaselineNote = document.getElementById("chartBaselineNote");
-  if (chartBaselineNote) {
-    chartBaselineNote.style.display = isBaseline ? "block" : "none";
-  }
 
-  const rawLabels = dataPoints.map((d) => d.date || d.label || "Obs 1");
-  const rawViews = dataPoints.map((d) => d.views || 0);
-  const smoothedViews = dataPoints.map((d) => d.smoothed_views !== undefined ? d.smoothed_views : d.views || 0);
+  if (isBaseline) {
+    // ── Single Point Baseline Experience ──
+    const pt = dataPoints[0];
+    const val = Number(pt.views || 0);
+    const dateStr = pt.date ? pt.date.split(" ")[0] : "Today";
+    const timeStr = pt.date ? (pt.date.split(" ")[1] || "") : "";
 
-  // Issue #5 fix: If all labels are identical, build evenly spaced labels
-  const allSame = rawLabels.length > 1 && rawLabels.every((l) => l === rawLabels[0]);
-  const displayLabels = allSame ? buildSpreadLabels(rawLabels.length, activeTimeframe) : rawLabels;
+    if (chartBaselineNote) {
+      chartBaselineNote.style.display = "block";
+      chartBaselineNote.innerHTML = `
+        <span class="font-600 text-slate-700">📍 Baseline: ${formatCompact(val)} views (${val.toLocaleString()}) recorded on ${dateStr}</span>
+        <span class="text-slate-400">&bull;</span>
+        <span class="text-slate-500 font-0-85">First Scan established. Recurring scans trace the velocity curve. Next scan window opens in ~24h.</span>
+      `;
+    }
 
-  const datasets = [
-    {
-      label: "Smoothed Trajectory",
-      data: smoothedViews,
+    // Build realistic timeframe progression labels across the selected range
+    let displayLabels = [];
+    if (range === "1d") {
+      displayLabels = ["24h ago", "18h ago", "12h ago", "6h ago", timeStr || "Recorded"];
+    } else if (range === "7d") {
+      displayLabels = ["7d ago", "5d ago", "3d ago", "1d ago", "Recorded"];
+    } else if (range === "30d") {
+      displayLabels = ["30d ago", "20d ago", "10d ago", "5d ago", "Recorded"];
+    } else if (range === "90d") {
+      displayLabels = ["90d ago", "60d ago", "30d ago", "15d ago", "Recorded"];
+    } else {
+      displayLabels = ["Observation Start", "Audited Range", "Recorded"];
+    }
+
+    // Dataset 1: Prominent filled observation point on the recording day
+    const pointDataset = {
+      label: `Recorded Observation`,
+      data: displayLabels.map((_, idx) => (idx === displayLabels.length - 1 ? val : null)),
       borderColor: "#4f46e5",
-      backgroundColor: "rgba(79, 70, 229, 0.08)",
-      fill: true,
-      tension: 0.35,
-      pointRadius: isBaseline ? 6 : 3,
-      pointHoverRadius: isBaseline ? 8 : 6,
-      order: 1,
-    },
-  ];
-
-  const hasSmoothedVariance = rawViews.some((v, idx) => v !== smoothedViews[idx]);
-  if (hasSmoothedVariance) {
-    datasets.push({
-      label: "Raw Observations",
-      data: rawViews,
-      borderColor: "#94a3b8",
-      backgroundColor: "rgba(148, 163, 184, 0.4)",
-      fill: false,
+      backgroundColor: "#4f46e5",
+      pointRadius: 7,
+      pointHoverRadius: 9,
+      pointBackgroundColor: "#4f46e5",
+      pointBorderColor: "#ffffff",
+      pointBorderWidth: 2.5,
       showLine: false,
-      pointRadius: 5,
-      pointHoverRadius: 7,
+      order: 1,
+    };
+
+    // Dataset 2: Horizontal dashed baseline line spanning across the entire range
+    const baselineLineDataset = {
+      label: `Baseline (${formatCompact(val)})`,
+      data: displayLabels.map(() => val),
+      borderColor: "rgba(79, 70, 229, 0.45)",
+      borderWidth: 2,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      fill: false,
       order: 2,
+    };
+
+    // Auto-scale Y-axis around the baseline value (no 0-to-8M empty void!)
+    const yMin = Math.max(0, Math.floor(val * 0.75));
+    const yMax = Math.ceil(val * 1.25);
+
+    const ctx = canvas.getContext("2d");
+    lowerViewsChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: displayLabels,
+        datasets: [pointDataset, baselineLineDataset],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: "top",
+            labels: { boxWidth: 14, font: { size: 11, family: "Plus Jakarta Sans, Inter, sans-serif" } },
+          },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleColor: "#94a3b8",
+            bodyColor: "#ffffff",
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              title: () => `${dateStr} ${timeStr}`.trim(),
+              label: (context) => {
+                if (context.datasetIndex === 0) {
+                  return `Recorded Observation: ${formatCompact(val)} views (${val.toLocaleString()})`;
+                }
+                return `Audited Baseline: ${formatCompact(val)} views`;
+              },
+            },
+          },
+        },
+        scales: {
+          y: {
+            min: yMin,
+            max: yMax,
+            grid: { color: "#f1f5f9" },
+            ticks: {
+              color: "#64748b",
+              font: { size: 11 },
+              callback: (v) => formatCompact(v),
+            },
+          },
+          x: {
+            grid: { display: false },
+            border: { color: "#e2e8f0" },
+            ticks: { color: "#64748b", font: { size: 11 } },
+          },
+        },
+      },
+    });
+  } else {
+    // ── Multi-Point Trajectory Curve (2+ Observations) ──
+    const rawLabels = dataPoints.map((d) => d.date || d.label || "Obs");
+    const rawViews = dataPoints.map((d) => d.views || 0);
+    const smoothedViews = dataPoints.map((d) => d.smoothed_views !== undefined ? d.smoothed_views : d.views || 0);
+
+    const lastViews = rawViews[rawViews.length - 1];
+    const prevViews = rawViews[rawViews.length - 2];
+    const diff = lastViews - prevViews;
+    const diffPct = prevViews > 0 ? ((diff / prevViews) * 100).toFixed(1) : "0.0";
+    const isUp = diff >= 0;
+
+    if (chartBaselineNote) {
+      chartBaselineNote.style.display = "block";
+      chartBaselineNote.innerHTML = `
+        <span class="inline-flex-center gap-6 font-600 ${isUp ? 'text-green' : 'text-red'}">
+          ${isUp ? '📈' : '📉'} ${isUp ? '+' : ''}${formatCompact(diff)} (${isUp ? '+' : ''}${diffPct}%) vs last scan
+        </span>
+        <span class="text-slate-400">&bull;</span>
+        <span class="text-slate-500 font-0-85">Audited trajectory from ${dataPoints.length} observations</span>
+      `;
+    }
+
+    // Auto-scale Y-axis based on min and max
+    const minViews = Math.min(...rawViews);
+    const maxViews = Math.max(...rawViews);
+    const pad = Math.max(1000, (maxViews - minViews) * 0.2);
+    const yMin = Math.max(0, Math.floor(minViews - pad));
+    const yMax = Math.ceil(maxViews + pad);
+
+    const ctx = canvas.getContext("2d");
+    const grad = ctx.createLinearGradient(0, 0, 0, 220);
+    grad.addColorStop(0, "rgba(79, 70, 229, 0.16)");
+    grad.addColorStop(1, "rgba(79, 70, 229, 0)");
+
+    const datasets = [
+      {
+        label: "Smoothed Trajectory",
+        data: smoothedViews,
+        borderColor: "#4f46e5",
+        borderWidth: 2.5,
+        backgroundColor: grad,
+        fill: true,
+        tension: 0.35,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: "#4f46e5",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        order: 1,
+      },
+    ];
+
+    const hasSmoothedVariance = rawViews.some((v, idx) => v !== smoothedViews[idx]);
+    if (hasSmoothedVariance) {
+      datasets.push({
+        label: "Raw Observations",
+        data: rawViews,
+        borderColor: "#94a3b8",
+        backgroundColor: "rgba(148, 163, 184, 0.4)",
+        fill: false,
+        showLine: false,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        order: 2,
+      });
+    }
+
+    lowerViewsChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: rawLabels,
+        datasets: datasets,
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: "index",
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: datasets.length > 1,
+            position: "top",
+            labels: { boxWidth: 12, font: { size: 11 } },
+          },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleColor: "#94a3b8",
+            bodyColor: "#ffffff",
+            padding: 10,
+            cornerRadius: 8,
+            callbacks: {
+              title: (items) => {
+                const idx = items[0].dataIndex;
+                const d = dataPoints[idx];
+                return d && d.date ? d.date : items[0].label;
+              },
+              label: (context) => {
+                const idx = context.dataIndex;
+                const cur = Number(context.raw);
+                let labelStr = `${context.dataset.label}: ${formatCompact(cur)} views (${cur.toLocaleString()})`;
+                if (idx > 0 && dataPoints[idx - 1]) {
+                  const p = Number(dataPoints[idx - 1].views || 0);
+                  if (p > 0) {
+                    const c = (((cur - p) / p) * 100).toFixed(1);
+                    labelStr += ` • ${c >= 0 ? '+' : ''}${c}% vs prev`;
+                  }
+                }
+                return labelStr;
+              },
+            },
+          },
+        },
+        scales: {
+          y: {
+            min: yMin,
+            max: yMax,
+            grid: { color: "#f1f5f9" },
+            ticks: {
+              color: "#64748b",
+              font: { size: 11 },
+              callback: (v) => formatCompact(v),
+            },
+          },
+          x: {
+            grid: { display: false },
+            border: { color: "#e2e8f0" },
+            ticks: { color: "#64748b", font: { size: 11 }, maxRotation: 45, minRotation: 0 },
+          },
+        },
+      },
     });
   }
-
-  lowerViewsChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: displayLabels,
-      datasets: datasets,
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: "index",
-        intersect: false,
-      },
-      plugins: {
-        legend: {
-          display: datasets.length > 1,
-          position: "top",
-          labels: { boxWidth: 12, font: { size: 11 } },
-        },
-        tooltip: {
-          backgroundColor: "#0f172a",
-          titleColor: "#94a3b8",
-          bodyColor: "#ffffff",
-          padding: 10,
-          cornerRadius: 8,
-          callbacks: {
-            label: function (context) {
-              return `${context.dataset.label}: ${Number(context.raw).toLocaleString()} views`;
-            },
-          },
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: "#f1f5f9" },
-          ticks: {
-            color: "#64748b",
-            font: { size: 11 },
-            callback: function (val) {
-              if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
-              if (val >= 1000) return (val / 1000).toFixed(0) + "K";
-              return val;
-            },
-          },
-        },
-        x: {
-          grid: { display: false },
-          border: { color: "#e2e8f0" },
-          offset: isBaseline,
-          ticks: { color: "#64748b", font: { size: 11 }, maxRotation: 45, minRotation: 0 },
-        },
-      },
-    },
-  });
 }
 
 // ── Timeframe Tabs on Lower Chart ───────────────────────────────────────────
@@ -883,11 +1113,12 @@ function initTimeframeTabs() {
   const tabs = document.querySelectorAll(".trend-tab-btn");
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      tabs.forEach((t) => t.classList.remove("active"));
-      tab.classList.add("active");
+      const range = tab.getAttribute("data-range") || "all";
+      updateLowerChartWithRange(range);
     });
   });
 }
+
 
 // ── Connected Actions & Exports ─────────────────────────────────────────────
 function initConnectedActions() {

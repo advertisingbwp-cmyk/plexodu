@@ -3573,6 +3573,201 @@ footer {
   background: #f8fafc;
   border-left: 3px solid #4f46e5;
   border-radius: 0 8px 8px 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Usability Heuristics Fix — v22.0
+   Addresses 16 audit issues on YouTube Trend Analyzer page.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Issue 1 — Reduce font-size variety: harmonise chip / label / meta to shared scale */
+.pulsecheck-cat-chip,
+.pulsecheck-kpi-label,
+.pulsecheck-row-meta {
+  font-size: 12px; /* unified to base-small */
+}
+.pulsecheck-kpi-value {
+  font-size: 22px; /* bring large KPI values in line */
+}
+.pulsecheck-kpi-delta {
+  font-size: 11px;
+}
+.pulsecheck-row-title {
+  font-size: 13.5px;
+}
+.pulsecheck-panel-title,
+.pulsecheck-row-stat {
+  font-size: 12px;
+}
+
+/* Issue 2 — Reduce text-colour variety: force category labels to use CSS vars */
+.pulsecheck-dot {
+  color: var(--text-faint);
+}
+.pulsecheck-row-stat {
+  color: var(--text-muted);
+}
+.pulsecheck-rank {
+  color: var(--text-muted);
+}
+
+/* Issue 3 — Reduce border-radius variety: standardise chip/pill/delta to 8px system */
+.pulsecheck-cat-chip {
+  border-radius: 8px; /* was 999px — flatten to system pill */
+}
+.pulsecheck-kpi-delta {
+  border-radius: 6px;
+}
+.pulsecheck-row {
+  border-radius: 8px;
+}
+.pulsecheck-growth {
+  border-radius: 6px;
+}
+
+/* Issue 4 — Consolidate button styles: .trend-action-btn unifies CTA and export rows */
+.trend-action-btn {
+  min-height: 42px;
+  padding: 10px 18px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* .pulsecheck-search-btn — compact variant for the search input button (Issue 11) */
+.pulsecheck-search-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  min-height: unset;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Issue 6 — Top-align left panel card in 2-col grids */
+.tool-grid-2col {
+  align-items: flex-start;
+}
+
+/* Issue 8 & 15 — Consistent grid for action links, preventing staggered rows */
+.trend-action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+.trend-action-grid-export {
+  margin-top: 12px;
+}
+@media (max-width: 640px) {
+  .trend-action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Issue 10 — More vertical breathing room between search row and category row */
+.pulsecheck-controls-bar {
+  margin-bottom: 14px;
+}
+.pulsecheck-cat-bar {
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+}
+
+/* Issue 13 — Standardise control heights in filter row to same baseline (38px) */
+.pulsecheck-filter-group {
+  padding: 3px;
+}
+.pulsecheck-pill {
+  padding: 7px 14px;
+  line-height: 1;
+}
+.pulsecheck-select {
+  padding: 0 14px;
+  height: 38px;
+  line-height: 38px;
+  border-radius: 10px;
+}
+
+/* Issue 14 — Align category chip left edge with search input left edge */
+.pulsecheck-cat-bar {
+  padding-left: 0;
+}
+.pulsecheck-cat-scroller {
+  padding-left: 0;
+}
+
+/* Issue 16 — Export and CTA buttons share identical min-height via .trend-action-btn (already above) */
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Bento Grid Layout for Deep Intelligence (Zero Dead Space)
+   ══════════════════════════════════════════════════════════════════════════════ */
+.trend-intel-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.trend-intel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.trend-intel-col .tool-results-panel {
+  margin-bottom: 0;
+}
+
+/* Compact summary metric cards replacing tall stacked rows */
+.trend-summary-box {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 14px;
+}
+
+.trend-summary-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.trend-summary-row .text-slate-600 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.trend-summary-row strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.quote-box {
+  background: #f8fafc;
+  border-left: 3px solid #4f46e5;
+  border-radius: 0 8px 8px 0;
   padding: 10px 14px;
   font-size: 0.88rem;
   color: #334155;
@@ -3582,4 +3777,22 @@ footer {
   .trend-intel-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.chart-empty-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.trend-tab-btn.dimmed {
+  opacity: 0.5;
+  cursor: pointer;
 }

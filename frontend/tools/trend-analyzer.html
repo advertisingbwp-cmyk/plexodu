@@ -9,7 +9,7 @@
 <link rel="canonical" href="https://plexudo.vercel.app/tools/trend-analyzer">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
-<link rel="stylesheet" href="/css/style.css?v=24.0">
+<link rel="stylesheet" href="/css/style.css?v=25.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -277,6 +277,7 @@
 
           <div class="chart-container-box">
             <canvas id="viewsChart"></canvas>
+            <div id="viewsChartEmpty" class="chart-empty-placeholder" style="display:none;"></div>
           </div>
           <div id="chartBaselineNote" class="text-slate-500 font-0-8 text-center mt-8" style="display:none;">
             📍 Initial baseline recorded today. Recurring scans connect future observations into an audited trajectory curve.
@@ -491,6 +492,6 @@
 </footer>
 
 <script src="/js/tools/common.js?v=10.0"></script>
-<script src="/js/tools/trend-analyzer.js?v=24.0"></script>
+<script src="/js/tools/trend-analyzer.js?v=25.0"></script>
 </body>
 </html>
