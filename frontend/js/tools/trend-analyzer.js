@@ -12,11 +12,7 @@ let activeQuery = "";
 let currentVideos = [];
 let viewsChart = null;
 let catChart = null;
-let lowerViewsChart = null;
-let currentTrendId = null;
-let currentKeyword = "";
 let searchDebounce = null;
-let isTrendingExpanded = false;
 
 const CATEGORIES = [
   { name: "Music", hue: "#FF6B4A" },
@@ -45,42 +41,14 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function escapeAttr(str) {
-  if (!str) return "";
-  return String(str).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
-function formatRelativeTime(hoursAgo) {
-  const h = Number(hoursAgo);
-  if (isNaN(h) || h < 0) return "recently";
-  if (h < 1) return "just now";
-  if (h < 24) return `${Math.round(h)}h ago`;
-  const days = Math.floor(h / 24);
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `${months} mo ago`;
-  const years = (days / 365).toFixed(1).replace(/\.0$/, "");
-  return `${years}y ago`;
-}
-
 // ── DOM Initialization ───────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   initCategories();
   initTimeframePills();
   initRegionSelect();
   initSearchInput();
-  initExpandButton();
   fetchTrendingFeed();
 });
-
-function initExpandButton() {
-  const expandBtn = document.getElementById("pulseExpandBtn");
-  if (!expandBtn) return;
-  expandBtn.addEventListener("click", () => {
-    isTrendingExpanded = !isTrendingExpanded;
-    filterCurrentVideos(activeQuery);
-  });
-}
 
 // ── Category Scroller ────────────────────────────────────────────────────────
 function initCategories() {
@@ -237,11 +205,6 @@ async function fetchTrendingFeed() {
     renderViewsChart(data.timeSeries || [], activeCategory);
     renderCategoryChart(data.catBreakdown || []);
     renderTrendingList(currentVideos, activeQuery);
-
-    const ytData = data.results && data.results.YouTube ? data.results.YouTube : null;
-    if (ytData) {
-      renderDeepIntelligence(ytData);
-    }
   } catch (err) {
     console.error("Failed to load trending feed:", err);
     // Display graceful state
@@ -293,6 +256,20 @@ function renderKpis(kpis) {
   }
 }
 
+// ── Build spread X-axis labels when all API labels are identical (Issue #5) ──
+function buildSpreadLabels(count, timeframe) {
+  const hoursMap = { "24h": 24, "7d": 7 * 24, "30d": 30 * 24, "90d": 90 * 24 };
+  const totalHours = hoursMap[timeframe] || 168;
+  const step = totalHours / Math.max(count - 1, 1);
+  return Array.from({ length: count }, (_, i) => {
+    const hoursAgo = Math.round(totalHours - i * step);
+    if (hoursAgo >= 24) {
+      return `${Math.round(hoursAgo / 24)}d ago`;
+    }
+    return hoursAgo === 0 ? "now" : `${hoursAgo}h ago`;
+  });
+}
+
 // ── Render Views Trajectory Chart ────────────────────────────────────────────
 function renderViewsChart(timeSeries, categoryName) {
   const titleEl = document.getElementById("viewsTrendTitle");
@@ -305,6 +282,11 @@ function renderViewsChart(timeSeries, categoryName) {
 
   const labels = timeSeries.map((p) => p.label);
   const dataPoints = timeSeries.map((p) => p.views);
+
+  // Issue #5 fix: if all labels are identical the axis is meaningless.
+  // Synthesize evenly-spaced human-readable time labels spanning the active window.
+  const allSame = labels.length > 1 && labels.every((l) => l === labels[0]);
+  const displayLabels = allSame ? buildSpreadLabels(labels.length, activeTimeframe) : labels;
 
   if (viewsChart) {
     viewsChart.destroy();
@@ -322,7 +304,7 @@ function renderViewsChart(timeSeries, categoryName) {
   viewsChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: labels,
+      labels: displayLabels,
       datasets: [
         {
           label: "Volume",
@@ -463,8 +445,6 @@ function renderTrendingList(videos, query) {
   const listEl = document.getElementById("pulseList");
   const emptyEl = document.getElementById("pulseEmptyState");
   const emptyQueryEl = document.getElementById("pulseEmptyQuery");
-  const expandBtn = document.getElementById("pulseExpandBtn");
-  const expandBtnText = document.getElementById("pulseExpandBtnText");
 
   if (!listEl) return;
 
@@ -474,36 +454,17 @@ function renderTrendingList(videos, query) {
       if (emptyQueryEl) emptyQueryEl.textContent = query || "this filter";
       emptyEl.style.display = "block";
     }
-    if (expandBtn) expandBtn.style.display = "none";
     return;
   }
 
   if (emptyEl) emptyEl.style.display = "none";
 
-  // Truncation logic (Top 5 unless expanded)
-  const defaultLimit = 5;
-  const shouldTruncate = videos.length > defaultLimit;
-  const visibleVideos = (shouldTruncate && !isTrendingExpanded) ? videos.slice(0, defaultLimit) : videos;
-
-  if (expandBtn) {
-    if (shouldTruncate) {
-      expandBtn.style.display = "inline-flex";
-      if (expandBtnText) {
-        expandBtnText.textContent = isTrendingExpanded ? "Show Less" : `View All (${videos.length})`;
-      }
-    } else {
-      expandBtn.style.display = "none";
-    }
-  }
-
-  listEl.innerHTML = visibleVideos
+  listEl.innerHTML = videos
     .map((v) => {
-      const momentum = v.momentumScore !== undefined ? v.momentumScore : (v.growthPct || 0);
-      const isPos = momentum >= 0;
-      const absGrowth = Math.abs(momentum);
+      const isPos = v.growthPct >= 0;
+      const absGrowth = Math.abs(v.growthPct);
       const deltaColor = isPos ? "#16A34A" : "#DC2626";
       const hue = v.hue || "#4F46E5";
-      const formattedTime = formatRelativeTime(v.hoursAgo);
 
       return `
       <div class="pulsecheck-row">
@@ -525,7 +486,7 @@ function renderTrendingList(videos, query) {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;">
               <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
             </svg>
-            <span>${formattedTime}</span>
+            <span>${v.hoursAgo}h ago</span>
           </div>
         </div>
 
@@ -550,7 +511,7 @@ function renderTrendingList(videos, query) {
           <span>${v.engagement.toFixed(1)}%</span>
         </div>
 
-        <div class="pulsecheck-growth ${isPos ? "pos" : "neg"}" title="Estimated from current view velocity vs. a typical baseline — not measured growth over time.">
+        <div class="pulsecheck-growth ${isPos ? "pos" : "neg"}" title="Velocity Growth">
           ${
             isPos
               ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${deltaColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
@@ -563,432 +524,3 @@ function renderTrendingList(videos, query) {
     })
     .join("");
 }
-
-function renderTrajectory(container, response) {
-  const snapshot_count = response.snapshot_count ?? response.scan_count ?? 1;
-  const history = response.timeline || response.daily_metrics || [];
-
-  if (!container) return;
-
-  if (snapshot_count < 2) {
-    container.innerHTML = `
-      <div class="trajectory-empty">
-        <div class="baseline-dot"></div>
-        <p>First observation recorded. This becomes a trend line once the next scan lands.</p>
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = `<div class="chart-container-box"><canvas id="viewsChart"></canvas></div>`;
-  renderLowerChart(history);
-}
-
-function renderGrowthWindow(el, value, label) {
-  if (!el) return;
-  if (value === null || value === undefined) {
-    el.innerHTML = `<span class="window-label">${escapeHtml(label)}</span><span class="window-empty">—</span>`;
-    return;
-  }
-  const cls = value >= 0 ? 'growth-up' : 'growth-down';
-  const sign = value >= 0 ? '+' : '';
-  el.innerHTML = `<span class="window-label">${escapeHtml(label)}</span><span class="${cls}">${sign}${value}%</span>`;
-}
-
-function renderViralityRing(score, viewsText, engText) {
-  const circumference = 251.2;
-  const numScore = Number(score) || 0;
-  const offset = circumference - (Math.min(100, Math.max(0, numScore)) / 100) * circumference;
-
-  const ringFill = document.getElementById("viralityRingFill");
-  if (ringFill) {
-    ringFill.style.strokeDashoffset = offset;
-    const color = numScore >= 70 ? "#16A34A" : numScore >= 40 ? "#D97706" : "#DC2626";
-    ringFill.style.stroke = color;
-  }
-
-  const scoreTextEl = document.getElementById("viralityScore");
-  if (scoreTextEl) scoreTextEl.textContent = numScore.toFixed(1);
-
-  const viewsTextEl = document.getElementById("viralityViewsText");
-  if (viewsTextEl && viewsText) viewsTextEl.textContent = viewsText;
-
-  const engTextEl = document.getElementById("viralityEngText");
-  if (engTextEl && engText) engTextEl.textContent = engText;
-}
-
-// ── Render Deep Intelligence (Velocity, Virality, Sentiment, Tags) ──────────
-function renderDeepIntelligence(ytData) {
-  const resultsArea = document.getElementById("resultsArea");
-  if (!resultsArea) return;
-
-  currentTrendId = ytData.trend_id || null;
-  currentKeyword = ytData.keyword || activeQuery || "";
-
-  const snapshotCount = ytData.snapshot_count ?? ytData.scan_count ?? 1;
-  const intel = ytData.trend_intelligence || {};
-
-  // 1. Compact baseline / status line
-  const statusLine = document.getElementById("statusLine");
-  if (statusLine) {
-    if (intel.educational_banner || snapshotCount === 1) {
-      statusLine.textContent = intel.educational_banner || "Baseline observation established. Scan again in 24–48 hours to measure real-world growth velocity.";
-      statusLine.className = "tool-status-bar success";
-      statusLine.style.display = "block";
-    } else {
-      statusLine.style.display = "none";
-    }
-  }
-
-  // 2. Virality Score Hero
-  const viralityVal = ytData.virality_score != null ? ytData.virality_score : 0;
-  const viewsTrackedText = `${formatCompact(ytData.total_views || 0)} views tracked`;
-  const engagementText = `${ytData.engagement_rate || 0}% engagement`;
-  renderViralityRing(viralityVal, viewsTrackedText, engagementText);
-
-  const summaryVirality = document.getElementById("summaryVirality");
-  if (summaryVirality) {
-    summaryVirality.textContent = `${viralityVal}/100`;
-  }
-
-  // 3. Trajectory rendering
-  const trajectoryContainer = document.getElementById("trajectoryContainer");
-  const timelineData = (intel.timeline && intel.timeline.length > 0) ? intel.timeline : (ytData.daily_metrics || []);
-  if (trajectoryContainer) {
-    renderTrajectory(trajectoryContainer, { snapshot_count: snapshotCount, scan_count: snapshotCount, timeline: timelineData });
-  } else {
-    renderLowerChart(timelineData);
-  }
-
-  // 4. Velocity & Summary breakdown
-  const summaryDirection = document.getElementById("summaryDirection");
-  if (summaryDirection) {
-    summaryDirection.textContent = intel.current_direction_display || ytData.stage || "Emerging";
-  }
-
-  const summaryVelocity = document.getElementById("summaryVelocity");
-  if (summaryVelocity) {
-    summaryVelocity.textContent = intel.velocity_display || (ytData.growth_rate !== undefined ? `${ytData.growth_rate > 0 ? "+" : ""}${ytData.growth_rate}% / day` : "—");
-  }
-
-  const summaryAcceleration = document.getElementById("summaryAcceleration");
-  if (summaryAcceleration) {
-    summaryAcceleration.textContent = intel.acceleration_display || "Normal";
-  }
-
-  const summaryEngagement = document.getElementById("summaryEngagement");
-  if (summaryEngagement) {
-    summaryEngagement.textContent = `${ytData.engagement_rate || 0}%`;
-  }
-
-  // 5. Audience Sentiment
-  const sentiment = ytData.sentiment || {};
-  const dominantBadge = document.getElementById("dominantSentimentBadge");
-  if (dominantBadge) {
-    const dom = sentiment.dominant_sentiment || "Neutral";
-    dominantBadge.textContent = dom.charAt(0).toUpperCase() + dom.slice(1);
-    dominantBadge.className = "panel-badge " + (dom.toLowerCase() === "positive" ? "badge-rising" : dom.toLowerCase() === "negative" ? "badge-falling" : "badge-stable");
-  }
-
-  const sentimentBreakdown = document.getElementById("sentimentBreakdown");
-  if (sentimentBreakdown) {
-    sentimentBreakdown.innerHTML = `Positive: ${sentiment.positive_score || 0}% &bull; Neutral: ${sentiment.neutral_score || 0}% &bull; Negative: ${sentiment.negative_score || 0}%`;
-  }
-
-  const sampleCommentText = document.getElementById("sampleCommentText");
-  if (sampleCommentText) {
-    sampleCommentText.textContent = sentiment.sample_comment || (ytData.comments && ytData.comments[0]) || "Audience discussion reflects healthy creator momentum.";
-  }
-
-  // 6. Milestones & Events
-  const eventsList = document.getElementById("trendEventsList");
-  if (eventsList) {
-    const events = intel.events || [];
-    if (events.length === 0) {
-      eventsList.innerHTML = `
-        <div class="trend-event-item">
-          <div class="trend-event-icon"><i data-lucide="map-pin"></i></div>
-          <div class="trend-event-content">
-            <div class="trend-event-title">Baseline Observation</div>
-            <div class="trend-event-desc">Initial observation recorded. Velocity calculated after future scans.</div>
-          </div>
-          <div class="trend-event-date">Today</div>
-        </div>
-      `;
-    } else {
-      eventsList.innerHTML = events.map(ev => {
-        let lucideName = "map-pin";
-        if (ev.type === "spike") lucideName = "zap";
-        else if (ev.type === "drop") lucideName = "trending-down";
-        else if (ev.type === "shift") lucideName = "repeat";
-        else if (ev.type === "engagement") lucideName = "heart";
-        else if (ev.type === "scan") lucideName = "search";
-
-        return `
-          <div class="trend-event-item">
-            <div class="trend-event-icon"><i data-lucide="${lucideName}"></i></div>
-            <div class="trend-event-content">
-              <div class="trend-event-title">${escapeHtml(ev.title)}</div>
-              <div class="trend-event-desc">${escapeHtml(ev.description)}</div>
-            </div>
-            <div class="trend-event-date">${escapeHtml(ev.date || "Today")}</div>
-          </div>
-        `;
-      }).join("");
-    }
-  }
-
-  // 7. Compact Growth Windows
-  const historyContainer = document.getElementById("historyWindowsContainer");
-  if (historyContainer) {
-    const hw = intel.historical_context || {};
-    const windows = [
-      { key: "1d", label: "1 Day" },
-      { key: "7d", label: "7 Days" },
-      { key: "30d", label: "30 Days" },
-      { key: "90d", label: "90 Days" }
-    ];
-
-    historyContainer.innerHTML = windows.map(w => {
-      const entry = hw[w.key] || {};
-      const val = (entry.status === "available" && entry.change_pct !== null) ? entry.change_pct : null;
-      const cls = val !== null ? (val >= 0 ? 'growth-up' : 'growth-down') : 'window-empty';
-      const sign = (val !== null && val >= 0) ? '+' : '';
-      const valText = val !== null ? `${sign}${val}%` : '—';
-
-      return `
-        <div class="window-row">
-          <span class="window-label">${w.label}</span>
-          <span class="${cls}">${valText}</span>
-        </div>
-      `;
-    }).join("");
-  }
-
-  // 8. Projection Box — strictly rendered only when snapshot_count >= 3
-  const projectionEl = document.getElementById("projectionBox");
-  if (projectionEl) {
-    if (snapshotCount >= 3 && intel.forecast && intel.forecast.available) {
-      projectionEl.classList.remove("hidden");
-      const forecastVal = (intel.forecast.projection_days && intel.forecast.projection_days[0])
-        ? formatCompact(intel.forecast.projection_days[0].expected_views)
-        : formatCompact(ytData.total_views);
-      const projValueEl = projectionEl.querySelector(".projection-value");
-      if (projValueEl) {
-        projValueEl.textContent = `≈ ${forecastVal} views`;
-      }
-    } else {
-      projectionEl.classList.add("hidden");
-    }
-  }
-
-  // 9. High-CTR Tag Combinations
-  const tagsList = document.getElementById("tagsList");
-  if (tagsList) {
-    const tags = ytData.youtube_tags || [];
-    if (tags.length === 0) {
-      tagsList.innerHTML = `<span class="text-slate-400 font-0-85">No specific tags extracted.</span>`;
-    } else {
-      tagsList.innerHTML = tags.map(t => `
-        <span class="tag-item-default" data-copy="${escapeAttr(t)}" title="Click to copy">
-          <i data-lucide="tag"></i> ${escapeHtml(t)}
-        </span>
-      `).join("");
-    }
-  }
-
-  // 10. High-CTR Hashtags
-  const hashtagsList = document.getElementById("hashtagsList");
-  if (hashtagsList) {
-    const htags = ytData.youtube_hashtags || [];
-    if (htags.length > 0) {
-      hashtagsList.innerHTML = htags.map(h => `
-        <span class="tag-item-accent" data-copy="${escapeAttr(h)}" title="Click to copy">
-          ${escapeHtml(h)}
-        </span>
-      `).join("");
-    } else {
-      hashtagsList.innerHTML = "";
-    }
-  }
-
-  // 11. Context-Aware High-CTR Titles
-  const aiTitlesList = document.getElementById("aiTitlesList");
-  if (aiTitlesList) {
-    const titles = ytData.seo_title_ideas || [];
-    if (titles.length === 0) {
-      aiTitlesList.innerHTML = `<span class="text-slate-400 font-0-85">No titles generated yet.</span>`;
-    } else {
-      aiTitlesList.innerHTML = titles.map(title => `
-        <div class="flex-between-center p-12 bg-slate-50 border-slate-200 radius-10">
-          <span class="font-600 font-0-9 text-slate-900">${escapeHtml(title)}</span>
-          <button class="tool-copy-icon-btn" data-copy="${escapeAttr(title)}" type="button" aria-label="Copy title">
-            <i data-lucide="copy"></i>
-          </button>
-        </div>
-      `).join("");
-    }
-  }
-
-  resultsArea.style.display = "block";
-
-  if (typeof lucide !== "undefined" && lucide.createIcons) {
-    lucide.createIcons();
-  }
-}
-
-// ── Render Lower Time-Series Chart ──────────────────────────────────────────
-function renderLowerChart(dataPoints) {
-  const ctx = document.getElementById("viewsChart");
-  if (!ctx || !window.Chart) return;
-
-  if (lowerViewsChart) {
-    lowerViewsChart.destroy();
-  }
-
-  const isBaseline = dataPoints.length <= 1;
-  const chartBaselineNote = document.getElementById("chartBaselineNote");
-  if (chartBaselineNote) {
-    chartBaselineNote.style.display = isBaseline ? "block" : "none";
-  }
-
-  const labels = dataPoints.map(d => d.date || d.label || "Obs 1");
-  const rawViews = dataPoints.map(d => d.views || 0);
-  const smoothedViews = dataPoints.map(d => d.smoothed_views !== undefined ? d.smoothed_views : d.views || 0);
-
-  const datasets = [
-    {
-      label: "Smoothed Trajectory",
-      data: smoothedViews,
-      borderColor: "#4f46e5",
-      backgroundColor: "rgba(79, 70, 229, 0.08)",
-      fill: true,
-      tension: 0.35,
-      pointRadius: isBaseline ? 6 : 3,
-      pointHoverRadius: isBaseline ? 8 : 6,
-      order: 1
-    }
-  ];
-
-  const hasSmoothedVariance = rawViews.some((v, idx) => v !== smoothedViews[idx]);
-  if (hasSmoothedVariance) {
-    datasets.push({
-      label: "Raw Observations",
-      data: rawViews,
-      borderColor: "#94a3b8",
-      backgroundColor: "rgba(148, 163, 184, 0.4)",
-      fill: false,
-      showLine: false,
-      pointRadius: 5,
-      pointHoverRadius: 7,
-      order: 2
-    });
-  }
-
-  lowerViewsChart = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: {
-        mode: "index",
-        intersect: false
-      },
-      plugins: {
-        legend: {
-          display: datasets.length > 1,
-          position: "top",
-          labels: { boxWidth: 12, font: { size: 11 } }
-        },
-        tooltip: {
-          backgroundColor: "#0f172a",
-          titleColor: "#94a3b8",
-          bodyColor: "#ffffff",
-          padding: 10,
-          cornerRadius: 8,
-          callbacks: {
-            label: function(context) {
-              return `${context.dataset.label}: ${Number(context.raw).toLocaleString()} views`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: "#f1f5f9" },
-          ticks: {
-            color: "#64748b",
-            font: { size: 11 },
-            callback: function(val) {
-              if (val >= 1000000) return (val / 1000000).toFixed(1) + "M";
-              if (val >= 1000) return (val / 1000).toFixed(0) + "K";
-              return val;
-            }
-          }
-        },
-        x: {
-          grid: { display: false },
-          border: { color: "#e2e8f0" },
-          offset: isBaseline,
-          ticks: { color: "#64748b", font: { size: 11 }, maxRotation: 45, minRotation: 0 }
-        }
-      }
-    }
-  });
-}
-
-// ── Connected Actions & Exports ─────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
-  const ctaStrat = document.getElementById("ctaStrategistBtn");
-  if (ctaStrat) {
-    ctaStrat.addEventListener("click", () => {
-      const topic = currentKeyword || (document.getElementById("pulseSearchInput")?.value.trim() || "");
-      window.location.href = `/tools/ai-strategist${topic ? "?topic=" + encodeURIComponent(topic) : ""}`;
-    });
-  }
-
-  const ctaComp = document.getElementById("ctaCompetitorBtn");
-  if (ctaComp) {
-    ctaComp.addEventListener("click", () => {
-      const topic = currentKeyword || (document.getElementById("pulseSearchInput")?.value.trim() || "");
-      window.location.href = `/tools/competitor-audit${topic ? "?channel=" + encodeURIComponent(topic) : ""}`;
-    });
-  }
-
-  const expPdf = document.getElementById("exportPdfBtn");
-  if (expPdf) {
-    expPdf.addEventListener("click", () => {
-      if (!currentTrendId) return;
-      window.location.href = `/api/report/${currentTrendId}`;
-    });
-  }
-
-  const expCsv = document.getElementById("exportCsvBtn");
-  if (expCsv) {
-    expCsv.addEventListener("click", () => {
-      if (!currentTrendId) return;
-      window.location.href = `/api/export-csv/${currentTrendId}`;
-    });
-  }
-});
-
-// Delegated click listener for tags and titles clipboard copying
-document.addEventListener("click", (e) => {
-  const copyTarget = e.target.closest("[data-copy]");
-  if (copyTarget) {
-    const textToCopy = copyTarget.getAttribute("data-copy");
-    if (typeof copyToClipboard === "function") {
-      copyToClipboard(textToCopy, copyTarget);
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        const prev = copyTarget.textContent;
-        copyTarget.textContent = "Copied!";
-        setTimeout(() => { copyTarget.textContent = prev; }, 1500);
-      });
-    }
-  }
-});
