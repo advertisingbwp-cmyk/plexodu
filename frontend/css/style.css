@@ -3510,4 +3510,76 @@ footer {
 
 /* Issue 16 — Export and CTA buttons share identical min-height via .trend-action-btn (already above) */
 
+/* ══════════════════════════════════════════════════════════════════════════════
+   Bento Grid Layout for Deep Intelligence (Zero Dead Space)
+   ══════════════════════════════════════════════════════════════════════════════ */
+.trend-intel-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
 
+.trend-intel-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.trend-intel-col .tool-results-panel {
+  margin-bottom: 0;
+}
+
+/* Compact summary metric cards replacing tall stacked rows */
+.trend-summary-box {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 14px;
+}
+
+.trend-summary-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.trend-summary-row .text-slate-600 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.trend-summary-row strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.quote-box {
+  background: #f8fafc;
+  border-left: 3px solid #4f46e5;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+@media (max-width: 900px) {
+  .trend-intel-grid {
+    grid-template-columns: 1fr;
+  }
+}

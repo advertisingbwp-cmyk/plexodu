@@ -9,7 +9,7 @@
 <link rel="canonical" href="https://plexudo.vercel.app/tools/trend-analyzer">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3">
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
-<link rel="stylesheet" href="/css/style.css?v=23.0">
+<link rel="stylesheet" href="/css/style.css?v=24.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -258,127 +258,135 @@
       </div>
     </div>
 
-    <!-- Charts & Sentiment 2-Col Grid -->
-    <div class="tool-grid-2col mb-24">
-      <!-- Left: Interactive Trend Graph -->
-      <div class="tool-results-panel">
-        <div class="trend-graph-header">
-          <h3 class="m-0 font-1-1">📈 Time-Series View Trajectory</h3>
-          <div class="trend-timeframe-tabs">
-            <button class="trend-tab-btn active" data-range="all">All</button>
-            <button class="trend-tab-btn" data-range="1d">1D</button>
-            <button class="trend-tab-btn" data-range="7d">7D</button>
-            <button class="trend-tab-btn" data-range="30d">30D</button>
-            <button class="trend-tab-btn" data-range="90d">90D</button>
-          </div>
-        </div>
-
-        <div class="chart-container-box">
-          <canvas id="viewsChart"></canvas>
-        </div>
-        <div id="chartBaselineNote" class="text-slate-500 font-0-8 text-center mt-8" style="display:none;">
-          📍 Initial baseline recorded today. Recurring scans connect future observations into an audited trajectory curve.
-        </div>
-
-        <div class="trend-summary-box">
-          <div class="trend-summary-row">
-            <span class="text-slate-600">Directional Stage</span>
-            <strong id="summaryDirection">—</strong>
-          </div>
-          <div class="trend-summary-row">
-            <span class="text-slate-600">Velocity</span>
-            <strong id="summaryVelocity">—</strong>
-          </div>
-          <div class="trend-summary-row">
-            <span class="text-slate-600">Acceleration</span>
-            <strong id="summaryAcceleration">—</strong>
-          </div>
-          <div class="trend-summary-row">
-            <span class="text-slate-600">Audience Engagement</span>
-            <strong id="summaryEngagement">—</strong>
-          </div>
-          <div class="trend-summary-row">
-            <span class="text-slate-600">Virality Index</span>
-            <strong id="summaryVirality">—</strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right: Sentiment & Derived Trend Events -->
-      <div class="tool-results-panel">
-        <h3 class="mb-16 font-1-1">💬 Audience Sentiment</h3>
-        <div id="sentimentSummary" class="mb-16">
-          <div class="flex-between-center mb-8">
-            <span>Dominant Sentiment:</span>
-            <span id="dominantSentimentBadge" class="panel-badge badge-stable">Neutral</span>
-          </div>
-          <div id="sentimentBreakdown" class="text-slate-500 font-0-9">
-            Positive: 0% &bull; Neutral: 0% &bull; Negative: 0%
-          </div>
-        </div>
-        <div class="quote-box mb-24">
-          <strong>Sample Audience Voice:</strong>
-          <p id="sampleCommentText" class="mt-6 text-italic">No comments analyzed yet.</p>
-        </div>
-
-        <h3 class="mb-12 font-1-1">⚡ Trend Milestones & Events</h3>
-        <div id="trendEventsList" class="trend-events-list">
-          <div class="trend-event-item">
-            <div class="trend-event-icon">📍</div>
-            <div class="trend-event-content">
-              <div class="trend-event-title">Baseline Created</div>
-              <div class="trend-event-desc">Initial observation recorded.</div>
+    <!-- Deep Intelligence Bento Layout (Zero Dead Space) -->
+    <div class="trend-intel-grid mb-24">
+      <!-- Left Column: Trajectory & Historical Windows -->
+      <div class="trend-intel-col">
+        <!-- 1. Interactive Trend Graph & Velocity -->
+        <div class="tool-results-panel">
+          <div class="trend-graph-header">
+            <h3 class="m-0 font-1-1">📈 Time-Series View Trajectory</h3>
+            <div class="trend-timeframe-tabs">
+              <button class="trend-tab-btn active" data-range="all">All</button>
+              <button class="trend-tab-btn" data-range="1d">1D</button>
+              <button class="trend-tab-btn" data-range="7d">7D</button>
+              <button class="trend-tab-btn" data-range="30d">30D</button>
+              <button class="trend-tab-btn" data-range="90d">90D</button>
             </div>
-            <div class="trend-event-date">Today</div>
+          </div>
+
+          <div class="chart-container-box">
+            <canvas id="viewsChart"></canvas>
+          </div>
+          <div id="chartBaselineNote" class="text-slate-500 font-0-8 text-center mt-8" style="display:none;">
+            📍 Initial baseline recorded today. Recurring scans connect future observations into an audited trajectory curve.
+          </div>
+
+          <div class="trend-summary-box">
+            <div class="trend-summary-row">
+              <span class="text-slate-600">Directional Stage</span>
+              <strong id="summaryDirection">—</strong>
+            </div>
+            <div class="trend-summary-row">
+              <span class="text-slate-600">Velocity</span>
+              <strong id="summaryVelocity">—</strong>
+            </div>
+            <div class="trend-summary-row">
+              <span class="text-slate-600">Acceleration</span>
+              <strong id="summaryAcceleration">—</strong>
+            </div>
+            <div class="trend-summary-row">
+              <span class="text-slate-600">Audience Engagement</span>
+              <strong id="summaryEngagement">—</strong>
+            </div>
+            <div class="trend-summary-row">
+              <span class="text-slate-600">Virality Index</span>
+              <strong id="summaryVirality">—</strong>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Historical Context Table & 7-Day Forecast 2-Col Grid -->
-    <div class="tool-grid-2col mb-24">
-      <div class="tool-results-panel">
-        <h3 class="mb-12 font-1-1">⏱️ Historical Change Windows</h3>
-        <table class="trend-history-table">
-          <thead>
-            <tr>
-              <th>Window</th>
-              <th>Observed Growth</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="historyTableBody">
-            <tr>
-              <td><strong>1 Day</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-            <tr>
-              <td><strong>7 Days</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-            <tr>
-              <td><strong>30 Days</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-            <tr>
-              <td><strong>90 Days</strong></td>
-              <td>—</td>
-              <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- 2. Historical Context Table -->
+        <div class="tool-results-panel">
+          <h3 class="mb-12 font-1-1">⏱️ Historical Change Windows</h3>
+          <table class="trend-history-table">
+            <thead>
+              <tr>
+                <th>Window</th>
+                <th>Observed Growth</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr>
+                <td><strong>1 Day</strong></td>
+                <td>—</td>
+                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
+              </tr>
+              <tr>
+                <td><strong>7 Days</strong></td>
+                <td>—</td>
+                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
+              </tr>
+              <tr>
+                <td><strong>30 Days</strong></td>
+                <td>—</td>
+                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
+              </tr>
+              <tr>
+                <td><strong>90 Days</strong></td>
+                <td>—</td>
+                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="tool-results-panel">
-        <h3 class="mb-12 font-1-1">🔮 Conservative 7-Day Projection</h3>
-        <div id="forecastContainer">
-          <div id="forecastFallback" class="p-16 text-slate-500 text-center font-0-9">
-            Projection engine activates after 3+ historical observations to ensure dampening precision without speculative extrapolation.
+      <!-- Right Column: Sentiment, Milestones & Forecast -->
+      <div class="trend-intel-col">
+        <!-- 3. Sentiment & Real Voice -->
+        <div class="tool-results-panel">
+          <h3 class="mb-16 font-1-1">💬 Audience Sentiment</h3>
+          <div id="sentimentSummary" class="mb-16">
+            <div class="flex-between-center mb-8">
+              <span>Dominant Sentiment:</span>
+              <span id="dominantSentimentBadge" class="panel-badge badge-stable">Neutral</span>
+            </div>
+            <div id="sentimentBreakdown" class="text-slate-500 font-0-9">
+              Positive: 0% &bull; Neutral: 0% &bull; Negative: 0%
+            </div>
           </div>
-          <div id="forecastGrid" class="trend-forecast-grid" style="display:none;"></div>
+          <div class="quote-box">
+            <strong>Sample Audience Voice:</strong>
+            <p id="sampleCommentText" class="mt-6 text-italic">No comments analyzed yet.</p>
+          </div>
+        </div>
+
+        <!-- 4. Trend Milestones & Events -->
+        <div class="tool-results-panel">
+          <h3 class="mb-12 font-1-1">⚡ Trend Milestones & Events</h3>
+          <div id="trendEventsList" class="trend-events-list">
+            <div class="trend-event-item">
+              <div class="trend-event-icon">📍</div>
+              <div class="trend-event-content">
+                <div class="trend-event-title">Baseline Created</div>
+                <div class="trend-event-desc">Initial observation recorded.</div>
+              </div>
+              <div class="trend-event-date">Today</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 7-Day Forecast Projection -->
+        <div class="tool-results-panel">
+          <h3 class="mb-12 font-1-1">🔮 Conservative 7-Day Projection</h3>
+          <div id="forecastContainer">
+            <div id="forecastFallback" class="p-16 text-slate-500 text-center font-0-9">
+              Projection engine activates after 3+ historical observations to ensure dampening precision without speculative extrapolation.
+            </div>
+            <div id="forecastGrid" class="trend-forecast-grid" style="display:none;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -483,6 +491,6 @@
 </footer>
 
 <script src="/js/tools/common.js?v=10.0"></script>
-<script src="/js/tools/trend-analyzer.js?v=23.0"></script>
+<script src="/js/tools/trend-analyzer.js?v=24.0"></script>
 </body>
 </html>
