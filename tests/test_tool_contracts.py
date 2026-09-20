@@ -542,4 +542,14 @@ def test_tools_index_has_4_tools_only():
     assert "28-day" not in html, "tools/index.html must not contain misleading 28-day claims"
 
 
+# --- 17. Trend Analyzer Search Only On Button / Enter (No Quota Drain On Input) ---
 
+def test_trend_analyzer_search_only_on_button_or_enter():
+    """Verify trend-analyzer.js does not auto-search while typing (prevents API quota burn)."""
+    js_path = REPO_ROOT / "frontend" / "js" / "tools" / "trend-analyzer.js"
+    with open(js_path, "r", encoding="utf-8") as f:
+        js = f.read()
+
+    assert "searchDebounce" not in js, "trend-analyzer.js must not contain searchDebounce on input"
+    assert "analyzeBtn" in js, "trend-analyzer.js must bind search to analyzeBtn"
+    assert "fetchTrendingFeed();" in js, "trend-analyzer.js must run auto-scan once on initial page load"

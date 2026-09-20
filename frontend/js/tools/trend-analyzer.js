@@ -17,7 +17,6 @@ let currentTrendId = null;
 let currentKeyword = "";
 let currentTimelineRaw = [];
 let currentLowerRange = "all";
-let searchDebounce = null;
 
 const CATEGORIES = [
   { name: "Music", hue: "#FF6B4A" },
@@ -155,35 +154,28 @@ function initSearchInput() {
   if (!inp) return;
 
   const btn = document.getElementById("analyzeBtn");
+
+  const executeSearch = () => {
+    activeQuery = inp.value.trim();
+    fetchTrendingFeed(true);
+  };
+
   if (btn) {
-    btn.addEventListener("click", () => {
-      clearTimeout(searchDebounce);
-      activeQuery = inp.value.trim();
-      fetchTrendingFeed(true);
-    });
+    btn.addEventListener("click", executeSearch);
   }
 
   inp.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      clearTimeout(searchDebounce);
-      activeQuery = inp.value.trim();
-      fetchTrendingFeed(true);
+      executeSearch();
     }
   });
 
+  // If user clears the input box, reset activeQuery state without calling API
   inp.addEventListener("input", (e) => {
-    const val = e.target.value.trim();
-    activeQuery = val;
-
-    // Instant local filtering of current videos
-    filterCurrentVideos(val);
-
-    // Debounced full YouTube API search
-    clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(() => {
-      fetchTrendingFeed(false);
-    }, 450);
+    if (!e.target.value.trim()) {
+      activeQuery = "";
+    }
   });
 }
 
