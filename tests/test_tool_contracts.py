@@ -71,6 +71,31 @@ def test_chat_returns_reply_key(client, flask_mod):
     assert data["reply"] == "Here is your strategy!"
 
 
+def test_chat_topic_detection_and_fallback(client, flask_mod):
+    """Verify /api/chat automatically detects trending topic and calls fallback if groq fails."""
+    # When Groq request fails, fallback is called
+    with patch("backend.services.groq_service.requests.post", side_effect=Exception("API key unavailable")):
+        res = client.post(
+            "/api/chat",
+            data=json.dumps({"message": 'Help me create a content strategy and viral video ideas for the trending topic: "free fire tips"'}),
+            content_type="application/json",
+        )
+
+    assert res.status_code == 200
+    data = res.get_json()
+    assert "reply" in data
+    reply = data["reply"]
+    # Check 2026 year grounding and high-CTR structure
+    assert "2026" in reply
+    assert "CTR Strength" in reply
+    assert "Hook" in reply
+    assert "Thumbnail" in reply
+    # Must never mention outdated year or fake characters
+    assert "2024" not in reply
+    assert "Zofia" not in reply
+    assert "Raptor" not in reply
+
+
 # --- 2. /api/video-analysis normalizes channel_title, views, published_at ----
 
 def test_video_analysis_normalized_keys(client, flask_mod):

@@ -18,16 +18,16 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 DEPRECATED_MODELS = {"openai/gpt-oss-120b", "mixtral-8x7b-32768"}
 configured_model = (settings.GROQ_MODEL or os.environ.get("GROQ_MODEL", "")).strip()
 if not configured_model or configured_model in DEPRECATED_MODELS:
-    configured_model = "openai/gpt-oss-20b"
+    configured_model = "llama-3.3-70b-versatile"
 
 SUPPORTED_MODELS = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
     configured_model,
     "openai/gpt-oss-20b",
     "qwen/qwen3.6-27b",
     "qwen/qwen3.8-27b",
     "groq/compound-mini",
-    "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
 ]
 MODELS = [m for m in dict.fromkeys(SUPPORTED_MODELS) if m not in DEPRECATED_MODELS]
 
@@ -52,25 +52,38 @@ def chat_with_groq(user_message: str, trend_context: dict = None, history: list 
         }
 
     system_prompt = (
-        "You are Plexudo AI — an expert YouTube creator strategist and versatile AI assistant on Plexudo. "
-        "Core Guidelines:\n"
-        "1. CONTEXT MEMORY: Always remember and build upon previous messages in the chat. When the user follows up (e.g. 'i mean for youtube', 'oper bataya to hai', 'ye kaisa hai'), connect it to what was discussed earlier.\n"
-        "2. UNDERSTAND MULTI-LINGUAL & ROMAN URDU/HINDI: Understand colloquial Roman Urdu / Hindi phrases accurately. For example, 'oper / upar' means 'mentioned above / earlier in chat', 'krny k liya' means 'for doing/uploading', 'chahye' means 'needed/wanted'. Never confuse common words like 'oper' (above) with English words like 'Operation'. Always reply in the same language and tone (e.g. Roman Urdu, Urdu, English).\n"
-        "3. PROACTIVE & DIRECT (NO ANNOYING COUNTER-QUESTIONS): When a creator asks for a YouTube description, title, tags, or script, DO NOT ask endless clarifying questions like 'What is your video about?'. Immediately write a complete, high-converting, ready-to-copy YouTube description/title/tags based on the topic discussed! If they didn't specify every detail, provide a great default that they can copy and use immediately.\n"
-        "4. READY-TO-USE YOUTUBE ASSETS: When writing YouTube descriptions, include: a catchy 2-sentence hook, video summary, timestamps outline, call-to-action (Subscribe/Like), and relevant hashtags (#FreeFire #Gaming etc.)."
+        "You are Plexudo AI Strategist — an elite, factual YouTube growth advisor for creators on Plexudo.\n\n"
+        "TODAY'S YEAR: 2026. All trends, meta, strategies, and titles MUST be set in 2026. NEVER use outdated years like 2024 or 2023 in video titles or advice.\n\n"
+        "CORE FACTUAL GUARDRAILS (CRITICAL):\n"
+        "- Strict Game & Pop Culture Accuracy: NEVER invent or cross-contaminate game characters, operator names, weapon names, or map names across different games.\n"
+        "  * For Free Fire: Authentic characters are Alok, Chrono, Kelly, Jota, K, Skyler, Tatsuya, Dimitri, Hayato, Moco, Homer, Wukong. Authentic maps are Bermuda, Purgatory, Kalahari, Alpine, NeXTerra. Key gameplay mechanics: Headshot Sensitivity (DPI/general), Gloo Wall tricks, Rank Push (Grandmaster), Clash Squad (CS) tactics. NOTE: 'Zofia' is from Rainbow Six Siege (NOT Free Fire). 'Raptor' is NOT a Free Fire map. NEVER mention them for Free Fire!\n"
+        "  * For other games (PUBG, BGMI, COD, Valorant, Minecraft, GTA, etc.): Stick strictly to authentic, verified names and lore.\n"
+        "  * If unsure of a specific name, use universal gaming concepts (e.g., 'Pro Sensitivity Settings', 'Grandmaster Rank Push', '1v4 Clutch Guide', 'Fast Gloo Wall Trick') instead of guessing.\n\n"
+        "LANGUAGE & TONE MIRRORING:\n"
+        "- If user writes in Roman Urdu or Urdu (e.g., 'free fire ke liye ideas do', 'batao', 'kaise', 'meri video'), reply fluently in natural, engaging Roman Urdu.\n"
+        "- If user writes in English, reply in clean, punchy English.\n"
+        "- Always be direct, friendly, and practical. No robotic fluff.\n\n"
+        "OUTPUT FORMAT (CONCISE, ACTIONABLE & NO GIANT TABLES):\n"
+        "- Do NOT output giant markdown tables (they break on mobile chat and get cut off).\n"
+        "- When providing video ideas or strategy, give EXACTLY 3 HIGH-IMPACT, READY-TO-RECORD IDEAS. For each idea, include:\n"
+        "  1. 🎯 Title (with CTR Strength score, e.g. 'CTR Strength: 88/100')\n"
+        "  2. ⚡ 5-Second Retention Hook (the exact opening spoken line to stop the scroll)\n"
+        "  3. 🖼️ Thumbnail Visual & Text (punchy 2–4 words for the thumbnail image)\n"
+        "- Keep total response under 280 words so it is quick to read and NEVER gets cut off.\n"
+        "- Always end with 3 quick follow-up suggestions (e.g. 'Shorts script likhein?', 'YouTube Tags chahye?', 'Title variations banayein?')."
     )
 
     messages = [{"role": "system", "content": system_prompt}]
 
     # Filter context to non-sensitive analytics only; never send emails, user IDs, or credentials
     if trend_context and isinstance(trend_context, dict):
-        allowed_keys = {"keyword", "platform", "total_views", "growth_rate", "virality_score", "stage", "dominant_sentiment"}
+        allowed_keys = {"keyword", "platform", "total_views", "growth_rate", "virality_score", "stage", "dominant_sentiment", "sample_titles", "top_tags"}
         safe_context = {k: trend_context[k] for k in allowed_keys if k in trend_context}
         if safe_context:
             ctx_str = json.dumps(safe_context, indent=2)
             messages.append({
                 "role": "system",
-                "content": f"Optional background reference data (only use if relevant to user's question):\n{ctx_str}"
+                "content": f"Live YouTube Creator Analytics Context (2026 data grounding):\n{ctx_str}\nIncorporate these verified keyword/metrics into your advice when relevant."
             })
 
     # Include recent conversation turns for context continuity (last 8 messages)
@@ -97,7 +110,7 @@ def chat_with_groq(user_message: str, trend_context: dict = None, history: list 
             "model": model,
             "messages": messages,
             "temperature": 0.7,
-            "max_tokens": 800,
+            "max_tokens": 1500,
         }
 
         try:
@@ -130,29 +143,68 @@ def chat_with_groq(user_message: str, trend_context: dict = None, history: list 
 def generate_smart_youtube_fallback(user_message: str, trend_context: dict = None) -> dict:
     """
     Fallback when external AI service is unreachable or rate-limited.
-    Provides natural advice tailored to the user's message.
+    Provides verified, high-converting creator advice tailored to the user's message.
     """
-    msg = user_message.strip()
+    msg = user_message.strip().lower()
+    is_roman_urdu = any(w in msg for w in ["karo", "batao", "chahye", "kaise", "kya", "bhai", "krna", "do", "kese", "meri", "oper", "upar"])
     topic = ""
     if trend_context and isinstance(trend_context, dict) and trend_context.get("keyword"):
         topic = str(trend_context["keyword"]).strip()
     if not topic:
-        clean_msg = re.sub(r'(?i)\b(i want|give me|how to|titles? for|about|video|videos?|please|bhai|batao)\b', '', msg).strip()
-        topic = clean_msg if clean_msg else "your content"
+        clean_msg = re.sub(r'(?i)\b(help me|create a content strategy|and viral video ideas for the trending topic:?|viral video ideas|titles? for|about|video|videos?|please|bhai|batao|chahye)\b', '', user_message).strip(' "\':')
+        topic = clean_msg if clean_msg else "YouTube Gaming"
 
-    if any(w in msg.lower() for w in ["hi", "hello", "hey", "salam", "start"]):
+    cap_topic = topic.title()
+
+    if any(w in msg for w in ["hi", "hello", "hey", "salam", "start"]):
+        if is_roman_urdu:
+            reply = (
+                "👋 **Salam! Main hoon aapka Plexudo AI Strategist.**\n\n"
+                "Aap mujh se YouTube video titles, retention hooks, descriptions, tags ya channel growth strategy pooch saktay hain. Kis topic par video banani hai?"
+            )
+        else:
+            reply = (
+                "👋 **Hello! I am your Plexudo AI Strategist.**\n\n"
+                "Ask me anything about YouTube titles, 5-second retention hooks, SEO tags, or channel strategy. What topic are you creating for today?"
+            )
+        return {"reply": reply, "error": False}
+
+    if is_roman_urdu:
         reply = (
-            "👋 **Hello! I am your Plexudo AI Strategist.**\n\n"
-            "How can I help you today? You can ask me for video titles, descriptions, tags, scripting ideas, or channel growth strategies!"
+            f"### 📈 {cap_topic} — 3 Viral Video Ideas (2026 Strategy)\n\n"
+            f"**1️⃣ Idea: High-CTR Curiosity & Mistake Fix**\n"
+            f"- 🎯 **Title:** *{cap_topic}: 5 Secrets Jo Pro Players Chhupatay Hain!* (CTR Strength: 92/100)\n"
+            f"- ⚡ **5-Sec Hook:** *\"Agar aap bar bar fail ho rahe ho, to sirf ye 1 ghalti theek kar lo...\"*\n"
+            f"- 🖼️ **Thumbnail Text:** *\"5 FATAL MISTAKES!\"*\n\n"
+            f"**2️⃣ Idea: Pro Meta & Settings Guide**\n"
+            f"- 🎯 **Title:** *Best {cap_topic} Meta Settings in 2026 (Zero Recoil / Fast Movement)* (CTR Strength: 88/100)\n"
+            f"- ⚡ **5-Sec Hook:** *\"Aaj ki video dekhne ke baad aapka gameplay 2x fast ho jaye ga!\"*\n"
+            f"- 🖼️ **Thumbnail Text:** *\"PRO SETTINGS 2026\"*\n\n"
+            f"**3️⃣ Idea: 24-Hour Challenge Format**\n"
+            f"- 🎯 **Title:** *I Tested {cap_topic} for 24 Hours (Insane Results!)* (CTR Strength: 85/100)\n"
+            f"- ⚡ **5-Sec Hook:** *\"Kya sirf 24 ghante mein pro ban-na mumkin hai? Aaiye dekhte hain...\"*\n"
+            f"- 🖼️ **Thumbnail Text:** *\"24 HOURS TEST!\"*\n\n"
+            f"---\n"
+            f"💡 **Agla qadam:** Kya aapko in mein se kisi ka **Shorts Script**, **YouTube Tags**, ya **Complete Description** chahye?"
         )
     else:
-        capitalized_topic = topic.title()
         reply = (
-            f"Here are strategic title recommendations for **{capitalized_topic}** from Plexudo AI Strategist:\n\n"
-            f"1. **High CTR & Curiosity:** *The Ultimate {capitalized_topic} Secret Nobody Tells You*\n"
-            f"2. **Search Intent:** *How to Master {capitalized_topic} (Step-by-Step Beginner Guide)*\n"
-            f"3. **Urgency & Challenge:** *I Tried {capitalized_topic} for 24 Hours – Here's What Happened*\n"
-            f"4. **Action-Packed:** *Top 5 {capitalized_topic} Pro Plays That Actually Work*\n\n"
-            f"💡 **Tip:** Keep titles under 60 characters so they stay fully visible on mobile feeds."
+            f"### 📈 {cap_topic} — 3 Viral Video Ideas (2026 Strategy)\n\n"
+            f"**1️⃣ Idea: High-CTR Curiosity & Mistake Fix**\n"
+            f"- 🎯 **Title:** *{cap_topic}: 5 Secrets Pro Creators Keep Hidden* (CTR Strength: 92/100)\n"
+            f"- ⚡ **5-Sec Hook:** *\"Stop losing views in the first 30 seconds — here's the exact fix...\"*\n"
+            f"- 🖼️ **Thumbnail Text:** *\"5 FATAL MISTAKES\"*\n\n"
+            f"**2️⃣ Idea: The 2026 Meta & Step-by-Step Guide**\n"
+            f"- 🎯 **Title:** *The Ultimate {cap_topic} Guide for 2026 (Beginner to Pro)* (CTR Strength: 88/100)\n"
+            f"- ⚡ **5-Sec Hook:** *\"If you only master ONE technique this year, make it this one.\"*\n"
+            f"- 🖼️ **Thumbnail Text:** *\"MASTER IN 10 MIN\"*\n\n"
+            f"**3️⃣ Idea: The 24-Hour Experiment**\n"
+            f"- 🎯 **Title:** *I Tested {cap_topic} for 24 Hours — Here's What Happened* (CTR Strength: 85/100)\n"
+            f"- ⚡ **5-Sec Hook:** *\"Everyone said this strategy was dead, so I tested it myself for 24 hours.\"*\n"
+            f"- 🖼️ **Thumbnail Text:** *\"SHOCKING RESULTS\"*\n\n"
+            f"---\n"
+            f"💡 **Next steps:** Reply with **1**, **2**, or **3** to get a 60-second Shorts script, full SEO description, or high-CTR tag combinations!"
         )
+
     return {"reply": reply, "error": False}
+

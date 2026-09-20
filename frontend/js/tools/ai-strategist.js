@@ -2,6 +2,7 @@
  * AI Creator Strategist Client JS (Multi-turn Memory + Roman Urdu + Groq Backend)
  */
 let conversationHistory = [];
+let currentTopic = "";
 
 const chatMessages = document.getElementById("chatMessages");
 const chatInput = document.getElementById("chatInput");
@@ -22,7 +23,8 @@ if (chatInput) {
   const urlParams = new URLSearchParams(window.location.search);
   const topicParam = urlParams.get("topic");
   if (topicParam) {
-    chatInput.value = `Help me create a content strategy and viral video ideas for the trending topic: "${topicParam}"`;
+    currentTopic = topicParam.trim();
+    chatInput.value = `Help me create a content strategy and viral video ideas for the trending topic: "${currentTopic}"`;
     setTimeout(() => handleSendMessage(), 300);
   }
 }
@@ -44,7 +46,7 @@ function clearChat() {
         </div>
         <div>
           <div class="chat-bubble">
-            Conversation cleared. How can I assist you with your YouTube growth today? 🚀
+            👋 Conversation cleared! What YouTube niche or video topic would you like to plan next? (Roman Urdu mein bhi pooch saktay hain 🚀)
           </div>
           <div class="chat-timestamp">Just now</div>
         </div>
@@ -53,9 +55,43 @@ function clearChat() {
   }
 }
 
+function formatMarkdown(text) {
+  if (!text) return "";
+  let safe = escapeHtml(text);
+
+  // Markdown Headings
+  safe = safe.replace(/^###\s+(.+)$/gm, '<h4 class="chat-md-heading">$1</h4>');
+  safe = safe.replace(/^##\s+(.+)$/gm, '<h4 class="chat-md-heading">$1</h4>');
+  safe = safe.replace(/^#\s+(.+)$/gm, '<h4 class="chat-md-heading">$1</h4>');
+
+  // Horizontal Dividers
+  safe = safe.replace(/^---$/gm, '<hr class="chat-md-divider">');
+
+  // Bold (**text**)
+  safe = safe.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // Italics (*text*)
+  safe = safe.replace(/(^|[^\*])\*([^\*]+)\*([^\*]|$)/g, '$1<em>$2</em>$3');
+
+  // Bullet items (- or *)
+  safe = safe.replace(/^[-*]\s+(.+)$/gm, '<div class="chat-md-item"><span class="chat-md-bullet">•</span><span>$1</span></div>');
+
+  // Preserve double and single line breaks
+  safe = safe.replace(/\n\n/g, '<br><br>');
+  safe = safe.replace(/\n/g, '<br>');
+
+  return safe;
+}
+
 async function handleSendMessage() {
   const text = chatInput ? chatInput.value.trim() : "";
   if (!text) return;
+
+  // Track topic if user asks for specific topic
+  const topicMatch = text.match(/(?:topic|about|for):\s*["']?([^"'\n,]+)["']?/i);
+  if (topicMatch && topicMatch[1]) {
+    currentTopic = topicMatch[1].trim();
+  }
 
   // Append user bubble
   appendBubble("user", text);
@@ -66,13 +102,18 @@ async function handleSendMessage() {
   const typingId = appendTypingBubble();
 
   try {
+    const payload = {
+      message: text,
+      history: conversationHistory
+    };
+    if (currentTopic) {
+      payload.context = { keyword: currentTopic };
+    }
+
     const res = await fetchWithTimeout("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: text,
-        history: conversationHistory
-      })
+      body: JSON.stringify(payload)
     }, 30000);
 
     const data = await res.json();
@@ -105,7 +146,19 @@ function appendBubble(role, content) {
   const bubbleDiv = document.createElement("div");
   bubbleDiv.className = `chat-message ${isAi ? "ai" : "user"}`;
 
-  const formattedContent = escapeHtml(content).replace(/\n/g, "<br>");
+  const formattedContent = isAi ? formatMarkdown(content) : escapeHtml(content).replace(/\n/g, "<br>");
+
+  // Quick Action Buttons for AI responses
+  let actionButtonsHtml = "";
+  if (isAi) {
+    actionButtonsHtml = `
+      <div class="chat-bubble-action-wrap">
+        <button class="chat-action-btn" onclick="copyToClipboard('${escapeAttr(content)}', this)">📋 Copy Advice</button>
+        <button class="chat-action-btn" onclick="sendChipPrompt('Idea #1 ka 60-second viral YouTube Shorts script bana kar dain.')">📱 Shorts Script</button>
+        <button class="chat-action-btn" onclick="sendChipPrompt('In ideas ke liye high-CTR YouTube Tags aur SEO Description dain.')">🏷️ Tags &amp; SEO</button>
+      </div>
+    `;
+  }
 
   bubbleDiv.innerHTML = `
     ${isAi ? `
@@ -116,7 +169,7 @@ function appendBubble(role, content) {
     <div>
       <div class="chat-bubble">
         ${formattedContent}
-        ${isAi ? `<div style="margin-top:8px;"><button class="tool-secondary-btn" style="padding:4px 8px; font-size:11px;" onclick="copyToClipboard('${escapeAttr(content)}', this)">Copy Text</button></div>` : ""}
+        ${actionButtonsHtml}
       </div>
       <div class="chat-timestamp">${now}</div>
     </div>
@@ -136,7 +189,7 @@ function appendTypingBubble() {
     <div class="chat-avatar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
     </div>
-    <div class="chat-bubble" style="font-style:italic; color:#64748b;">
+    <div class="chat-bubble chat-thinking-bubble">
       Plexudo AI Strategist is thinking…
     </div>
   `;

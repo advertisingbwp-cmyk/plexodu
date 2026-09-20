@@ -707,7 +707,7 @@ def ai_chat():
         return jsonify({"error": "Message payload is required"}), 400
 
     message = data.get("message", "").strip()
-    trend_context = data.get("context", None)
+    trend_context = data.get("context") or data.get("trend_context", None)
     history = data.get("history", [])
     if not isinstance(history, list):
         history = []
@@ -716,6 +716,21 @@ def ai_chat():
         return jsonify({"error": "Message cannot be empty"}), 400
     if len(message) > 1000:
         return jsonify({"error": "Message exceeds maximum length (1,000 characters)"}), 400
+
+    if not trend_context:
+        topic_match = re.search(r'(?:trending topic|topic):\s*["\']([^"\']+)["\']', message, re.IGNORECASE)
+        if topic_match:
+            detected_topic = topic_match.group(1).strip()
+            trend_context = {"keyword": detected_topic}
+
+    if trend_context and isinstance(trend_context, dict) and "keyword" in trend_context and "related_keywords" not in trend_context:
+        try:
+            from backend.services.real_api import _fetch_related_keywords
+            rel = _fetch_related_keywords(str(trend_context["keyword"]).strip())
+            if rel:
+                trend_context["related_keywords"] = rel[:5]
+        except Exception:
+            pass
 
     result = chat_with_groq(message, trend_context, history=history)
     _log_action("CHAT", f"msg_preview={message[:80]}")
