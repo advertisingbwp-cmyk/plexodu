@@ -2068,7 +2068,7 @@ iframe[class*="0e89577e43e820c87b40cc837855b0fd"],
   .tool-input-wrapper {
     width: 100%;
   }
-  .tool-primary-btn {
+  .tool-input-row .tool-primary-btn {
     width: 100%;
   }
 }
@@ -2983,6 +2983,7 @@ footer {
   box-sizing: border-box;
   color: var(--text-muted);
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .pulsecheck-search-wrap:focus-within {
@@ -2991,10 +2992,14 @@ footer {
 }
 
 .pulsecheck-search-wrap .tool-primary-btn {
+  width: auto !important;
+  max-width: fit-content;
+  flex-shrink: 0;
   height: 32px;
   padding: 0 14px;
   font-size: 13px;
   border-radius: var(--radius-sm, 8px);
+  white-space: nowrap;
 }
 
 .pulsecheck-search-input {
@@ -3003,8 +3008,12 @@ footer {
   outline: none;
   color: var(--text);
   font-size: 14px;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
   font-family: inherit;
+  padding: 0;
+  text-overflow: ellipsis;
 }
 
 .pulsecheck-search-input::placeholder {
@@ -3416,7 +3425,29 @@ footer {
   }
   .pulsecheck-search-wrap {
     max-width: 100%;
-    min-width: unset;
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 4px 6px 4px 12px;
+    box-sizing: border-box;
+  }
+  .pulsecheck-search-wrap .pulsecheck-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    font-size: 13.5px;
+  }
+  .pulsecheck-search-wrap .tool-primary-btn,
+  .pulsecheck-search-btn {
+    width: auto !important;
+    max-width: fit-content;
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 13px;
+    height: 34px;
   }
   .pulsecheck-filter-bar {
     flex-direction: column;
@@ -3431,6 +3462,18 @@ footer {
 }
 
 @media (max-width: 480px) {
+  .pulsecheck-search-wrap {
+    padding: 4px 5px 4px 10px;
+    gap: 6px;
+  }
+  .pulsecheck-search-wrap .pulsecheck-search-input {
+    font-size: 13px;
+  }
+  .pulsecheck-search-wrap .tool-primary-btn,
+  .pulsecheck-search-btn {
+    padding: 6px 12px;
+    font-size: 12.5px;
+  }
   .pulsecheck-kpi-row {
     grid-template-columns: 1fr;
   }
@@ -3509,6 +3552,8 @@ footer {
   min-height: unset;
   white-space: nowrap;
   flex-shrink: 0;
+  width: auto !important;
+  max-width: fit-content;
 }
 
 /* Issue 6 — Top-align left panel card in 2-col grids */
@@ -3704,6 +3749,8 @@ footer {
   min-height: unset;
   white-space: nowrap;
   flex-shrink: 0;
+  width: auto !important;
+  max-width: fit-content;
 }
 
 /* Issue 6 — Top-align left panel card in 2-col grids */

@@ -553,3 +553,21 @@ def test_trend_analyzer_search_only_on_button_or_enter():
     assert "searchDebounce" not in js, "trend-analyzer.js must not contain searchDebounce on input"
     assert "analyzeBtn" in js, "trend-analyzer.js must bind search to analyzeBtn"
     assert "fetchTrendingFeed();" in js, "trend-analyzer.js must run auto-scan once on initial page load"
+
+
+# --- 18. Trend Analyzer Mobile Search Bar Layout (No Squished Input) -----------
+
+def test_trend_analyzer_mobile_search_bar_layout():
+    """Verify style.css keeps search input visible and button compact on mobile devices."""
+    css_path = REPO_ROOT / "frontend" / "css" / "style.css"
+    with open(css_path, "r", encoding="utf-8") as f:
+        css = f.read()
+
+    # The mobile 100% button rule must be scoped to .tool-input-row, not globally
+    assert ".tool-input-row .tool-primary-btn" in css, "Mobile full-width button must be scoped to .tool-input-row"
+    # pulsecheck-search-btn must have width: auto !important to prevent stretching across flex row
+    assert ".pulsecheck-search-btn" in css
+    assert "width: auto !important" in css
+    # input must have min-width: 0 and flex: 1
+    assert "min-width: 0" in css
+
