@@ -1,0 +1,33 @@
+/* Scoped usability improvements for the Trend Analyzer. */
+.trend-ui .pulsecheck-filter-bar { gap: 16px; padding-bottom: 16px; }
+.trend-ui .pulsecheck-filter-group { gap: 12px; flex-wrap: wrap; }
+.trend-ui .pulsecheck-cat-bar { padding-top: 16px; padding-bottom: 20px; }
+.trend-ui .pulsecheck-select,
+.trend-ui .pulsecheck-pill,
+.trend-ui .pulsecheck-cat-chip { min-height: 44px; border-radius: 12px; }
+.trend-ui .trend-graph-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.trend-ui .trend-graph-header h2 { margin: 0; line-height: 1.4; }
+.trend-ui .trend-summary-box { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.trend-ui .trend-summary-row:first-child { grid-column: 1 / -1; }
+.trend-ui .trend-summary-row .text-slate-600 { text-transform: none; letter-spacing: normal; }
+.trend-ui .trend-intel-col { justify-content: flex-start; gap: 20px; }
+.trend-ui .trend-intel-col .tool-results-panel { margin-bottom: 0; }
+.trend-ui .trend-sentiment-label { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.trend-ui .quote-box { padding: 18px 20px; line-height: 1.65; overflow-wrap: anywhere; }
+.trend-ui .trend-history-progress { padding: 20px 12px; color: var(--text-muted); line-height: 1.6; white-space: normal; }
+.trend-ui .trend-forecast-panel { padding: 16px 20px; box-shadow: none; }
+.trend-ui .trend-forecast-panel summary { cursor: pointer; min-height: 44px; align-content: center; }
+.trend-ui .trend-forecast-panel summary h2 { display: inline; margin: 0; }
+.trend-ui .trend-forecast-panel[open] summary { margin-bottom: 12px; }
+.trend-ui .trend-action-label { margin: 16px 0 10px; font-size: 0.95rem; font-weight: 600; }
+.trend-ui .trend-export-label { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 24px; }
+.trend-ui button:focus-visible,
+.trend-ui summary:focus-visible,
+.trend-ui select:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+@media (max-width: 480px) {
+  .trend-ui .trend-summary-box { grid-template-columns: 1fr; }
+  .trend-ui .trend-graph-header { align-items: flex-start; }
+  .trend-ui .trend-timeframe-tabs { max-width: 100%; flex-wrap: wrap; }
+  .trend-ui .trend-history-table { font-size: 0.8rem; }
+  .trend-ui .quote-box { padding: 16px; }
+}

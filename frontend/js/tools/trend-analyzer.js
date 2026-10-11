@@ -688,12 +688,15 @@ function renderDeepIntelligence(ytData) {
       { key: "90d", label: "90 Days" },
     ];
 
-    historyTableBody.innerHTML = windows.map((w) => {
+    const hasHistory = windows.some(w => hw[w.key]?.status === "available" && Number.isFinite(hw[w.key]?.change_pct));
+    historyTableBody.innerHTML = !hasHistory
+      ? `<tr><td colspan="3" class="trend-history-progress">Data collection in progress. Historical comparisons will appear when enough comparable observations are saved.</td></tr>`
+      : windows.map((w) => {
       const entry = hw[w.key] || { status: "insufficient_history", display: "Data collection in progress" };
       const isAvail = entry.status === "available" && entry.change_pct !== null && entry.change_pct !== undefined;
       const badgeClass = isAvail ? (entry.change_pct >= 0 ? "badge-rising" : "badge-falling") : "badge-stable";
       const growthDisplay = isAvail ? `${entry.change_pct > 0 ? "+" : ""}${entry.change_pct}%` : "—";
-      const statusText = isAvail ? "Available" : "Data collection in progress";
+      const statusText = isAvail ? "Available" : "Pending";
 
       return `
         <tr>
@@ -709,6 +712,8 @@ function renderDeepIntelligence(ytData) {
   const forecastGrid = document.getElementById("forecastGrid");
   const forecastFallback = document.getElementById("forecastFallback");
   const fc = intel.forecast || {};
+  const forecastPanel = document.getElementById("forecastPanel");
+  if (forecastPanel) forecastPanel.open = Boolean(fc.available && fc.projection_days?.length);
   if (fc.available && fc.projection_days && fc.projection_days.length > 0) {
     if (forecastFallback) forecastFallback.style.display = "none";
     if (forecastGrid) {
@@ -874,23 +879,12 @@ function renderLowerChart(dataPoints, range = "all") {
       chartBaselineNote.innerHTML = `
         <span class="font-600 text-slate-700">📍 Baseline: ${formatCompact(val)} views (${val.toLocaleString()}) recorded on ${dateStr}</span>
         <span class="text-slate-400">&bull;</span>
-        <span class="text-slate-500 font-0-85">First Scan established. Recurring scans trace the velocity curve. Next scan window opens in ~24h.</span>
+        <span class="text-slate-500 font-0-85">One observation recorded. Run another search after at least 24 hours to collect a comparable observation.</span>
       `;
     }
 
-    // Build realistic timeframe progression labels across the selected range
-    let displayLabels = [];
-    if (range === "1d") {
-      displayLabels = ["24h ago", "18h ago", "12h ago", "6h ago", timeStr || "Recorded"];
-    } else if (range === "7d") {
-      displayLabels = ["7d ago", "5d ago", "3d ago", "1d ago", "Recorded"];
-    } else if (range === "30d") {
-      displayLabels = ["30d ago", "20d ago", "10d ago", "5d ago", "Recorded"];
-    } else if (range === "90d") {
-      displayLabels = ["90d ago", "60d ago", "30d ago", "15d ago", "Recorded"];
-    } else {
-      displayLabels = ["Observation Start", "Audited Range", "Recorded"];
-    }
+    // A single observation has one real timestamp, not an invented range.
+    const displayLabels = [`${dateStr} ${timeStr} UTC`.trim()];
 
     // Dataset 1: Prominent filled observation point on the recording day
     const pointDataset = {
@@ -907,28 +901,16 @@ function renderLowerChart(dataPoints, range = "all") {
       order: 1,
     };
 
-    // Dataset 2: Horizontal dashed baseline line spanning across the entire range
-    const baselineLineDataset = {
-      label: `Baseline (${formatCompact(val)})`,
-      data: displayLabels.map(() => val),
-      borderColor: "rgba(79, 70, 229, 0.45)",
-      borderWidth: 2,
-      borderDash: [6, 4],
-      pointRadius: 0,
-      fill: false,
-      order: 2,
-    };
-
     // Auto-scale Y-axis around the baseline value (no 0-to-8M empty void!)
     const yMin = Math.max(0, Math.floor(val * 0.75));
-    const yMax = Math.ceil(val * 1.25);
+    const yMax = Math.max(1, Math.ceil(val * 1.25));
 
     const ctx = canvas.getContext("2d");
     lowerViewsChart = new Chart(ctx, {
       type: "line",
       data: {
         labels: displayLabels,
-        datasets: [pointDataset, baselineLineDataset],
+        datasets: [pointDataset],
       },
       options: {
         responsive: true,
@@ -955,7 +937,7 @@ function renderLowerChart(dataPoints, range = "all") {
                 if (context.datasetIndex === 0) {
                   return `Recorded Observation: ${formatCompact(val)} views (${val.toLocaleString()})`;
                 }
-                return `Audited Baseline: ${formatCompact(val)} views`;
+                return `Recorded observation: ${formatCompact(val)} views`;
               },
             },
           },
