@@ -12,11 +12,13 @@ import time
 import secrets
 import json
 import uuid
+import hashlib
 from datetime import datetime, date, timedelta, timezone
 
 from flask import Flask, request, jsonify, send_from_directory, send_file, Response, redirect
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
 sys.path.append(os.path.dirname(__file__))
@@ -260,6 +262,27 @@ def serve_static_or_public(path):
 # --------------------------------------------------------------------------
 # YouTube Data Acquisition + Sentiment + Scoring
 # --------------------------------------------------------------------------
+def validate_trend_filters(data):
+    if not isinstance(data, dict) and not hasattr(data, "to_dict"):
+        raise ValidationError("Payload must be a JSON object")
+    allowed = {
+        "region": {"Global", "United States", "India", "Pakistan", "United Kingdom"},
+        "category": {"All", "Music", "Gaming", "Comedy", "Tech", "Education", "Sports", "News", "Lifestyle"},
+        "timeframe": {"24h", "7d", "30d"},
+    }
+    for key, values in allowed.items():
+        value = data.get(key, {"region": "Global", "category": "All", "timeframe": "7d"}[key])
+        if not isinstance(value, str) or value not in values:
+            raise ValidationError(f"Unsupported {key}", key)
+
+
+def trend_error_response(result):
+    status = result.get("status")
+    status = status if isinstance(status, int) and 400 <= status <= 599 else 502
+    return jsonify({"error": result.get("message", "YouTube data is unavailable. Please retry."),
+                    "quota_exceeded": bool(result.get("quota_exceeded"))}), status
+
+
 @app.route("/api/search", methods=["POST"])
 def search_trend():
     client_ip = request.remote_addr or "127.0.0.1"
@@ -271,6 +294,7 @@ def search_trend():
     if not data:
         return jsonify({"error": "Missing payload"}), 400
 
+    validate_trend_filters(data)
     raw_kw = data.get("keyword")
     region = data.get("region", "Global")
     category = data.get("category", "All")
@@ -289,11 +313,7 @@ def search_trend():
     results["YouTube"] = search_result
 
     if search_result.get("error"):
-        if search_result.get("status") == 429 or search_result.get("quota_exceeded"):
-            return jsonify({
-                "error": search_result.get("message", "YouTube API daily quota reached. Please try again later."),
-                "quota_exceeded": True
-            }), 429
+        return trend_error_response(search_result)
 
     _log_action("SEARCH", f"keyword={keyword} platform=YouTube")
     return jsonify({"keyword": keyword, "results": results})
@@ -312,7 +332,11 @@ def get_trending_feed():
     else:
         data = request.args
 
-    raw_kw = (data.get("keyword") or data.get("q") or "").strip()
+    validate_trend_filters(data)
+    raw_kw = data.get("keyword") or data.get("q") or ""
+    if not isinstance(raw_kw, str):
+        raise ValidationError("Keyword must be a string", "keyword")
+    raw_kw = raw_kw.strip()
     region = data.get("region", "Global")
     category = data.get("category", "All")
     timeframe = data.get("timeframe", "7d")
@@ -328,6 +352,9 @@ def get_trending_feed():
         region=region, category=category, timeframe=timeframe
     )
     results["YouTube"] = search_result
+
+    if search_result.get("error"):
+        return trend_error_response(search_result)
 
     kpis = search_result.get("kpis", {})
     if "topCategory" in kpis and "fastestCategory" not in kpis:
@@ -376,20 +403,31 @@ def _process_platform(keyword, platform_name, fetch_fn, region="Global", categor
     top_v_title = raw.get("title", "")
     top_video_titles = [top_v_title] if top_v_title else []
 
-    title_objs = generate_context_aware_titles(
-        keyword=keyword,
-        topic="",
-        related_queries=related_list,
-        top_video_titles=top_video_titles,
-        count=4
-    )
-    seo_title_ideas = [t["title"] for t in title_objs]
+    # Keep optional writing assistance deterministic and off the critical API path.
+    # A general feed does not identify a single subject for meaningful titles/tags.
+    general_feed = keyword.lower().strip() in {"trending", "all", "pulsecheck"}
+    if general_feed:
+        youtube_tags, hashtag_list, seo_title_ideas = [], [], []
+    else:
+        seo_title_ideas = [
+            f"{keyword}: A Beginner's Guide",
+            f"{keyword}: Key Questions Answered",
+            f"Understanding {keyword}: A Step-by-Step Overview",
+            f"{keyword}: What to Know Before You Start",
+        ]
+
+    # Only compare the same filters AND video cohort. Legacy rows have no key.
+    cohort = sorted(v["id"] for v in raw.get("top_videos", []) if v.get("id"))
+    observation_key = hashlib.sha256(json.dumps(
+        [keyword.lower().strip(), platform_name, region, category, timeframe, cohort]
+    ).encode()).hexdigest()
 
     # Phase 8 — Trend Intelligence multi-scan analysis
     past_trends = (
         Trend.query.filter(
             db.func.lower(Trend.keyword) == keyword.lower().strip(),
             Trend.platform == platform_name,
+            Trend.observation_key == observation_key,
         )
         .order_by(Trend.timestamp.asc())
         .all()
@@ -411,6 +449,7 @@ def _process_platform(keyword, platform_name, fetch_fn, region="Global", categor
     trend = Trend(
         keyword=keyword,
         platform=platform_name,
+        observation_key=observation_key,
         total_views=views_sum,
         growth_rate=trend_intel["velocity"] if trend_intel["velocity"] is not None else growth_rate,
         virality_score=virality,
@@ -610,12 +649,12 @@ def generate_report(trend_id):
             "platform": trend.platform,
             "total_views": trend.total_views,
         }
-        stage = classify_trend_stage(trend.growth_rate)
+        stage = trend.current_direction or "BASELINE"
 
         user_email = "Anonymous User"
 
         filename, buffer = generate_pdf_report_buffer(
-            trend_dict, sentiment_dict, trend.growth_rate, trend.virality_score, stage, user_email
+            trend_dict, sentiment_dict, None if stage == "BASELINE" else trend.growth_rate, trend.virality_score, stage, user_email
         )
 
         report = Report(trend_id=trend_id, generated_by=None, format="PDF", file_path=f"memory://{filename}")
@@ -657,10 +696,11 @@ def export_csv(trend_id):
     writer.writerow([])
 
     writer.writerow(["Keyword", "Platform", "Total Views", "Growth Rate (%)", "Virality Score", "Trend Stage", "Timestamp"])
-    stage = classify_trend_stage(trend.growth_rate)
+    stage = trend.current_direction or "BASELINE"
+    safe_keyword = "'" + trend.keyword if trend.keyword.lstrip().startswith(("=", "+", "-", "@")) else trend.keyword
     writer.writerow([
-        trend.keyword, trend.platform, trend.total_views,
-        trend.growth_rate, trend.virality_score, stage,
+        safe_keyword, trend.platform, trend.total_views,
+        "Pending" if stage == "BASELINE" else trend.growth_rate, trend.virality_score, stage,
         trend.timestamp.strftime("%Y-%m-%d %H:%M")
     ])
     writer.writerow([])
@@ -684,7 +724,7 @@ def export_csv(trend_id):
 
     _log_action("EXPORT_CSV", f"trend_id={trend_id} keyword={trend.keyword}")
 
-    filename = f"plexudo_{trend.keyword.replace(' ', '_')}_YouTube.csv"
+    filename = f"plexudo_{secure_filename(trend.keyword) or 'topic'}_YouTube.csv"
     return Response(
         csv_data,
         mimetype="text/csv",

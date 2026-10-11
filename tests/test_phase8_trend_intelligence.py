@@ -236,7 +236,7 @@ def test_confidence_progression():
 
     # 32 scans -> High (30+)
     past_32 = [DummyTrend(i, 100000 + i * 1000, t0 + timedelta(days=i)) for i in range(31)]
-    res_high = analyze_trend_intelligence("test", "YouTube", 135000, 5.0, {}, past_32, now)
+    res_high = analyze_trend_intelligence("test", "YouTube", 135000, 5.0, {}, past_32, t0 + timedelta(days=31))
     assert res_high["current_confidence"] == "High"
 
 

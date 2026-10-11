@@ -47,7 +47,7 @@ def compute_historical_window_change(
     cutoff = now - timedelta(days=window_days)
     valid_past = [
         obs for obs in observations[:-1]
-        if obs.get("timestamp") and obs["timestamp"] <= cutoff + timedelta(hours=12)
+        if obs.get("timestamp") and abs((obs["timestamp"] - cutoff).total_seconds()) <= max(86400, window_days * 8640) and obs["timestamp"] <= now - timedelta(hours=12)
     ]
 
     if not valid_past:
@@ -57,7 +57,7 @@ def compute_historical_window_change(
             "display": "Insufficient history",
         }
 
-    baseline_obs = valid_past[-1]
+    baseline_obs = min(valid_past, key=lambda obs: abs((obs["timestamp"] - cutoff).total_seconds()))
     past_views = baseline_obs.get("views", 0)
     if past_views <= 0:
         return {
@@ -142,15 +142,17 @@ def generate_conservative_forecast(
     Generates a conservative 7-day projection only when observations >= 3.
     Applies logarithmic dampening towards the mean.
     """
-    if len(observations) < 3 or velocity is None:
+    if (len(observations) < 3 or velocity is None
+            or (observations[-1]["timestamp"] - observations[0]["timestamp"]).total_seconds() < 172800):
         return {
             "available": False,
-            "reason": "Requires at least 3 historical scans for projection",
+            "reason": "Requires at least 3 observations spanning 48 hours; projection is illustrative",
             "projection_days": [],
         }
 
     capped_vel = max(-25.0, min(25.0, velocity))
-    daily_rate = (capped_vel / 100.0) / 7.0
+    elapsed_days = max(1.0, (observations[-1]["timestamp"] - observations[-2]["timestamp"]).total_seconds() / 86400)
+    daily_rate = (1.0 + capped_vel / 100.0) ** (1.0 / elapsed_days) - 1.0
 
     projections = []
     running_views = float(current_views)
@@ -195,6 +197,8 @@ def analyze_trend_intelligence(
         ts = pt.timestamp or pt.last_seen_at or now
         if ts.tzinfo is None:
             ts = ts.replace(tzinfo=timezone.utc)
+        if ts > now:
+            continue
         observations.append({
             "id": pt.trend_id,
             "timestamp": ts,
@@ -205,6 +209,14 @@ def analyze_trend_intelligence(
             "direction": pt.current_direction or "STABLE",
             "confidence": pt.current_confidence or "Low",
         })
+
+    observations.sort(key=lambda obs: obs["timestamp"])
+    # Repeated refreshes do not create independent time-series evidence.
+    spaced = []
+    for obs in observations:
+        if not spaced or (obs["timestamp"] - spaced[-1]["timestamp"]).total_seconds() >= 86400:
+            spaced.append(obs)
+    observations = [obs for obs in spaced if (now - obs["timestamp"]).total_seconds() >= 86400]
 
     observations.append({
         "id": None,
@@ -314,9 +326,10 @@ def analyze_trend_intelligence(
         direction = "STABLE"
         direction_display = f"Stable ({'+' if velocity > 0 else ''}{velocity}%)"
 
-    if scan_count < 7:
+    elapsed_days = (now - first_seen_at).total_seconds() / 86400
+    if scan_count < 7 or elapsed_days < 6:
         confidence = "Low"
-    elif scan_count < 30:
+    elif scan_count < 30 or elapsed_days < 29:
         confidence = "Medium"
     else:
         confidence = "High"
@@ -376,7 +389,7 @@ def analyze_trend_intelligence(
         events.append({
             "date": now.strftime("%b %d, %Y"),
             "title": "Momentum Shifted to Rising",
-            "description": f"Positive acceleration detected with velocity of {velocity_display}.",
+            "description": f"Sample view change detected with velocity of {velocity_display}.",
             "type": "shift",
         })
 
