@@ -191,8 +191,8 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
         return cached
 
     items = []
-    # If in trending mode without specific keyword and All categories, use chart=mostPopular
-    if is_trending_mode and category == "All":
+    # Legacy unfiltered chart mode; dated requests use search.list publishedAfter.
+    if is_trending_mode and category == "All" and not timeframe:
         try:
             params = {
                 "part": "snippet,statistics",
@@ -221,6 +221,9 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
             "regionCode": region_code,
             "key": api_key,
         }
+        search_params["publishedAfter"] = (datetime.now(timezone.utc) - timedelta(days={"24h": 1, "7d": 7, "30d": 30}.get(timeframe, 7))).isoformat().replace("+00:00", "Z")
+        if region == "Global":
+            search_params.pop("regionCode", None)
         if yt_cat_id:
             search_params["videoCategoryId"] = yt_cat_id
 
@@ -254,6 +257,8 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
                     "id": ",".join(video_ids[:18]),
                     "key": api_key,
                 }, timeout=8)
+                if _is_quota_error(stats_res):
+                    return {"status": 429, "error": "YouTube API daily quota reached. Please try again later.", "quota_exceeded": True}
                 if stats_res.status_code == 200:
                     items = stats_res.json().get("items", [])
             except Exception:
@@ -261,7 +266,7 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
 
         # If stats_res failed or empty, fallback to search_items directly
         if not items and search_items:
-            items = search_items
+            return {"status": 502, "error": "Video statistics are unavailable. Please retry."}
 
     if not items:
         return {"status": 404, "platform": "YouTube", "error": f'No videos found for "{search_keyword}".'}
@@ -351,16 +356,9 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
         b_idx = min(points_count - 1, max(0, h // 2 if timeframe == "24h" else h // 24))
         bucket_views[b_idx] += v.get("views", 0)
 
-    base_fill = max(1000, total_views_sum // (points_count * 4)) if total_views_sum > 0 else 50000
     for p_idx in range(points_count):
-        if timeframe == "24h":
-            lbl = f"{p_idx * 2:02d}:00"
-        elif timeframe == "7d":
-            lbl = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][p_idx % 7]
-        else:
-            lbl = f"Day {p_idx + 1}"
-        actual_val = bucket_views[p_idx] if bucket_views[p_idx] > 0 else base_fill
-        time_series.append({"label": lbl, "views": actual_val})
+        lbl = f"{p_idx * 2}–{(p_idx + 1) * 2}h old" if timeframe == "24h" else f"{p_idx}–{p_idx + 1}d old"
+        time_series.append({"label": lbl, "views": bucket_views[p_idx]})
 
     kpis = {
         "totalViews": total_views_sum,
@@ -376,9 +374,9 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
     video_id = v0.get("id") or (items[0].get("id") if isinstance(items[0].get("id"), str) else items[0].get("id", {}).get("videoId", "yt-placeholder"))
     snippet0 = items[0].get("snippet", {}) if items else {}
     upload_date = v0.get("published_at") or snippet0.get("publishedAt", "")
-    total_views = v0.get("views", 0)
-    total_likes = v0.get("likes", 0)
-    total_comments = v0.get("comments", 0)
+    total_views = sum(v["views"] for v in top_videos)
+    total_likes = sum(v["likes"] for v in top_videos)
+    total_comments = sum(v["comments"] for v in top_videos)
 
     comments = []
     try:

@@ -34,6 +34,8 @@ class Trend(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
     timestamp = db.Column(db.DateTime, default=utc_now)
 
+    observation_key = db.Column(db.String(64), nullable=True, index=True)
+
     # Phase 8 — Trend Intelligence Engine additions
     first_seen_at = db.Column(db.DateTime, default=utc_now)
     last_seen_at = db.Column(db.DateTime, default=utc_now)

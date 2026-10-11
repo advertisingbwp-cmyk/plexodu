@@ -65,7 +65,7 @@
     <div class="tool-badge">🔥 Market Velocity & Trends</div>
     <h1 class="tool-title">YouTube Trend Analyzer</h1>
     <p class="tool-desc">
-      Inspect real-time view velocity, growth trajectories, category breakdowns, and viral breakout videos powered by live YouTube Data API v3.
+      Analyze a sample of up to 18 YouTube results. Time filters select upload dates; view totals are lifetime counts. Repeated observations track the same video set. If search results change, a new baseline starts. Scores are Plexudo heuristics, not official YouTube metrics.
     </p>
   </div>
 
@@ -91,7 +91,7 @@
 
         <select id="pulseRegionSelect" class="pulsecheck-select" aria-label="Select Region">
           <option value="Global">Global</option>
-          <option value="United States">United States</option>
+          <option value="United States" selected>United States</option>
           <option value="India">India</option>
           <option value="Pakistan">Pakistan</option>
           <option value="United Kingdom">United Kingdom</option>
@@ -174,7 +174,7 @@
     <div class="pulsecheck-charts-row">
       <div class="pulsecheck-panel">
         <div class="pulsecheck-panel-title">
-          <span id="viewsTrendTitle">Views trend — all categories</span>
+          <span id="viewsTrendTitle">Lifetime views by upload age</span>
         </div>
         <div class="pulsecheck-chart-box">
           <canvas id="pulseViewsChart"></canvas>
@@ -236,7 +236,7 @@
           <span id="kpiDirectionBadge" class="panel-badge badge-baseline">Baseline</span>
         </div>
         <div id="kpiVelocityVal" class="trend-kpi-value">Pending</div>
-        <div id="kpiVelocitySub" class="trend-kpi-sub">Day-over-day tracking</div>
+        <div id="kpiVelocitySub" class="trend-kpi-sub">Change between observations ≥24h apart</div>
       </div>
 
       <div class="trend-kpi-card">
@@ -349,6 +349,7 @@
         <!-- 3. Sentiment & Real Voice -->
         <div class="tool-results-panel">
           <h3 class="mb-16 font-1-1">💬 Audience Sentiment</h3>
+          <p class="text-muted">Sampled comments from the top-ranked video, analyzed with English-oriented TextBlob. Urdu and other languages may not be classified reliably.</p>
           <div id="sentimentSummary" class="mb-16">
             <div class="flex-between-center mb-8">
               <span>Dominant Sentiment:</span>
@@ -492,6 +493,6 @@
 </footer>
 
 <script src="/js/tools/common.js?v=10.0"></script>
-<script src="/js/tools/trend-analyzer.js?v=26.0"></script>
+<script src="/js/tools/trend-analyzer.js?v=27.0"></script>
 </body>
 </html>

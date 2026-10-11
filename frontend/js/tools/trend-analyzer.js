@@ -190,7 +190,10 @@ function filterCurrentVideos(q) {
 }
 
 // ── Fetch Trending Feed from Live YouTube API ────────────────────────────────
+let feedRequestId = 0;
 async function fetchTrendingFeed(shouldScroll = false) {
+  const requestId = ++feedRequestId;
+  hideStatusBar(document.getElementById("statusLine"));
   const loadingEl = document.getElementById("pulseLoading");
   if (loadingEl) loadingEl.style.display = "flex";
 
@@ -202,12 +205,12 @@ async function fetchTrendingFeed(shouldScroll = false) {
       q: activeQuery,
     });
 
-    const res = await fetch(`/api/trending-feed?${params.toString()}`);
-    if (!res.ok) {
-      throw new Error(`API returned HTTP ${res.status}`);
-    }
-
+    const res = await fetchWithTimeout(`/api/trending-feed?${params.toString()}`, {}, 45000);
     const data = await res.json();
+    if (requestId !== feedRequestId) return;
+    if (!res.ok || data.error) {
+      throw new Error(data.error || `API returned HTTP ${res.status}`);
+    }
     currentVideos = data.videos || [];
 
     renderKpis(data.kpis || {});
@@ -228,6 +231,14 @@ async function fetchTrendingFeed(shouldScroll = false) {
       }
     }
   } catch (err) {
+    if (requestId !== feedRequestId) return;
+    showStatusBar(document.getElementById("statusLine"), err.message || "Unable to load YouTube data.", true);
+    currentVideos = [];
+    renderKpis({});
+    renderViewsChart([], activeCategory);
+    renderCategoryChart([]);
+    const results = document.getElementById("resultsArea");
+    if (results) results.style.display = "none";
     console.error("Failed to load trending feed:", err);
     // Display graceful state
     const listEl = document.getElementById("pulseList");
@@ -239,7 +250,7 @@ async function fetchTrendingFeed(shouldScroll = false) {
       `;
     }
   } finally {
-    if (loadingEl) loadingEl.style.display = "none";
+    if (loadingEl && requestId === feedRequestId) loadingEl.style.display = "none";
   }
 }
 
@@ -296,7 +307,7 @@ function buildSpreadLabels(count, timeframe) {
 function renderViewsChart(timeSeries, categoryName) {
   const titleEl = document.getElementById("viewsTrendTitle");
   if (titleEl) {
-    titleEl.textContent = `Views trend — ${categoryName === "All" ? "all categories" : categoryName.toLowerCase()}`;
+    titleEl.textContent = `Lifetime views by upload age — ${categoryName === "All" ? "all categories" : categoryName.toLowerCase()}`;
   }
 
   const canvas = document.getElementById("pulseViewsChart");
@@ -615,9 +626,9 @@ function renderDeepIntelligence(ytData) {
 
   const sentimentBreakdown = document.getElementById("sentimentBreakdown");
   if (sentimentBreakdown) {
-    const pos = Math.round((sentiment.positive_score || 0) * (sentiment.positive_score <= 1 ? 100 : 1));
-    const neu = Math.round((sentiment.neutral_score || 0) * (sentiment.neutral_score <= 1 ? 100 : 1));
-    const neg = Math.round((sentiment.negative_score || 0) * (sentiment.negative_score <= 1 ? 100 : 1));
+    const pos = Math.round((sentiment.positive_score || 0));
+    const neu = Math.round((sentiment.neutral_score || 0));
+    const neg = Math.round((sentiment.negative_score || 0));
     sentimentBreakdown.innerHTML = `Positive: ${pos}% &bull; Neutral: ${neu}% &bull; Negative: ${neg}%`;
   }
 

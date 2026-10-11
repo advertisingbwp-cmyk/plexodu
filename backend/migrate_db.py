@@ -81,6 +81,7 @@ def run_migration(engine):
 
     # 3. Add Phase 8 columns to trends and metrics if missing
     TRENDS_NEW_COLUMNS = [
+        ("observation_key", "VARCHAR(64)"),
         ("first_seen_at", "DATETIME"),
         ("last_seen_at", "DATETIME"),
         ("scan_count", "INTEGER DEFAULT 1"),
@@ -103,7 +104,8 @@ def run_migration(engine):
             for col_name, col_type in TRENDS_NEW_COLUMNS:
                 if col_name not in trend_cols:
                     logger.info(f"Adding column '{col_name}' to 'trends'")
-                    conn.execute(text(f"ALTER TABLE trends ADD COLUMN {col_name} {col_type}"))
+                    sql_type = col_type.replace("DATETIME", "TIMESTAMP") if engine.dialect.name == "postgresql" else col_type
+                    conn.execute(text(f"ALTER TABLE trends ADD COLUMN {col_name} {sql_type}"))
 
     if "metrics" in existing_tables:
         metric_cols = [c["name"] for c in inspector.get_columns("metrics")]
@@ -111,7 +113,8 @@ def run_migration(engine):
             for col_name, col_type in METRICS_NEW_COLUMNS:
                 if col_name not in metric_cols:
                     logger.info(f"Adding column '{col_name}' to 'metrics'")
-                    conn.execute(text(f"ALTER TABLE metrics ADD COLUMN {col_name} {col_type}"))
+                    sql_type = col_type.replace("DATETIME", "TIMESTAMP") if engine.dialect.name == "postgresql" else col_type
+                    conn.execute(text(f"ALTER TABLE metrics ADD COLUMN {col_name} {sql_type}"))
 
     # 4. Verify integrity of preserved application tables
     with engine.connect() as conn:

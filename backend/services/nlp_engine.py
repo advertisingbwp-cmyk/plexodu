@@ -48,9 +48,9 @@ def analyze_sentiment(comment_list):
         return {
             "positive_score": 0.0,
             "negative_score": 0.0,
-            "neutral_score": 100.0,
+            "neutral_score": 0.0,
             "average_polarity": 0.0,
-            "dominant_sentiment": "neutral",
+            "dominant_sentiment": "unavailable",
             "sample_comment": "",
             "sample_comments": [],
         }
@@ -107,7 +107,7 @@ def analyze_sentiment(comment_list):
         "negative_score": round((counts["negative"] / classified_total) * 100, 2),
         "neutral_score": round((counts["neutral"] / classified_total) * 100, 2),
         "average_polarity": round(running_total / total, 3),
-        "dominant_sentiment": max(
+        "dominant_sentiment": "unavailable" if counts["unclassified"] == total else max(
             ["positive", "negative", "neutral"],
             key=lambda k: counts[k]
         ),

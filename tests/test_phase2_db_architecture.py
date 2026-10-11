@@ -145,14 +145,11 @@ def test_public_tools_work_without_user_or_session():
 
         # 5. Search endpoint (mocked YouTube fetch)
         mock_yt = {
-            "keyword": "python",
-            "platform": "YouTube",
-            "total_views": 100000,
-            "metrics": [{"date": "2026-09-13", "views": 100000, "likes": 5000, "shares": 500, "comments": 200}],
-            "comments": [{"text": "Great tutorial!"}],
-            "cached": True
+            "status": 200, "title": "Python", "comments": ["Great tutorial!"],
+            "daily_metrics": [{"date": "2026-09-13", "views": 100000, "likes": 5000, "shares": 0, "comments_count": 200}],
+            "related_keywords": []
         }
-        with patch("services.real_api.fetch_youtube_data", return_value=mock_yt):
+        with patch("main_flask_app.fetch_youtube_data", return_value=mock_yt):
             res = client.post("/api/search", json={"keyword": "python"})
             assert res.status_code == 200
 

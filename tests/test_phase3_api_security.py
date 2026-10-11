@@ -161,10 +161,9 @@ def test_youtube_timeout_returns_safe_json():
     with app.test_client() as client:
         with patch("main_flask_app.fetch_youtube_data", return_value={"status": 504, "error": "YouTube API request timed out."}):
             res = client.post("/api/search", json={"keyword": "timeout-test"})
-            assert res.status_code == 200  # returns search envelope with error status inside results
+            assert res.status_code == 504
             data = res.get_json()
-            assert "YouTube" in data.get("results", {})
-            assert data["results"]["YouTube"].get("status") == 504
+            assert "timed out" in data["error"]
 
 
 def test_groq_timeout_handled_with_fallback():
