@@ -28,6 +28,14 @@ Project: Social Media Trend Analysis System (Plexudo), implemented on YouTube.
 
 ## Verification and limits
 
-224 automated tests passed locally using mock keys and external HTTP blocked; JavaScript syntax and git diff whitespace checks passed. Updated three legacy tests whose fixtures/assertions relied on swallowed API errors or future-dated scans. Added 14 regression cases.
+226 automated tests passed locally using mock keys and external HTTP blocked; JavaScript syntax and git diff whitespace checks passed. Updated three legacy tests whose fixtures/assertions relied on swallowed API errors or future-dated scans. Added 16 regression cases plus a Node-based DOM rendering check.
 
-No real YouTube/Groq credentials, production database, browser layout, or Vercel deployment were validated in this environment. Distributed quota protection, AI Strategist fallback redesign, and wider app hardening are outside this focused release.
+PDF export was rendered and inspected; PDF/CSV response and baseline contents were tested. Targeted frontend DOM rendering checks passed for momentum, escaping, tags, titles, sentiment and forecast text. Browser layout could not be verified because Chromium download failed. No real YouTube/Groq credentials, production database or Vercel deployment were validated in this environment. Distributed quota protection, AI Strategist fallback redesign, and wider app hardening are outside this focused release.
+
+## Follow-up from the supplied live page
+
+- Removed the growthPct/momentumScore mismatch causing -NaN%; the row now labels a finite momentum index, with Pending for missing data.
+- Highest-view category and momentum-count labels no longer claim observed growth. Entertainment and Film/Animation no longer map to Comedy/Lifestyle.
+- General feeds ask for a topic before suggesting titles/tags. Specific searches produce explicitly labeled editable title templates without Groq latency or unrelated AI text.
+- PDF/CSV preserve Baseline/Pending; PDF text is escaped and filenames sanitized. CSV keywords starting with formula characters are escaped.
+- Channel-audit action opens its input page instead of treating a topic as a channel handle.

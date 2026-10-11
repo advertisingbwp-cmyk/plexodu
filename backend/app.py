@@ -18,6 +18,7 @@ from datetime import datetime, date, timedelta, timezone
 from flask import Flask, request, jsonify, send_from_directory, send_file, Response, redirect
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
 sys.path.append(os.path.dirname(__file__))
@@ -402,14 +403,18 @@ def _process_platform(keyword, platform_name, fetch_fn, region="Global", categor
     top_v_title = raw.get("title", "")
     top_video_titles = [top_v_title] if top_v_title else []
 
-    title_objs = generate_context_aware_titles(
-        keyword=keyword,
-        topic="",
-        related_queries=related_list,
-        top_video_titles=top_video_titles,
-        count=4
-    )
-    seo_title_ideas = [t["title"] for t in title_objs]
+    # Keep optional writing assistance deterministic and off the critical API path.
+    # A general feed does not identify a single subject for meaningful titles/tags.
+    general_feed = keyword.lower().strip() in {"trending", "all", "pulsecheck"}
+    if general_feed:
+        youtube_tags, hashtag_list, seo_title_ideas = [], [], []
+    else:
+        seo_title_ideas = [
+            f"{keyword}: A Beginner's Guide",
+            f"{keyword}: Key Questions Answered",
+            f"Understanding {keyword}: A Step-by-Step Overview",
+            f"{keyword}: What to Know Before You Start",
+        ]
 
     # Only compare the same filters AND video cohort. Legacy rows have no key.
     cohort = sorted(v["id"] for v in raw.get("top_videos", []) if v.get("id"))
@@ -644,12 +649,12 @@ def generate_report(trend_id):
             "platform": trend.platform,
             "total_views": trend.total_views,
         }
-        stage = classify_trend_stage(trend.growth_rate)
+        stage = trend.current_direction or "BASELINE"
 
         user_email = "Anonymous User"
 
         filename, buffer = generate_pdf_report_buffer(
-            trend_dict, sentiment_dict, trend.growth_rate, trend.virality_score, stage, user_email
+            trend_dict, sentiment_dict, None if stage == "BASELINE" else trend.growth_rate, trend.virality_score, stage, user_email
         )
 
         report = Report(trend_id=trend_id, generated_by=None, format="PDF", file_path=f"memory://{filename}")
@@ -691,10 +696,11 @@ def export_csv(trend_id):
     writer.writerow([])
 
     writer.writerow(["Keyword", "Platform", "Total Views", "Growth Rate (%)", "Virality Score", "Trend Stage", "Timestamp"])
-    stage = classify_trend_stage(trend.growth_rate)
+    stage = trend.current_direction or "BASELINE"
+    safe_keyword = "'" + trend.keyword if trend.keyword.lstrip().startswith(("=", "+", "-", "@")) else trend.keyword
     writer.writerow([
-        trend.keyword, trend.platform, trend.total_views,
-        trend.growth_rate, trend.virality_score, stage,
+        safe_keyword, trend.platform, trend.total_views,
+        "Pending" if stage == "BASELINE" else trend.growth_rate, trend.virality_score, stage,
         trend.timestamp.strftime("%Y-%m-%d %H:%M")
     ])
     writer.writerow([])
@@ -718,7 +724,7 @@ def export_csv(trend_id):
 
     _log_action("EXPORT_CSV", f"trend_id={trend_id} keyword={trend.keyword}")
 
-    filename = f"plexudo_{trend.keyword.replace(' ', '_')}_YouTube.csv"
+    filename = f"plexudo_{secure_filename(trend.keyword) or 'topic'}_YouTube.csv"
     return Response(
         csv_data,
         mimetype="text/csv",

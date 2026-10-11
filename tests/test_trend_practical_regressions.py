@@ -89,3 +89,32 @@ def test_missing_comments_are_unavailable_not_neutral_or_positive():
         result = analyze_sentiment(comments)
         assert result['dominant_sentiment'] == 'unavailable'
         assert result['positive_score'] == result['neutral_score'] == 0
+
+
+def test_generic_feed_has_no_unrelated_titles_and_specific_topic_is_fast():
+    mod = get_flask_module()
+    raw = {'status': 200, 'title': 'Test', 'comments': [], 'related_keywords': [],
+           'daily_metrics': [{'date': '2026-10-11', 'views': 100, 'likes': 2, 'comments_count': 0, 'shares': 0}]}
+    with patch.object(mod, 'fetch_youtube_data', return_value=raw), patch.object(mod, 'generate_context_aware_titles', side_effect=AssertionError('No AI dependency in main search')):
+        client = mod.app.test_client()
+        general = client.get('/api/trending-feed').json['results']['YouTube']
+        assert general['seo_title_ideas'] == []
+        topic = client.post('/api/search', json={'keyword': 'Minecraft'}).json['results']['YouTube']
+        assert len(topic['seo_title_ideas']) == 4
+        assert all('Minecraft' in title for title in topic['seo_title_ideas'])
+        assert topic['youtube_tags'][0] == 'Minecraft'
+        csv = client.get(f"/api/export-csv/{topic['trend_id']}")
+        assert csv.status_code == 200
+        assert 'Pending' in csv.text and 'BASELINE' in csv.text
+        pdf = client.get(f"/api/report/{topic['trend_id']}")
+        assert pdf.status_code == 200 and pdf.data.startswith(b'%PDF')
+
+
+def test_pdf_keyword_is_literal_text_not_reportlab_markup():
+    from services.report_generator import generate_pdf_report_buffer
+    filename, content = generate_pdf_report_buffer(
+        {'keyword': '<broken & topic>', 'platform': 'YouTube', 'total_views': 100},
+        {'positive_score': 0, 'negative_score': 0, 'neutral_score': 0, 'dominant_sentiment': 'unavailable'},
+        None, 20, 'BASELINE', 'Anonymous User')
+    assert content.read(4) == b'%PDF'
+    assert '<' not in filename

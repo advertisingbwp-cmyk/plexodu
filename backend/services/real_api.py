@@ -129,7 +129,7 @@ CATEGORY_MAP = {
     "10": ("Music", "#FF6B4A"),
     "20": ("Gaming", "#8B5CF6"),
     "23": ("Comedy", "#FBBF24"),
-    "24": ("Comedy", "#FBBF24"),
+    "24": ("Entertainment", "#FBBF24"),
     "28": ("Tech", "#38BDF8"),
     "2":  ("Tech", "#38BDF8"),
     "27": ("Education", "#4ADE80"),
@@ -137,7 +137,7 @@ CATEGORY_MAP = {
     "17": ("Sports", "#F472B6"),
     "25": ("News", "#94A3B8"),
     "22": ("Lifestyle", "#FB923C"),
-    "1":  ("Lifestyle", "#FB923C"),
+    "1":  ("Film & Animation", "#FB923C"),
     "19": ("Lifestyle", "#FB923C"),
 }
 
@@ -344,6 +344,12 @@ def fetch_youtube_data(keyword: str, region: str = "Global", category: str = "Al
         c_vids = [v for v in top_videos if v["category"] == c["name"]]
         c_val = sum(v["views"] for v in c_vids)
         cat_breakdown.append({"name": c["name"], "hue": c["hue"], "value": c_val})
+    known_categories = {c["name"] for c in cat_breakdown}
+    for v in top_videos:
+        if v["category"] not in known_categories:
+            name = v["category"]
+            cat_breakdown.append({"name": name, "hue": v["hue"], "value": sum(item["views"] for item in top_videos if item["category"] == name)})
+            known_categories.add(name)
     cat_breakdown.sort(key=lambda x: x["value"], reverse=True)
     top_cat_name = cat_breakdown[0]["name"] if cat_breakdown and cat_breakdown[0]["value"] > 0 else (category if category != "All" else "Trending")
 

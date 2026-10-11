@@ -494,8 +494,10 @@ function renderTrendingList(videos, query) {
 
   listEl.innerHTML = videos
     .map((v) => {
-      const isPos = v.growthPct >= 0;
-      const absGrowth = Math.abs(v.growthPct);
+      const momentum = Number(v.momentumScore);
+      const hasMomentum = v.momentumScore != null && Number.isFinite(momentum);
+      const isPos = hasMomentum && momentum >= 0;
+      const absGrowth = hasMomentum ? Math.abs(momentum) : null;
       const deltaColor = isPos ? "#16A34A" : "#DC2626";
       const hue = v.hue || "#4F46E5";
 
@@ -510,7 +512,7 @@ function renderTrendingList(videos, query) {
         </div>
 
         <div class="pulsecheck-row-main">
-          <div class="pulsecheck-row-title" title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>
+          <div class="pulsecheck-row-title" title="${escapeAttr(v.title)}">${escapeHtml(v.title)}</div>
           <div class="pulsecheck-row-meta">
             <span>${escapeHtml(v.channel)}</span>
             <span class="pulsecheck-dot">&bull;</span>
@@ -541,16 +543,16 @@ function renderTrendingList(videos, query) {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/>
           </svg>
-          <span>${v.engagement.toFixed(1)}%</span>
+          <span>${Number.isFinite(Number(v.engagement)) ? Number(v.engagement).toFixed(1) : "0.0"}%</span>
         </div>
 
-        <div class="pulsecheck-growth ${isPos ? "pos" : "neg"}" title="Velocity Growth">
+        <div class="pulsecheck-growth ${isPos ? "pos" : "neg"}" title="Heuristic momentum index relative to 1,500 lifetime-average views/hour; not observed growth">
           ${
             isPos
               ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${deltaColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`
               : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${deltaColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>`
           }
-          <span>${isPos ? "+" : "-"}${absGrowth}%</span>
+          <span>${hasMomentum ? (isPos ? "+" : "-") + absGrowth + " idx" : "Pending"}</span>
         </div>
       </div>
     `;
@@ -634,7 +636,7 @@ function renderDeepIntelligence(ytData) {
 
   const sampleCommentText = document.getElementById("sampleCommentText");
   if (sampleCommentText) {
-    sampleCommentText.textContent = sentiment.sample_comment || (ytData.comments && ytData.comments[0]) || "Audience discussion reflects healthy creator momentum.";
+    sampleCommentText.textContent = sentiment.sample_comment || (ytData.comments && ytData.comments[0]) || "No audience comments available for this sample.";
   }
 
   // 5. Trend Milestones & Events
@@ -721,7 +723,10 @@ function renderDeepIntelligence(ytData) {
     }
   } else {
     if (forecastGrid) forecastGrid.style.display = "none";
-    if (forecastFallback) forecastFallback.style.display = "block";
+    if (forecastFallback) {
+      forecastFallback.style.display = "block";
+      forecastFallback.textContent = fc.reason || "Requires at least 3 observations spanning 48 hours. Projection is illustrative.";
+    }
   }
 
   // 8. High-CTR Tag Combinations
@@ -729,7 +734,7 @@ function renderDeepIntelligence(ytData) {
   if (tagsList) {
     const tags = ytData.youtube_tags || [];
     if (tags.length === 0) {
-      tagsList.innerHTML = `<span class="text-slate-400 font-0-85">No specific tags extracted.</span>`;
+      tagsList.innerHTML = `<span class="text-slate-400 font-0-85">Search a specific topic to generate tag suggestions.</span>`;
     } else {
       tagsList.innerHTML = tags.map((t) => `
         <span class="tag-item-default" data-copy="${escapeAttr(t)}" title="Click to copy">
@@ -759,7 +764,7 @@ function renderDeepIntelligence(ytData) {
   if (aiTitlesList) {
     const titles = ytData.seo_title_ideas || [];
     if (titles.length === 0) {
-      aiTitlesList.innerHTML = `<span class="text-slate-400 font-0-85">No titles generated yet.</span>`;
+      aiTitlesList.innerHTML = `<span class="text-slate-400 font-0-85">Search a specific topic to generate editable title templates.</span>`;
     } else {
       aiTitlesList.innerHTML = titles.map((title) => `
         <div class="flex-between-center p-12 bg-slate-50 border-slate-200 radius-10">
@@ -1136,8 +1141,7 @@ function initConnectedActions() {
   const ctaComp = document.getElementById("ctaCompetitorBtn");
   if (ctaComp) {
     ctaComp.addEventListener("click", () => {
-      const topic = currentKeyword || (document.getElementById("pulseSearchInput")?.value.trim() || "");
-      window.location.href = `/tools/competitor-audit${topic ? "?channel=" + encodeURIComponent(topic) : ""}`;
+      window.location.href = "/tools/competitor-audit";
     });
   }
 
