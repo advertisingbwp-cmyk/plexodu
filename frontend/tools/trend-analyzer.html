@@ -11,8 +11,9 @@
 <link rel="icon" type="image/png" sizes="64x64" href="/favicon.png?v=3">
 <link rel="stylesheet" href="/css/style.css?v=26.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="/css/trend-analyzer.css?v=1.0">
 </head>
-<body>
+<body class="trend-ui">
 
 <header>
   <nav class="navbar" aria-label="Main site navigation">
@@ -37,7 +38,7 @@
       </ul>
 
       <div class="nav-actions">
-        <a href="/tools" class="btn-primary" style="text-decoration:none;">Explore Tools ➔</a>
+        <a href="/tools" class="btn-secondary">Explore Tools ➔</a>
         <button class="hamburger-btn" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
@@ -54,7 +55,7 @@
         <li><a href="/#faq" class="nav-link" onclick="toggleMobileMenu()">FAQ</a></li>
       </ul>
       <div>
-        <a href="/tools" class="btn-primary" class="nav-mobile-cta">Explore Tools ➔</a>
+        <a href="/tools" class="btn-secondary nav-mobile-cta">Explore Tools ➔</a>
       </div>
     </div>
   </nav>
@@ -106,7 +107,7 @@
       </div>
     </div>
 
-    <div id="statusLine" class="tool-status-bar" style="display:none; margin-bottom:16px;"></div>
+    <div id="statusLine" role="status" aria-live="polite" class="tool-status-bar" style="display:none; margin-bottom:16px;"></div>
 
     <div id="pulseLoading" class="tool-loading" style="display:none; padding:32px 16px;">
       <div class="tool-spinner"></div>
@@ -265,7 +266,7 @@
         <!-- 1. Interactive Trend Graph & Velocity -->
         <div class="tool-results-panel">
           <div class="trend-graph-header">
-            <h3 class="m-0 font-1-1">📈 Time-Series View Trajectory</h3>
+            <h2 class="m-0 font-1-1">📈 Time-Series View Trajectory</h2>
             <div class="trend-timeframe-tabs">
               <button class="trend-tab-btn active" data-range="all">All</button>
               <button class="trend-tab-btn" data-range="1d">1D</button>
@@ -309,7 +310,8 @@
 
         <!-- 2. Historical Context Table -->
         <div class="tool-results-panel">
-          <h3 class="mb-12 font-1-1">⏱️ Historical Change Windows</h3>
+          <h2 class="mb-12 font-1-1">⏱️ Historical Change Windows</h2>
+          <p class="text-muted mb-12">Snapshots are saved when you run a search; collection is not automatic. Repeat the same topic and filters over time. Comparisons appear once enough observations of the same video set are available.</p>
           <table class="trend-history-table">
             <thead>
               <tr>
@@ -319,26 +321,7 @@
               </tr>
             </thead>
             <tbody id="historyTableBody">
-              <tr>
-                <td><strong>1 Day</strong></td>
-                <td>—</td>
-                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-              </tr>
-              <tr>
-                <td><strong>7 Days</strong></td>
-                <td>—</td>
-                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-              </tr>
-              <tr>
-                <td><strong>30 Days</strong></td>
-                <td>—</td>
-                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-              </tr>
-              <tr>
-                <td><strong>90 Days</strong></td>
-                <td>—</td>
-                <td><span class="panel-badge badge-stable">Insufficient history</span></td>
-              </tr>
+              <tr><td colspan="3" class="trend-history-progress">Data collection in progress. Historical comparisons will appear when enough comparable observations are saved.</td></tr>
             </tbody>
           </table>
         </div>
@@ -348,10 +331,10 @@
       <div class="trend-intel-col">
         <!-- 3. Sentiment & Real Voice -->
         <div class="tool-results-panel">
-          <h3 class="mb-16 font-1-1">💬 Audience Sentiment</h3>
+          <h2 class="mb-16 font-1-1">💬 Audience Sentiment</h2>
           <p class="text-muted">Sampled comments from the top-ranked video, analyzed with English-oriented TextBlob. Urdu and other languages may not be classified reliably.</p>
           <div id="sentimentSummary" class="mb-16">
-            <div class="flex-between-center mb-8">
+            <div class="trend-sentiment-label mb-8">
               <span>Dominant Sentiment:</span>
               <span id="dominantSentimentBadge" class="panel-badge badge-stable">Neutral</span>
             </div>
@@ -367,7 +350,7 @@
 
         <!-- 4. Trend Milestones & Events -->
         <div class="tool-results-panel">
-          <h3 class="mb-12 font-1-1">⚡ Trend Milestones & Events</h3>
+          <h2 class="mb-12 font-1-1">⚡ Trend Milestones & Events</h2>
           <div id="trendEventsList" class="trend-events-list">
             <div class="trend-event-item">
               <div class="trend-event-icon">📍</div>
@@ -381,31 +364,32 @@
         </div>
 
         <!-- 5. 7-Day Forecast Projection -->
-        <div class="tool-results-panel">
-          <h3 class="mb-12 font-1-1">🔮 Conservative 7-Day Projection</h3>
+        <details id="forecastPanel" class="tool-results-panel trend-forecast-panel">
+          <summary><h2 class="font-1-1">🔮 Conservative 7-Day Projection</h2></summary>
           <div id="forecastContainer">
             <div id="forecastFallback" class="p-16 text-slate-500 text-center font-0-9">
               Illustrative projection requires at least 3 observations spanning 48 hours. It is not a guaranteed prediction.
             </div>
             <div id="forecastGrid" class="trend-forecast-grid" style="display:none;"></div>
           </div>
-        </div>
+        </details>
       </div>
     </div>
 
     <!-- Tags & AI Titles -->
     <div class="tool-results-panel mb-24">
-      <h3 class="mb-12 font-1-1">🏷️ Generated YouTube Tags</h3>
+      <h2 class="mb-12 font-1-1">🏷️ Generated YouTube Tags</h2>
       <div id="tagsList" class="tags-wrap mb-16"></div>
       <div id="hashtagsList" class="tags-wrap mb-24"></div>
 
-      <h3 class="mb-12 font-1-1">💡 Topic-Based Title Templates</h3>
+      <h2 class="mb-12 font-1-1">💡 Topic-Based Title Templates</h2>
       <div id="aiTitlesList" class="flex-col-gap"></div>
     </div>
 
     <!-- Cross-Tool Action Links & Export Actions -->
     <div class="tool-results-panel mb-24">
-      <h3 class="mb-12 font-1-1">🚀 Connected Workflows &amp; Actions</h3>
+      <h2 class="mb-12 font-1-1">🚀 Connected Workflows &amp; Actions</h2>
+      <h3 class="trend-action-label">Explore related tools</h3>
       <div class="trend-action-links trend-action-grid">
         <button id="ctaStrategistBtn" class="tool-secondary-btn trend-action-btn" type="button">
           ✨ Generate Content Strategy for This Topic ➔
@@ -415,6 +399,7 @@
         </button>
       </div>
       <!-- Export Action Row -->
+      <h3 class="trend-action-label trend-export-label">Download this analysis</h3>
       <div class="trend-action-links trend-action-grid trend-action-grid-export">
         <button id="exportPdfBtn" class="tool-secondary-btn trend-action-btn" type="button">📄 Export PDF Report</button>
         <button id="exportCsvBtn" class="tool-secondary-btn trend-action-btn" type="button">📊 Export CSV Data</button>
@@ -493,6 +478,6 @@
 </footer>
 
 <script src="/js/tools/common.js?v=10.0"></script>
-<script src="/js/tools/trend-analyzer.js?v=28.0"></script>
+<script src="/js/tools/trend-analyzer.js?v=30.0"></script>
 </body>
 </html>
