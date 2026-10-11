@@ -689,11 +689,11 @@ function renderDeepIntelligence(ytData) {
     ];
 
     historyTableBody.innerHTML = windows.map((w) => {
-      const entry = hw[w.key] || { status: "insufficient_history", display: "Insufficient history" };
+      const entry = hw[w.key] || { status: "insufficient_history", display: "Data collection in progress" };
       const isAvail = entry.status === "available" && entry.change_pct !== null && entry.change_pct !== undefined;
       const badgeClass = isAvail ? (entry.change_pct >= 0 ? "badge-rising" : "badge-falling") : "badge-stable";
       const growthDisplay = isAvail ? `${entry.change_pct > 0 ? "+" : ""}${entry.change_pct}%` : "—";
-      const statusText = isAvail ? "Audited" : "Insufficient history";
+      const statusText = isAvail ? "Available" : "Data collection in progress";
 
       return `
         <tr>
